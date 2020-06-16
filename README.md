@@ -11,10 +11,6 @@ x86-compatible low-level SW.
   feedback. This allows to run many x86 FW and OS kernels with any desired
   toolchain and without major modifications.
 
-- Instead of modeling an API like e.g. Syzkaller or Peach, kAFL provides a more
-  low-level hypercall API that can be used by the Tester to inject fuzz input at
-  the desired subsystem and flexibly raise error conditions back to the fuzzer.
-
 - kAFL uses a modular design, using a (homebrew) python fuzzer that can talk to
   multiple Qemu instances via SHM and pipes. It is designed for parallel and
   persistent mode fuzzing but also easy to adapt to special cases, such as
@@ -66,8 +62,7 @@ Lauch `kAFL-Fuzzer/kafl_fuzz.py` to verify all python dependencies are met. You
 should be able to get a help message with the detailed list of parameters:
 
 ```
-$ python3 ~/kafl/kAFL-Fuzzer/kafl_fuzz.py VM -h
-$ python3 ~/kafl/kAFL-Fuzzer/kafl_fuzz.py Kernel -h
+$ python3 ~/kafl/kAFL-Fuzzer/kafl_fuzz.py -h
 ```
 
 You may have to hunt down some python dependencies that did not install

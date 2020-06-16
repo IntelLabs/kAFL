@@ -10,9 +10,67 @@ set -e
 TARGET_ROOT="$(dirname ${PWD}/${0})"
 [ -n "$KAFL_ROOT" ] || KAFL_ROOT=${PWD}
 
+SDK_URL="https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.11.3/zephyr-sdk-0.11.3-setup.run"
+
 KAFL_OPTS="-p $(nproc) -grimoire -redqueen -hammer_jmp_tables -catch_reset"
 
+function fetch_zephyr() {
+	echo -e "\nInstalling Zephyr to $KAFL_ROOT/zephyrproject.\n\tHit Enter to install or ctrl-c to abort."
+	read
+	echo "[-] Fetching dependencies.."
+	# https://docs.zephyrproject.org/latest/getting_started/installation_linux.html
+	sudo apt-get update
+	sudo apt-get upgrade
+	sudo apt-get install --no-install-recommends \
+		git cmake ninja-build gperf ccache dfu-util \
+		device-tree-compiler wget python3-pip python3-setuptools \
+		python3-wheel python3-yaml xz-utils file make gcc gcc-multilib
+
+	# missing deps on Ubuntu?
+	sudo apt-get install python3-pyelftools
+
+	# use west to fetch Zephyr
+	pip3 install --user west
+	which west || ( echo "Error: ~/.local/bin not in \$PATH?"; exit )
+
+	echo "[-] Fetching Zephyr components.."
+	pushd $KAFL_ROOT
+	west init zephyrproject
+	cd zephyrproject
+	west update
+	pip3 install --user -r zephyr/scripts/requirements.txt
+	popd
+}
+
+function fetch_sdk() {
+
+	# Download Zephyr SDK. Not pretty.
+	pushd $KAFL_ROOT
+	INSTALLER=$(basename $SDK_URL)
+	wget -c -O $INSTALLER $SDK_URL
+	bash $INSTALLER
+}
+
+function check_sdk() {
+
+	# fetch Zephyr and SDK if not available
+	test -d "$TARGET_ROOT/zephyrproject" || fetch_zephyr
+	test -f "$HOME/.zephyrrc" || fetch_sdk
+
+	# check again and this time bail out on error
+	test -d "$TARGET_ROOT/zephyrproject" || (echo "Could not find Zephyr install. Exit."; exit)
+	test -f "$HOME/.zephyrrc" || (echo "Could not find Zephyr SDK. Exit."; exit)
+	source "$TARGET_ROOT/zephyrproject/zephyr/zephyr-env.sh"
+
+	echo "Using Zephyr build settings:"
+	echo " ZEPHYR_BASE=$ZEPHYR_BASE"
+	echo " ZEPHYR_SDK_INSTALL_DIR=$ZEPHYR_SDK_INSTALL_DIR"
+	echo " ZEPHYR_TOOLCHAIN_VARIANT=$ZEPHYR_TOOLCHAIN_VARIANT"
+}
+
 function build_app() {
+
+	check_sdk
 
 	if [[ -z "$ZEPHYR_TOOLCHAIN_VARIANT" ]] || [[ -z "$ZEPHYR_BASE" ]]; then
 		printf "\tError: Zephyr SDK is not active, skipping Zephyr targets!\n"
@@ -20,7 +78,7 @@ function build_app() {
 	fi
 
 	# select target app / variant
-	APP=$1; shift || APP="TEST"
+	APP=$1; shift
 
 	pushd $TARGET_ROOT
 	test -d build && rm -rf build
@@ -30,7 +88,6 @@ function build_app() {
 	ninja
 	popd
 }
-
 
 function run() {
 	pushd $KAFL_ROOT
@@ -92,6 +149,7 @@ function usage() {
 	echo "Usage: $0 <cmd> <args>"
 	echo
 	echo Available commands:
+	echo -e "\tzephyr      - check Zephyr install, fetch and install any dependencies"
 	echo -e "\tbuild <TEST|JSON|FS>  - build the test, json or fs fuzzing sample"
 	echo -e "\trun [args]  - run the currently build sample with optional kAFL args"
 	echo -e "\tcov <dir>   - process corpus of existing workdir and collect coverage info"
@@ -103,6 +161,9 @@ function usage() {
 CMD=$1; shift || usage
 
 case $CMD in
+	"zephyr")
+		check_sdk
+		;;
 	"run")
 		run $*
 		;;

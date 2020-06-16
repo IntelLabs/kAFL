@@ -53,7 +53,8 @@ Use `kafl_info.py` and the generated `info` executable to get the address ranges
 python3 kAFL-Fuzzer/kafl_info.py \
        -kernel /vmlinuz \
        -initrd targets/test_lava/packed/who/who_info_initrd.gz \
-       -work_dir /tmp/kafl_workdir/
+       -work_dir /tmp/kafl_workdir/ \
+       -forkserver \
        -mem 500
 ```
 
@@ -66,6 +67,7 @@ python3 kAFL-Fuzzer/kafl_fuzz.py \
        -mem 500 \
        -work_dir /tmp/kafl_workdir \
        -seed_dir targets/test_lava/seeds \
+       -forkserver \
        -ip0 0x400000-0x47c000 -hammer_jmp_tables -D -redqueen -v -p 2
 ```
 
