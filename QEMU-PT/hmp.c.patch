@@ -1,0 +1,234 @@
+# 
+# This file is part of Redqueen.
+#
+# Sergej Schumilo, 2019 <sergej@schumilo.de> 
+# Cornelius Aschermann, 2019 <cornelius.aschermann@rub.de> 
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+45a46,258
+> #if defined(CONFIG_PROCESSOR_TRACE)
+> #include "pt.h"
+> #include "qom/cpu.h"
+> 
+> static inline bool hmp_pt_check_kvm(Monitor *mon){
+>         KvmInfo *info;
+>         info = qmp_query_kvm(NULL);
+>         
+>         if (!info->enabled){
+>                 monitor_printf(mon, "kvm is not used...\n");
+>                 qapi_free_KvmInfo(info);
+>                 return false;
+>         }        
+>         qapi_free_KvmInfo(info);
+>         return true;
+> }
+> 
+> static inline int hmp_pt_get_cpuid(Monitor *mon, const QDict *qdict){
+>         int cpuid = qdict_get_int(qdict, "id");    
+>         if(cpuid < 0 || !qemu_get_cpu(cpuid)){
+>                 monitor_printf(mon, "invalid CPU id\n");
+>                 cpuid = -1;
+>         }
+>         return cpuid;
+> }
+> 
+> static inline void hmp_pt_enable_cpu(Monitor *mon, int cpuid){
+>     CPUState *cpu = qemu_get_cpu(cpuid);
+>     if (!cpu->pt_enabled){
+>         if(!pt_enable(qemu_get_cpu(cpuid), true)){
+>             monitor_printf(mon, "CPU %d: processor trace enabled!\n", cpuid);
+>         }
+>         else{
+>             monitor_printf(mon, "CPU %d: failed...\n", cpuid);
+>         }
+>     }
+> }
+> 
+> static inline void hmp_pt_disable_cpu(Monitor *mon, int cpuid){
+>     CPUState *cpu = qemu_get_cpu(cpuid);
+>     if (cpu->pt_enabled){
+>         if(!pt_disable(qemu_get_cpu(cpuid), true)){
+>             monitor_printf(mon, "CPU %d: processor trace disabled!\n", cpuid);
+>         }
+>         else{
+>             monitor_printf(mon, "CPU %d: failed...\n", cpuid);
+>         }
+>     }
+> }
+> 
+> static inline void hmp_pt_enable_ip_filtering_cpu(Monitor *mon, int cpuid, int addrn, uint64_t addr_a, uint64_t addr_b){
+> #ifdef CONFIG_REDQUEEN
+>         if(!pt_enable_ip_filtering(qemu_get_cpu(cpuid), addrn, addr_a, addr_b, false, true)){
+> #else
+>         if(!pt_enable_ip_filtering(qemu_get_cpu(cpuid), addrn, addr_a, addr_b, true)){    
+> #endif
+>         monitor_printf(mon, "CPU %d: ip filtering enabled...\n", cpuid);
+>         }
+>         else{
+>             monitor_printf(mon, "CPU %d: failed...\n", cpuid);
+>         }
+> }
+> 
+> 
+> static inline void hmp_pt_status_cpu(Monitor *mon, int cpuid){
+>         int i;
+>         CPUState *cpu = qemu_get_cpu(cpuid);
+>         monitor_printf(mon, "Processor Trace Status (CPU %d)\n", cpuid);
+>         if (cpu->pt_enabled){
+>                 monitor_printf(mon, "\tenabled:\t\tyes\n");
+>         }
+>         else{
+>                 monitor_printf(mon, "\tenabled:\t\tno\n");
+>         }
+>         monitor_printf(mon, "\tToPA overflows:\t\t%u\n", cpu->overflow_counter);
+>         monitor_printf(mon, "\ttrace data size:\t%lu (%luMB)\n", cpu->trace_size, cpu->trace_size >> 20);
+> 
+>         for(i = 0; i < 4; i++){
+>                 if (cpu->pt_ip_filter_enabled[i]){
+>                         switch(i){
+>                                 case 0:
+>                                 case 1:
+>                                 case 2:
+>                                 case 3:
+>                                         monitor_printf(mon, "\tpt_ip_filter_%d_a:\t0x%016lx\n", i, cpu->pt_ip_filter_a[i]);
+>                                         monitor_printf(mon, "\tpt_ip_filter_%d_b:\t0x%016lx\n", i, cpu->pt_ip_filter_b[i]);
+>                                         break;
+>                         }
+>                 }        
+>         }
+> }
+> 
+> void hmp_pt_enable(Monitor *mon, const QDict *qdict)
+> {
+>         int cpuid = hmp_pt_get_cpuid(mon, qdict);
+>         if (!hmp_pt_check_kvm(mon) || (cpuid < 0))
+>                 return;
+>         hmp_pt_enable_cpu(mon, cpuid);
+> }
+> 
+> void hmp_pt_disable(Monitor *mon, const QDict *qdict)
+> {
+>         int cpuid = hmp_pt_get_cpuid(mon, qdict);
+>         if (!hmp_pt_check_kvm(mon) || (cpuid < 0))
+>                 return;
+>         hmp_pt_disable_cpu(mon, cpuid);
+> }
+> 
+> void hmp_pt_enable_all(Monitor *mon, const QDict *qdict)
+> {
+>         int cpuid;
+>         CpuInfoList *cpu_list, *cpu;
+>         
+>         if (!hmp_pt_check_kvm(mon))
+>                 return;
+>         
+>         cpu_list = qmp_query_cpus(NULL);
+>         for (cpu = cpu_list; cpu; cpu = cpu->next) {
+>                 cpuid = cpu->value->CPU;    
+>                 if (!(monitor_set_cpu(cpuid) < 0))
+>                         hmp_pt_enable_cpu(mon, cpuid);
+>         }
+>         qapi_free_CpuInfoList(cpu_list);
+> }
+> 
+> void hmp_pt_disable_all(Monitor *mon, const QDict *qdict)
+> {
+>         int cpuid;
+>         CpuInfoList *cpu_list, *cpu;
+>         
+>         if (!hmp_pt_check_kvm(mon))
+>                 return;
+>         
+>         cpu_list = qmp_query_cpus(NULL);
+>         for (cpu = cpu_list; cpu; cpu = cpu->next) {
+>                 cpuid = cpu->value->CPU;    
+>                 if (!(monitor_set_cpu(cpuid) < 0))
+>                         hmp_pt_disable_cpu(mon, cpuid);
+>         }
+>         qapi_free_CpuInfoList(cpu_list);
+> }
+> 
+> void hmp_pt_status(Monitor *mon, const QDict *qdict)
+> {
+>         int cpuid = hmp_pt_get_cpuid(mon, qdict);
+>         if (!hmp_pt_check_kvm(mon) || (cpuid < 0))
+>                 return;
+>         hmp_pt_status_cpu(mon, cpuid);
+> }
+> 
+> void hmp_pt_status_all(Monitor *mon, const QDict *qdict)
+> {
+>         int cpuid;
+>         CpuInfoList *cpu_list, *cpu;
+>         
+>         if (!hmp_pt_check_kvm(mon))
+>                 return;
+>         
+>         cpu_list = qmp_query_cpus(NULL);
+>         for (cpu = cpu_list; cpu; cpu = cpu->next) {
+>                 cpuid = cpu->value->CPU;    
+>                 if (!(monitor_set_cpu(cpuid) < 0))
+>                         hmp_pt_status_cpu(mon, cpuid);
+>         }
+>         qapi_free_CpuInfoList(cpu_list);
+> }
+> 
+> void hmp_pt_ip_filtering(Monitor *mon, const QDict *qdict)
+> {
+>         int cpuid, addrn;    
+>         uint64_t addr_a;
+>         uint64_t addr_b;
+>         
+>         cpuid = hmp_pt_get_cpuid(mon, qdict);
+>         if (!hmp_pt_check_kvm(mon) || (cpuid < 0))
+>                 return;
+>         
+>         addrn = qdict_get_int(qdict, "addrn");
+>         if(addrn < 0 || addrn >= 4){
+>                 monitor_printf(mon, "invalid addrn value (0-3)\n");
+>                 return;
+>         }
+>                 
+>         addr_a = qdict_get_int(qdict, "addr_a");
+>         addr_b = qdict_get_int(qdict, "addr_b");
+>             
+>         hmp_pt_enable_ip_filtering_cpu(mon, cpuid, addrn, addr_a, addr_b);
+> }
+> 
+> void hmp_pt_set_file(Monitor *mon, const QDict *qdict){
+>         int cpuid;
+>         CpuInfoList *cpu_list, *cpu;
+>         const char *filename = qdict_get_str(qdict, "file");
+>         char* new_filename;
+>                
+>         if (!hmp_pt_check_kvm(mon))
+>                 return;
+>         
+>         new_filename = malloc(sizeof(char)*(strlen(filename)+12));
+>         cpu_list = qmp_query_cpus(NULL);
+>         for (cpu = cpu_list; cpu; cpu = cpu->next) {
+>                 cpuid = cpu->value->CPU;    
+>                 if (!(monitor_set_cpu(cpuid) < 0)){
+>                         sprintf(new_filename, "%s_%d", filename, cpuid);
+>                         qemu_get_cpu(cpuid)->pt_target_file = fopen(new_filename, "wb");
+>                 }
+>         }
+>         free(new_filename);
+>         qapi_free_CpuInfoList(cpu_list);
+> }
+> 
+> #endif
+> 

@@ -1,0 +1,151 @@
+# 
+# This file is part of Redqueen.
+#
+# Sergej Schumilo, 2019 <sergej@schumilo.de> 
+# Cornelius Aschermann, 2019 <cornelius.aschermann@rub.de> 
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+42a43,49
+> #ifdef CONFIG_PROCESSOR_TRACE
+> #include "pt.h"
+> #include "pt/hypercall.h"
+> #include "pt/synchronization.h"
+> #endif
+> 
+> 
+321a329,333
+> #ifdef CONFIG_PROCESSOR_TRACE
+>     pt_kvm_init(cpu);
+> #endif
+> 
+> 
+1953a1966,1969
+> #ifdef CONFIG_PROCESSOR_TRACE
+> extern void qemu_system_reload_request(void);
+> #endif
+> 
+1970a1987,1988
+>         synchronization_check_reload_pending(cpu);
+> 
+2065a2084,2187
+> #ifdef CONFIG_PROCESSOR_TRACE
+>         case KVM_EXIT_KAFL_ACQUIRE:
+>             handle_hypercall_kafl_acquire(run, cpu);
+>             ret = 0;
+>             break;
+>         case KVM_EXIT_KAFL_GET_PAYLOAD:
+>             handle_hypercall_get_payload(run, cpu);
+>             ret = 0;
+>             break;
+>         case KVM_EXIT_KAFL_GET_PROGRAM:
+>             handle_hypercall_get_program(run, cpu);
+>             ret = 0;
+>             break;
+>         case KVM_EXIT_KAFL_RELEASE:
+>             handle_hypercall_kafl_release(run, cpu);
+>             ret = 0;
+>             break;
+>         case KVM_EXIT_KAFL_SUBMIT_CR3:
+>             handle_hypercall_kafl_cr3(run, cpu);
+>             ret = 0;
+>             break;
+>         case KVM_EXIT_KAFL_SUBMIT_PANIC:
+>             handle_hypercall_kafl_submit_panic(run, cpu);
+>             ret = 0;
+>             break;
+>         case KVM_EXIT_KAFL_SUBMIT_KASAN:
+>             handle_hypercall_kafl_submit_kasan(run, cpu);
+>             ret = 0;
+>             break;
+>         case KVM_EXIT_KAFL_PANIC:
+>             handle_hypercall_kafl_panic(run, cpu);
+>             ret = 0;
+>             break;
+>         case KVM_EXIT_KAFL_KASAN:
+>             handle_hypercall_kafl_kasan(run, cpu);
+>             ret = 0;
+>             break;
+>         case KVM_EXIT_KAFL_TIMEOUT:
+>             handle_hypercall_kafl_timeout(run, cpu);
+>             ret = 0;
+>             break;
+>         case KVM_EXIT_KAFL_LOCK:
+>             handle_hypercall_kafl_lock(run, cpu);
+>             ret = 0;
+>             break;
+>         case KVM_EXIT_KAFL_INFO:
+>             handle_hypercall_kafl_info(run, cpu);
+>             ret = 0;
+>             break;
+>         case KVM_EXIT_KAFL_NEXT_PAYLOAD:                                                                                                                                     
+>             handle_hypercall_kafl_next_payload(run, cpu);                                                                                                                    
+>             ret = 0;                                                                                                                                                         
+>             break;      
+>         case KVM_EXIT_KAFL_PRINTF:                                                                                                                                     
+>             handle_hypercall_kafl_printf(run, cpu);                                                                                                                    
+>             ret = 0;                                                                                                                                                         
+>             break;       
+>         case KVM_EXIT_KAFL_PRINTK_ADDR:                                                                                                                                     
+>             handle_hypercall_kafl_printk_addr(run, cpu);                                                                                                                    
+>             ret = 0;                                                                                                                                                         
+>             break;   
+>         case KVM_EXIT_KAFL_PRINTK:                                                                                                                                     
+>             handle_hypercall_kafl_printk(run, cpu);                                                                                                                    
+>             ret = 0;                                                                                                                                                         
+>             break;
+> 
+>         /* user space only exit reasons */
+>         case KVM_EXIT_KAFL_USER_RANGE_ADVISE:
+>             handle_hypercall_kafl_user_range_advise(run, cpu);
+>             ret = 0;  
+>             break;
+>         case KVM_EXIT_KAFL_USER_SUBMIT_MODE:
+>             handle_hypercall_kafl_user_submit_mode(run, cpu);
+>             ret = 0;  
+>             break;
+>         case KVM_EXIT_KAFL_USER_FAST_ACQUIRE:
+>             if(handle_hypercall_kafl_next_payload(run, cpu)){
+>                 handle_hypercall_kafl_cr3(run, cpu);   
+>                 handle_hypercall_kafl_acquire(run, cpu);
+>             }
+>             ret = 0;  
+>             break;
+>         case KVM_EXIT_KAFL_TOPA_MAIN_FULL:
+>             pt_handle_overflow(cpu);
+>             ret = 0;
+>             break;
+>         case KVM_EXIT_KAFL_USER_ABORT:
+>             handle_hypercall_kafl_user_abort(run, cpu);
+>             ret = 0;  
+>             break;
+> 
+> #ifdef CONFIG_REDQUEEN                                                                                                                                                    
+>         case KVM_EXIT_DEBUG:                                                                                                                                                 
+>             kvm_arch_get_registers(cpu);                                                                                                                                     
+>             if(!handle_hypercall_kafl_hook(run, cpu)){                                                                                                                       
+>                 ret = kvm_arch_handle_exit(cpu, run);                                                                                                                        
+>             }                                                                                                                                                                
+>             else {                                                                                                                                                           
+>                 ret = 0;                                                                                                                                                     
+>             }                                                                                                                                                                
+>             break;      
+> #endif                                                                                                                                                     
+> #endif     
+> 
+2093a2216,2218
+> #ifdef CONFIG_PROCESSOR_TRACE                                                                                                                                                
+>             pt_post_kvm_run(cpu);                                                                                                                                            
+> #endif    

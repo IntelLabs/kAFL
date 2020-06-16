@@ -1,0 +1,1 @@
+xcodebuild -project vuln.xcodeproj

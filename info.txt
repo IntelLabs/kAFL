@@ -1,0 +1,29 @@
+Direct release by original authors, with alternative and/or fixed up license
+markers compared to externally published repositories:
+https://github.com/RUB-SysSec/grimoire/ (kAFL-Fuzzer)
+https://github.com/RUB-SysSec/redqueen (QEMU-PT, KVM-PT, Target-Components)
+
+
+New license declarations as by email & attachments:
+
+kAFL-Fuzzer: AGPL-3.0-or-later
+QEMU-PT: GPLv2
+KVM-PT: GPLv2
+Target-Components: MIT
+
+
+Original email text:
+
+
+From: Cornelius Aschermann <cornelius.aschermann@ruhr-uni-bochum.de>
+Subject: Re: kAFL/Redqueen/Grimoire license
+Date: Wed, 3 Jun 2020 17:19:02 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Thunderbird/68.8.0
+To: Steffen Schulz <steffen.schulz@intel.com>
+
+Ich gebe euch mit dieser email die Erlaubnis den angehängten grimoire
+Code gemäß AGPL, und KVM-PT und QEMU-PT gemäß GPLv2 zu verwenden.
+Darüber hinaus könnt ihr die TargetComponents unter MIT Lizenz verwenden.
+
+Gruß Cornelius
+

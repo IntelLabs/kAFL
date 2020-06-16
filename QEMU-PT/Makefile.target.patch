@@ -1,0 +1,35 @@
+# 
+# This file is part of Redqueen.
+#
+# Sergej Schumilo, 2019 <sergej@schumilo.de> 
+# Cornelius Aschermann, 2019 <cornelius.aschermann@rub.de> 
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+145a146,147
+> obj-$(CONFIG_PROCESSOR_TRACE) += pt.o
+> obj-$(CONFIG_PROCESSOR_TRACE) += pt/
+150c152
+< LIBS := $(libs_softmmu) $(LIBS)
+---
+> LIBS := $(libs_softmmu) $(LIBS) -lcapstone
+165c167
+< GENERATED_FILES += hmp-commands.h hmp-commands-info.h
+---
+> GENERATED_FILES += hmp-commands.h hmp-commands-info.h hmp-commands-pt.h
+218a221,223
+> 
+> hmp-commands-pt.h: $(SRC_PATH)/hmp-commands-pt.hx
+> 	$(call quiet-command,sh $(SRC_PATH)/scripts/hxtool -h < $< > $@,"  GEN   $(TARGET_DIR)$@")

@@ -1,0 +1,103 @@
+# 
+# This file is part of Redqueen.
+#
+# Sergej Schumilo, 2019 <sergej@schumilo.de> 
+# Cornelius Aschermann, 2019 <cornelius.aschermann@rub.de> 
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+#
+132a133,140
+> #ifdef CONFIG_PROCESSOR_TRACE
+> #include "pt.h"
+> #include "pt/hypercall.h"
+> #include "pt/synchronization.h"
+> extern void qemu_system_reload_request(void);
+> #endif
+> 
+> 
+1599a1608,1611
+> #ifdef CONFIG_PROCESSOR_TRACE
+> static int reload_requested;
+> char* loadvm_global = NULL;
+> #endif
+1687a1700,1708
+> #ifdef CONFIG_PROCESSOR_TRACE
+> static int qemu_reload_requested(void)
+> {
+>     int r = reload_requested;
+>     reload_requested = 0;
+>     return r;
+> }
+> #endif
+> 
+1738a1760,1766
+> #ifdef CONFIG_PROCESSOR_TRACE
+>     if (kvm_enabled()) {
+>         synchronization_unlock();
+>         pt_disable(qemu_get_cpu(0), false);
+>     }
+> #endif
+> 
+1747a1776,1789
+> #ifdef CONFIG_PROCESSOR_TRACE
+> void qemu_system_reload_request(void)
+> {
+>     if (kvm_enabled()) {
+>         synchronization_unlock();
+>         pt_disable(qemu_get_cpu(0), false);
+>     }
+>     reload_requested = 1;
+>     cpu_stop_current();
+>     qemu_notify_event();
+> }
+> #endif
+> 
+> 
+1757a1800,1805
+> #ifdef CONFIG_PROCESSOR_TRACE
+>     if (kvm_enabled()) {
+>         synchronization_unlock();
+>         pt_disable(qemu_get_cpu(0), false);
+>     }
+> #endif
+1814a1863,1869
+> #ifdef CONFIG_PROCESSOR_TRACE
+>     if (kvm_enabled()) {
+>         synchronization_unlock();
+>         pt_disable(qemu_get_cpu(0), false);
+>     }
+> #endif
+> 
+1847a1903,1913
+> #ifdef CONFIG_PROCESSOR_TRACE
+>     if (qemu_reload_requested()){
+>         if(loadvm_global){
+>             vm_stop(RUN_STATE_RESTORE_VM);
+>             if (load_vmstate(loadvm_global) == 0){
+>                 vm_start();
+>             }
+>             return false; 
+>         }   
+>     }
+> #endif
+1907c1973
+<     printf("QEMU emulator version " QEMU_VERSION QEMU_PKGVERSION "\n"
+---
+>     printf("QEMU-PT emulator version " QEMU_VERSION QEMU_PKGVERSION "  (kAFL)\n"
+3627a3694,3696
+> #ifdef CONFIG_PROCESSOR_TRACE
+>                 loadvm_global = (char*)optarg;
+> #endif

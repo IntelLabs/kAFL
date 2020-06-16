@@ -1,0 +1,92 @@
+# 
+# This file is part of Redqueen.
+#
+# Sergej Schumilo, 2019 <sergej@schumilo.de> 
+# Cornelius Aschermann, 2019 <cornelius.aschermann@rub.de> 
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+54a55,59
+> #ifdef CONFIG_KVM_VMX_PT
+> #include "vmx_pt.h"
+> static int handle_monitor_trap(struct kvm_vcpu *vcpu);
+> #endif
+> 
+521a527,529
+> #ifdef CONFIG_KVM_VMX_PT
+> 	struct vcpu_vmx_pt*   vmx_pt_config;
+> #endif
+1801c1809
+< static void add_atomic_switch_msr(struct vcpu_vmx *vmx, unsigned msr,
+---
+> void add_atomic_switch_msr(struct vcpu_vmx *vmx, unsigned msr,
+8203a8212,8217
+> 	if(exit_reason == KVM_EXIT_KAFL_TOPA_MAIN_FULL){ /* TOPA_FULL */
+> 		//printk("EXIT REASON: TOPA_FULL\n");
+> 		vcpu->run->exit_reason = KVM_EXIT_KAFL_TOPA_MAIN_FULL;
+> 		return 0;
+> 	}
+> 
+8618a8633,8636
+> #ifdef CONFIG_KVM_VMX_PT
+> 	vmx_pt_vmentry(vmx->vmx_pt_config);
+> #endif
+> 
+8825a8844,8849
+> 	
+> 	#ifdef CONFIG_KVM_VMX_PT
+> 		if(vmx_pt_vmexit(vmx->vmx_pt_config)){
+> 			vmx->exit_reason = KVM_EXIT_KAFL_TOPA_MAIN_FULL;
+> 		}
+> 	#endif
+8855a8880,8884
+> 	
+> #ifdef CONFIG_KVM_VMX_PT
+> 	/* free vmx_pt */
+> 	vmx_pt_destroy(vmx, &(vmx->vmx_pt_config));
+> #endif
+8937a8967,8971
+> #ifdef CONFIG_KVM_VMX_PT
+> 	/* enable vmx_pt */
+> 	vmx_pt_setup(vmx, &(vmx->vmx_pt_config));
+> #endif
+> 
+10891a10926,10935
+> #ifdef CONFIG_KVM_VMX_PT
+> static int vmx_pt_setup_fd(struct kvm_vcpu *vcpu){
+> 	return vmx_pt_create_fd(to_vmx(vcpu)->vmx_pt_config);
+> }
+> 
+> static int vmx_pt_is_enabled(void){
+> 	return vmx_pt_enabled();
+> }
+> #endif	
+> 
+11015a11060,11064
+> 	
+> #ifdef CONFIG_KVM_VMX_PT
+> 	.setup_trace_fd = vmx_pt_setup_fd,
+> 	.vmx_pt_enabled = vmx_pt_is_enabled,
+> #endif	
+11029a11079,11081
+> #ifdef CONFIG_KVM_VMX_PT
+> 	vmx_pt_init();
+> #endif
+11039c11091,11093
+< 
+---
+> #ifdef CONFIG_KVM_VMX_PT
+> 	vmx_pt_exit();
+> #endif

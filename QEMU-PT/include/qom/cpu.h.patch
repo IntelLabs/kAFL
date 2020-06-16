@@ -1,0 +1,61 @@
+# 
+# This file is part of Redqueen.
+#
+# Sergej Schumilo, 2019 <sergej@schumilo.de> 
+# Cornelius Aschermann, 2019 <cornelius.aschermann@rub.de> 
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+370a371,410
+> #ifdef CONFIG_PROCESSOR_TRACE
+>     volatile int pt_cmd;
+>     volatile uint64_t pt_arg;
+>     volatile int pt_ret;
+>     volatile bool pt_enabled;
+> 
+>     int pt_fd;
+>     void* pt_mmap;
+> 
+>     volatile uint32_t overflow_counter;
+>     volatile uint64_t trace_size;
+> 
+>     uint64_t pt_features;
+> 
+>     volatile bool pt_ip_filter_enabled[4];
+>     uint64_t pt_ip_filter_a[4];
+>     uint64_t pt_ip_filter_b[4];
+>     void* pt_decoder_state[4];
+>     uint64_t pt_c3_filter;
+> 
+>     FILE *pt_target_file;
+>     bool reload_pending;
+>     bool executing;
+>     int disassembler_word_width;
+>     bool intel_pt_run_trashed;
+> 
+> #ifdef CONFIG_REDQUEEN
+>     void* redqueen_state[4];
+>     bool redqueen_enable_pending;
+>     bool redqueen_disable_pending;
+> 
+>     int redqueen_instrumentation_mode;
+>     bool redqueen_update_blacklist;
+> 
+>     bool patches_enable_pending;
+>     bool patches_disable_pending;
+>     void* redqueen_patch_state;
+> #endif
+> #endif
+> 

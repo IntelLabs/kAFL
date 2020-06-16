@@ -1,0 +1,16 @@
+    __                        __   ___    ________            
+   / /_____  _________  ___  / /  /   |  / ____/ /            
+  / //_/ _ \/ ___/ __ \/ _ \/ /  / /| | / /_  / /             
+ / ,< /  __/ /  / / / /  __/ /  / ___ |/ __/ / /___           
+/_/|_|\___/_/  /_/ /_/\___/_/  /_/  |_/_/   /_____/   
+===================================================
+
+kernel AFL: A feedback-driven general purpose ring-0 and ring-3 interface fuzzer for x86 / x86-64 code.
+
+Sergej Schumilo		<sergej@schumilo.de>
+Cornelius Aschermann	<cornelius.aschermann@rub.de>
+Robert Gawlik		<robert.gawlik@rub.de>
+
+Version: 0.2 (Redqueen SE)
+
+(C) 2018

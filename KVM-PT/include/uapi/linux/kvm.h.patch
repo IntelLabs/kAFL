@@ -1,0 +1,88 @@
+# 
+# This file is part of Redqueen.
+#
+# Sergej Schumilo, 2019 <sergej@schumilo.de> 
+# Cornelius Aschermann, 2019 <cornelius.aschermann@rub.de> 
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+208a209,238
+> #define HYPERCALL_KAFL_RAX_ID			0x01f
+> #define KAFL_EXIT_OFFSET			100
+>  
+> #define KVM_EXIT_KAFL_ACQUIRE			100
+> #define KVM_EXIT_KAFL_GET_PAYLOAD		101
+> #define KVM_EXIT_KAFL_GET_PROGRAM		102
+> #define KVM_EXIT_KAFL_GET_ARGV			103
+> #define KVM_EXIT_KAFL_RELEASE			104
+> #define KVM_EXIT_KAFL_SUBMIT_CR3		105
+> #define KVM_EXIT_KAFL_SUBMIT_PANIC		106
+> #define KVM_EXIT_KAFL_SUBMIT_KASAN		107
+> #define KVM_EXIT_KAFL_PANIC			108
+> #define KVM_EXIT_KAFL_KASAN			109
+> #define KVM_EXIT_KAFL_LOCK			110
+> #define KVM_EXIT_KAFL_INFO			111
+> #define KVM_EXIT_KAFL_NEXT_PAYLOAD		112
+> #define KVM_EXIT_KAFL_PRINTF			113
+> /* Kernel Printf Debugger */
+> #define KVM_EXIT_KAFL_PRINTK_ADDR		114
+> #define KVM_EXIT_KAFL_PRINTK			115
+> 
+> /* user space only exit reasons */
+> #define KVM_EXIT_KAFL_USER_RANGE_ADVISE		116
+> #define KVM_EXIT_KAFL_USER_SUBMIT_MODE		117
+> #define KVM_EXIT_KAFL_USER_FAST_ACQUIRE		118
+> 
+> #define KVM_EXIT_KAFL_TOPA_MAIN_FULL		119
+> #define KVM_EXIT_KAFL_USER_ABORT		120
+> #define KVM_EXIT_KAFL_TIMEOUT                	121
+> 
+1313a1344,1379
+> 
+> /*
+>  * ioctls for vmx_pt fds
+>  */
+> #define KVM_VMX_PT_SETUP_FD				_IO(KVMIO,	0xd0)			/* apply vmx_pt fd (via vcpu fd ioctl)*/
+> #define KVM_VMX_PT_CONFIGURE_ADDR0			_IOW(KVMIO,	0xd1, __u64)		/* configure IP-filtering for addr0_a & addr0_b */
+> #define KVM_VMX_PT_CONFIGURE_ADDR1			_IOW(KVMIO,	0xd2, __u64)		/* configure IP-filtering for addr1_a & addr1_b */
+> #define KVM_VMX_PT_CONFIGURE_ADDR2			_IOW(KVMIO,	0xd3, __u64)		/* configure IP-filtering for addr2_a & addr2_b */
+> #define KVM_VMX_PT_CONFIGURE_ADDR3			_IOW(KVMIO,	0xd4, __u64)		/* configure IP-filtering for addr3_a & addr3_b */
+> 
+> #define KVM_VMX_PT_CONFIGURE_CR3			_IOW(KVMIO,	0xd5, __u64)		/* setup CR3 filtering value */
+> #define KVM_VMX_PT_ENABLE				_IO(KVMIO,	0xd6)			/* enable and lock configuration */ 
+> #define KVM_VMX_PT_GET_TOPA_SIZE			_IOR(KVMIO,	0xd7, __u32)		/* get defined ToPA size */
+> #define KVM_VMX_PT_DISABLE				_IO(KVMIO,	0xd8)			/* enable and lock configuration */ 
+> #define KVM_VMX_PT_CHECK_TOPA_OVERFLOW			_IO(KVMIO,	0xd9)			/* check for ToPA overflow */
+> 
+> #define KVM_VMX_PT_ENABLE_ADDR0				_IO(KVMIO,	0xaa)			/* enable IP-filtering for addr0 */
+> #define KVM_VMX_PT_ENABLE_ADDR1				_IO(KVMIO,	0xab)			/* enable IP-filtering for addr1 */
+> #define KVM_VMX_PT_ENABLE_ADDR2				_IO(KVMIO,	0xac)			/* enable IP-filtering for addr2 */
+> #define KVM_VMX_PT_ENABLE_ADDR3				_IO(KVMIO,	0xad)			/* enable IP-filtering for addr3 */
+> 
+> #define KVM_VMX_PT_DISABLE_ADDR0			_IO(KVMIO,	0xae)			/* disable IP-filtering for addr0 */
+> #define KVM_VMX_PT_DISABLE_ADDR1			_IO(KVMIO,	0xaf)			/* disable IP-filtering for addr1 */
+> #define KVM_VMX_PT_DISABLE_ADDR2			_IO(KVMIO,	0xe0)			/* disable IP-filtering for addr2 */
+> #define KVM_VMX_PT_DISABLE_ADDR3			_IO(KVMIO,	0xe1)			/* disable IP-filtering for addr3 */
+> 
+> #define KVM_VMX_PT_ENABLE_CR3				_IO(KVMIO,	0xe2)			/* enable CR3 filtering */
+> #define KVM_VMX_PT_DISABLE_CR3				_IO(KVMIO,	0xe3)			/* disable CR3 filtering */
+> 
+> #define KVM_VMX_PT_SUPPORTED				_IO(KVMIO,	0xe4)
+> 
+> #define KVM_VMX_FDL_SETUP_FD				_IO(KVMIO,	0xe5)
+> #define KVM_VMX_FDL_SET					_IOW(KVMIO,	0xe6, __u64)
+> #define KVM_VMX_FDL_FLUSH				_IO(KVMIO,	0xe7)
+> #define KVM_VMX_FDL_GET_INDEX				_IOR(KVMIO,	0xe8, __u64)
+> 

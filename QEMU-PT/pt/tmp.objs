@@ -1,0 +1,2 @@
+obj-y += decoder.o disassembler.o tnt_cache.o logger.o pt.o memory_access.o kafl_guest.o
+

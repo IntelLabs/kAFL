@@ -1,0 +1,10 @@
+#
+# kAFL dictionary for Vuln Driver
+# -------------------------------------------
+#
+# Created by Sergej Schumilo <sergej@schumilo.com>
+#
+
+tag_result1="SERGEJ"
+tag_result2="KASAN"
+tag_result3="KERNELAFL"
