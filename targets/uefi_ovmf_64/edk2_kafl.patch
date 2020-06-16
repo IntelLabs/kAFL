@@ -1,0 +1,85 @@
+## Automatic binary patch by kAFL does not work - inject manual hypercall here.
+## Also remove the delay to launch the target binary via startup.nsh
+
+diff --git a/ShellPkg/Application/Shell/Shell.c b/ShellPkg/Application/Shell/Shell.c
+index d16adae0ea..f20b023969 100644
+--- a/ShellPkg/Application/Shell/Shell.c
++++ b/ShellPkg/Application/Shell/Shell.c
+@@ -923,7 +923,7 @@ ProcessCommandLine(
+   ShellInfoObject.ShellInitSettings.BitUnion.Bits.Delay        = FALSE;
+   ShellInfoObject.ShellInitSettings.BitUnion.Bits.Exit         = FALSE;
+   ShellInfoObject.ShellInitSettings.BitUnion.Bits.NoNest       = FALSE;
+-  ShellInfoObject.ShellInitSettings.Delay = 5;
++  ShellInfoObject.ShellInitSettings.Delay = 0;
+ 
+   //
+   // Start LoopVar at 0 to parse only optional arguments at Argv[0]
+diff --git a/UefiCpuPkg/Library/CpuExceptionHandlerLib/Ia32/ArchExceptionHandler.c b/UefiCpuPkg/Library/CpuExceptionHandlerLib/Ia32/ArchExceptionHandler.c
+index 1aafb7dac1..cb3bdcc941 100644
+--- a/UefiCpuPkg/Library/CpuExceptionHandlerLib/Ia32/ArchExceptionHandler.c
++++ b/UefiCpuPkg/Library/CpuExceptionHandlerLib/Ia32/ArchExceptionHandler.c
+@@ -398,6 +398,22 @@ DumpCpuContext (
+     );
+ }
+ 
++#ifndef uint32_t
++#define uint32_t UINT32
++#endif
++
++#define HYPERCALL_KAFL_RAX_ID           0x01f
++#define HYPERCALL_KAFL_PANIC            8
++
++static void kAFL_hypercall(uint32_t rbx, uint32_t rcx)
++{
++	uint32_t rax = HYPERCALL_KAFL_RAX_ID;
++    asm ("movl %0, %%ecx;" : : "r"(rcx));
++    asm ("movl %0, %%ebx;" : : "r"(rbx));
++    asm ("movl %0, %%eax;" : : "r"(rax));
++    asm ("vmcall");
++}
++
+ /**
+   Display CPU information.
+ 
+@@ -424,4 +440,6 @@ DumpImageAndCpuContent (
+   } else {
+     DumpModuleImageInfo (SystemContext.SystemContextIa32->Eip);
+   }
++
++  kAFL_hypercall(HYPERCALL_KAFL_PANIC, 0);
+ }
+diff --git a/UefiCpuPkg/Library/CpuExceptionHandlerLib/X64/ArchExceptionHandler.c b/UefiCpuPkg/Library/CpuExceptionHandlerLib/X64/ArchExceptionHandler.c
+index 894c1cfb75..409116bcf2 100644
+--- a/UefiCpuPkg/Library/CpuExceptionHandlerLib/X64/ArchExceptionHandler.c
++++ b/UefiCpuPkg/Library/CpuExceptionHandlerLib/X64/ArchExceptionHandler.c
+@@ -398,6 +398,22 @@ DumpCpuContext (
+     );
+ }
+ 
++#ifndef uint64_t
++#define uint64_t UINT64
++#endif
++
++#define HYPERCALL_KAFL_RAX_ID           0x01f
++#define HYPERCALL_KAFL_PANIC            8
++
++static inline void kAFL_hypercall(uint64_t rbx, uint64_t rcx)
++{
++    uint64_t rax = HYPERCALL_KAFL_RAX_ID;
++    asm ("movq %0, %%rcx;" : : "r"(rcx));
++    asm ("movq %0, %%rbx;" : : "r"(rbx));
++    asm ("movq %0, %%rax;" : : "r"(rax));
++    asm ("vmcall");
++}
++
+ /**
+   Display CPU information.
+ 
+@@ -424,4 +440,7 @@ DumpImageAndCpuContent (
+   } else {
+     DumpModuleImageInfo (SystemContext.SystemContextX64->Rip);
+   }
++
++  kAFL_hypercall(HYPERCALL_KAFL_PANIC, 0);
++
+ }

@@ -1,18 +1,10 @@
+# Copyright (C) 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright (C) 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Redqueen Input Encoders
 """
 
 import struct
@@ -28,7 +20,7 @@ class Encoding:
                 return struct.unpack("<" + key.lower(), val)[0]
             else:
                 return struct.unpack("<" + key, val)[0]
-        assert (false)
+        assert False
 
     def apply_reverse(self, val):
         if self.reverse:
@@ -56,8 +48,8 @@ class SextEncoding(Encoding):
     def _is_applicable_sext(cmp, size_bytes, val):
         check_size = cmp.size > 8 * size_bytes
         head, tail = val[0:len(val) - size_bytes], val[len(val) - size_bytes:]
-        check_zeros = head == "\0" * len(head) and ord(tail[0]) & 0x80 == 0
-        check_ffs = head == "\xff" * len(head) and ord(tail[0]) & 0x80 != 1
+        check_zeros = head == b'\0' * len(head) and tail[0] & 0x80 == 0
+        check_ffs = head == b'\xff' * len(head) and tail[0] & 0x80 != 1
         return check_size and (check_zeros or check_ffs)
 
     def is_applicable(self, cmp, lhs, rhs):
@@ -88,16 +80,15 @@ class ZextEncoding(Encoding):
 
     @staticmethod
     def _is_applicable_zext(cmp, size_bytes, val):
-        return cmp.size > 8 * size_bytes and val[0:len(val) - size_bytes] == "\0" * (len(val) - size_bytes)
+        return cmp.size > 8 * size_bytes and val[0:len(val) - size_bytes] == bytes(len(val) - size_bytes)
 
     def is_applicable(self, cmp, lhs, rhs):
         if cmp.type == "STR":
             return False
         lhs = self.apply_reverse(lhs)
         rhs = self.apply_reverse(rhs)
-        return ZextEncoding._is_applicable_zext(cmp, self.bytes, lhs) and ZextEncoding._is_applicable_zext(cmp,
-                                                                                                           self.bytes,
-                                                                                                           rhs)
+        return ZextEncoding._is_applicable_zext(cmp, self.bytes, lhs) and \
+               ZextEncoding._is_applicable_zext(cmp, self.bytes, rhs)
 
     # def is_redundant(self, cmp, lhs, rhs):
     #    if self.bytes > 1:
@@ -143,7 +134,7 @@ class MemEncoding(Encoding):
         self.length = length
 
     def is_applicable(self, cmp, lhs, rhs):
-        if lhs[0:self.length].count("\0") > self.length / 2 or rhs[0:self.length].count("\0") > self.length / 2:
+        if lhs[0:self.length].count(b'0') > self.length / 2 or rhs[0:self.length].count(b'0') > self.length / 2:
             return False
         return cmp.type == "STR"
 
@@ -159,13 +150,13 @@ class CStringEncoding(Encoding):
     def is_applicable(self, cmp, lhs, rhs):
         if len(lhs) < 2 or len(rhs) < 2:
             return False
-        non_null1 = lhs[0] != "\0" and rhs[0] != "\0"
-        non_null2 = lhs[1] != "\0" and rhs[1] != "\0"
+        non_null1 = lhs[0] != b'\0' and rhs[0] != b'\0'
+        non_null2 = lhs[1] != b'\0' and rhs[1] != b'\0'
         return cmp.type == "STR" and non_null1 and non_null2
 
     def encode(self, cmp, val):
-        if "\0" in val:
-            return [val[0:max(2, val.find("\0"))]]
+        if b'0x00' in val:
+            return [val[0:max(2, val.find(b'\0'))]]
         else:
             return [val]
 
@@ -181,11 +172,11 @@ class CStrChrEncoding(Encoding):
     def is_applicable(self, cmp, lhs, rhs):
         if len(lhs) <= self.amount or len(rhs) < 2:
             return False
-        non_null2 = rhs[0] != "\0" and rhs[1:] == "\0" * (len(rhs) - 1)
+        non_null2 = rhs[0] != b'\0' and rhs[1:] == bytes(len(rhs) - 1)
         return cmp.type == "STR" and non_null2
 
     def encode(self, cmp, val):
-        if val[1] == "\0" and val[0] != "\0":
+        if val[1] == b'\0' and val[0] != b'\0':
             return val[0]
         return val[self.amount]
 
@@ -235,7 +226,7 @@ class SplitEncoding(Encoding):
     def is_redundant(self, cmp, lhs, rhs):
         # unhandled corner case: split where 00000000 is split in uncolorized version, but colorized version is actually
         # informative
-        zeros = "\0\0\0\0"
+        zeros = bytes(4)
         low = (lhs[:4] == zeros and rhs[:4] == zeros)
         high = (lhs[4:] == zeros and rhs[4:] == zeros)
         # log_redq("is redundant %s %s %s %s"%(lhs, rhs, low, high))
@@ -253,7 +244,7 @@ class R1E(Encoding):
         return res
 
     def encode(self, cmp, val):
-        res = map(self.r1, self.orig.encode(cmp, val))
+        res = list(map(self.r1, self.orig.encode(cmp, val)))
         # if cmp.addr == 4196216:
         #    print(repr(("encode",val,"to",res)))
         return res
@@ -262,7 +253,7 @@ class R1E(Encoding):
         return "R1(%s)" % self.orig.name()
 
     def r1(self, str):
-        return "".join(map(lambda x: chr((ord(x) + 1) % 256), str))
+        return bytes([(ord(x) + 1) % 256 for x in str])
 
 
 Encoders = [ZextEncoding(bytes, reverse) for (bytes, reverse) in product([1, 2, 4], [True, False])] + \

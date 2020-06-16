@@ -1,81 +1,95 @@
+# Copyright 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+Startup routines for kAFL Fuzzer.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+Spawn a Master and one or more Slave processes, where Master implements the
+global fuzzing queue and scheduler and Slaves implement mutation stages and
+Qemu/KVM execution.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Prepare the kAFL workdir and copy any provided seeds to be picked up by the scheduler.
 """
 
 import multiprocessing
-import signal
 import time
+import pgrep
+import sys
+import traceback
 
-from common.config import FuzzerConfiguration
 from common.debug import enable_logging
 from common.self_check import post_self_check
-from common.util import prepare_working_dir, print_fail, ask_for_permission, print_warning, copy_seed_files
-from process.master import MasterProcess
-from process.slave import slave_loader
+from common.util import prepare_working_dir, print_fail, print_note, print_warning, copy_seed_files
+from fuzzer.process.master import MasterProcess
+from fuzzer.process.slave import slave_loader
 
 
-def start():
-    config = FuzzerConfiguration()
+def qemu_sweep():
+    pids = pgrep.pgrep("qemu")
+
+    if (len(pids) > 0):
+        print_warning("Detected potential qemu zombies, please kill -9: " + repr(pids))
+
+
+def graceful_exit(slaves):
+    for s in slaves:
+        s.terminate()
+
+    print("Waiting for Slave instances to shutdown...")
+    time.sleep(1)
+
+    while len(slaves) > 0:
+        for s in slaves:
+            if s and s.exitcode is None:
+                print("Still waiting on %s (pid=%d)..  [hit Ctrl-c to abort..]" % (s.name,s.pid))
+                s.join(timeout=1)
+            else:
+                slaves.remove(s)
+
+
+def start(config):
 
     if not post_self_check(config):
         return -1
+    
+    work_dir   = config.argument_values["work_dir"]
+    seed_dir   = config.argument_values["seed_dir"]
+    num_slaves = config.argument_values['p']
 
     if config.argument_values['v']:
-        enable_logging(config.argument_values["work_dir"])
+        enable_logging(work_dir)
 
-    num_processes = config.argument_values['p']
-
-    if not config.argument_values['Purge']:
-        if ask_for_permission("PURGE", " to wipe old workspace:"):
-            print_warning("Wiping old workspace...")
-            time.sleep(2)
-        else:
-            print_fail("Aborting...")
-            return 0
-
-    prepare_working_dir(config.argument_values['work_dir'])
-
-    if not copy_seed_files(config.argument_values['work_dir'], config.argument_values['seed_dir']):
-        print_fail("Seed directory is empty...")
+    if not prepare_working_dir(work_dir, purge=config.argument_values['purge']):
+        print_fail("Refuse to operate on existing work directory. Use --purge to override.")
         return 1
+
+    if seed_dir and not copy_seed_files(work_dir, seed_dir):
+        print_fail("Error when importing seeds. Exit.")
+        return 1
+
+    # Without -ip0, Qemu will not active PT tracing and we turn into a blind fuzzer
+    if not config.argument_values['ip0']:
+        print_warning("No trace region configured! PT feedback disabled!")
 
     master = MasterProcess(config)
 
     slaves = []
-    for i in range(num_processes):
-        print
-        "fuzzing process {}".format(i)
-        slaves.append(multiprocessing.Process(name='SLAVE' + str(i), target=slave_loader, args=(i,)))
+    for i in range(num_slaves):
+        slaves.append(multiprocessing.Process(name="Slave " + str(i), target=slave_loader, args=(i,)))
         slaves[i].start()
 
     try:
         master.loop()
     except KeyboardInterrupt:
-        pass
+        print_note("Received Ctrl-C, killing slaves...")
+    except:
+        print_fail("Exception in Master. Exiting..")
+        print(traceback.format_exc())
+    finally:
+        graceful_exit(slaves)
 
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
-
-    counter = 0
-    # print_pre_exit_msg(counter, clrscr=True)
-    for slave in slaves:
-        while True:
-            counter += 1
-            # print_pre_exit_msg(counter)
-            slave.join(timeout=0.25)
-            if not slave.is_alive():
-                break
-    # print_exit_msg()
-    return 0
+    time.sleep(0.2)
+    qemu_sweep()
+    sys.exit(0)

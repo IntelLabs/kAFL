@@ -1,26 +1,18 @@
+# Copyright (C) 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright (C) 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Redqueen trace parser (inference stage)
 """
 
 import re
+from binascii import unhexlify
 
-from cmp import Cmp
-
-
-# import ipdb
+from common.util import read_binary_file
+from common.debug import log_redq
+from .cmp import Cmp
 
 
 def read_file(path):
@@ -48,6 +40,9 @@ class RedqueenRunInfo:
     def calc_offsets(self, pattern):
         res = set()
         start = 0
+        if isinstance(pattern, str):
+            # TODO: Find source of str type inputs to avoid this check + conversion
+            pattern = pattern.encode(errors='ignore')
         while True:
             start = self.input_data.find(pattern, start)
             if start == -1:
@@ -65,7 +60,7 @@ class RedqueenInfo:
 
     def load(self, input_id, was_colored, path):
         hook_info = read_file("%s/redqueen_result_%d.txt" % (path, input_id))
-        bin_info = read_file("%s/input_%d.bin" % (path, input_id))
+        bin_info = read_binary_file("%s/input_%d.bin" % (path, input_id))
         return self.load_data(input_id, was_colored, hook_info, bin_info)
 
     def load_data(self, input_id, was_colored, hook_info, bin_info):
@@ -89,8 +84,8 @@ class RedqueenInfo:
         type = m.group(2)
         size = int(m.group(3))
         is_imm = not not m.group(6)
-        lhs = m.group(4).decode('hex')
-        rhs = m.group(5).decode('hex')
+        lhs = unhexlify(m.group(4))
+        rhs = unhexlify(m.group(5))
         return addr, type, size, is_imm, lhs, rhs
 
     def add_run_result(self, run_info, addr, type, size, is_imm, lhs, rhs, addr_to_cmp):
@@ -111,12 +106,17 @@ class RedqueenInfo:
             self.add_run_result(run_info, addr, type, size, is_imm, rhs, lhs, self.addr_to_inv_cmp)
 
     def get_all_mutations(self):
-        orig_run_info = [r for r in self.run_infos if not r.was_colored]
-        assert (len(orig_run_info) == 1)
         self.boring_cmps = set()
-        orig_run_info = orig_run_info[0]
         offsets_to_lhs_to_rhs_to_info = {}
         num_mut = 0
+
+        orig_run_info = [r for r in self.run_infos if not r.was_colored]
+        #assert (len(orig_run_info) == 1)
+        if len(orig_run_info) != 1:
+            log_redq("Warning: Could not find canonical orig. run info! len(info)=%d" % len(orig_run_info))
+            return num_mut, offsets_to_lhs_to_rhs_to_info    
+
+        orig_run_info = orig_run_info[0]
         for addr_to_cmp in [self.addr_to_cmp, self.addr_to_inv_cmp]:
             for addr in addr_to_cmp:
                 cmp = addr_to_cmp[addr]
@@ -126,12 +126,10 @@ class RedqueenInfo:
                         offsets, lhs, rhs = self.strip_unchanged_bytes_from_mutation_values(offsets, lhs, rhs)
                         was_cmp_interessting = True
                         offsets_to_lhs_to_rhs_to_info[offsets] = offsets_to_lhs_to_rhs_to_info.get(offsets, {})
-                        offsets_to_lhs_to_rhs_to_info[offsets][lhs] = offsets_to_lhs_to_rhs_to_info[offsets].get(lhs,
-                                                                                                                 {})
+                        offsets_to_lhs_to_rhs_to_info[offsets][lhs] = offsets_to_lhs_to_rhs_to_info[offsets].get(lhs,{})
                         if not rhs in offsets_to_lhs_to_rhs_to_info[offsets][lhs]:
                             num_mut += 1
-                        offsets_to_lhs_to_rhs_to_info[offsets][lhs][rhs] = offsets_to_lhs_to_rhs_to_info[offsets][
-                            lhs].get(rhs, MutInfo())
+                        offsets_to_lhs_to_rhs_to_info[offsets][lhs][rhs] = offsets_to_lhs_to_rhs_to_info[offsets][lhs].get(rhs, MutInfo())
                         offsets_to_lhs_to_rhs_to_info[offsets][lhs][rhs].add_info(addr, encoding)
                 if not was_cmp_interessting:
                     self.boring_cmps.add(cmp.addr)

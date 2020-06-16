@@ -1,0 +1,37 @@
+From b3332759b0c520e7032cd5e80cdfcb480e999f64 Mon Sep 17 00:00:00 2001
+From: Steffen Schulz <steffen.schulz@intel.com>
+Date: Fri, 15 Nov 2019 14:10:53 +0000
+Subject: [PATCH 08/11] Fix segfault when IPT filtering is not enabled
+
+---
+ pt/hypercall.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/pt/hypercall.c b/pt/hypercall.c
+index f48b9acb..842a90b6 100644
+--- a/pt/hypercall.c
++++ b/pt/hypercall.c
+@@ -503,13 +503,13 @@ bool handle_hypercall_kafl_hook(struct kvm_run *run, CPUState *cpu){
+     CPUX86State *env = &cpux86->env;
+ 
+ 	for(uint8_t i = 0; i < INTEL_PT_MAX_RANGES; i++){
+-		if (cpu->redqueen_state[i] && (env->eip >= cpu->pt_ip_filter_a[i]) && (env->eip <= cpu->pt_ip_filter_b[i])){
+-			handle_hook(cpu->redqueen_state[i]);
+-			return true;
+-		}else if (cpu->singlestep_enabled && ((redqueen_t*)cpu->redqueen_state[i])->singlestep_enabled){
+-			handle_hook(cpu->redqueen_state[i]);
+-			return true;
+-    }
++		if (cpu->redqueen_state[i]){
++			if (((env->eip >= cpu->pt_ip_filter_a[i]) && (env->eip <= cpu->pt_ip_filter_b[i])) ||
++				(cpu->singlestep_enabled && ((redqueen_t*)cpu->redqueen_state[i])->singlestep_enabled)){
++				handle_hook(cpu->redqueen_state[i]);
++				return true;
++			}
++		}
+ 	}
+ 	return false;
+ }
+-- 
+2.26.2
+

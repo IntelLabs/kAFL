@@ -1,0 +1,15 @@
+## @file TestBMPPkg.dec
+#
+# Copyright 2020 Intel Corporation. All rights reserved.
+# SPDX-License-Identifier: BSD-2-Clause
+#
+##
+
+[Defines]
+  DEC_SPECIFICATION              = 0x00010005
+  PACKAGE_NAME                   = TestBMPPkg
+  PACKAGE_GUID                   = B66DACBB-080C-4DBE-90DD-59F0D9EF87A4
+  PACKAGE_VERSION                = 0.01
+
+[Includes]
+  #Include

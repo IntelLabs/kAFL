@@ -1,35 +1,17 @@
-"""
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
-
+# Copyright 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
 
 import glob
 import os
 import shutil
 import sys
-import termios
-import time
-import tty
-import uuid
+import tempfile
+import string
 from shutil import copyfile
 
-from common.debug import logger
-
-__author__ = 'Sergej Schumilo'
-
+from common import color
 
 class Singleton(type):
     _instances = {}
@@ -39,29 +21,37 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
+# pretty-printed hexdump
+def hexdump(src, length=16):
+    hexdump_filter = ''.join([(len(repr(chr(x))) == 3) and chr(x) or '.' for x in range(256)])
+    lines = []
+    for c in range(0, len(src), length):
+        chars = src[c:c + length]
+        hex_value = ' '.join(["%02x" % ord(x) for x in chars])
+        printable = ''.join(["%s" % ((ord(x) <= 127 and hexdump_filter[ord(x)]) or '.') for x in chars])
+        lines.append("%04x  %-*s  %s\n" % (c, length * 3, hex_value, printable))
+    return ''.join(lines)
+
+# return safely printable portion of binary input data
+# use verbatim=True to maintain whitespace/formatting
+def strdump(data, verbatim=False):
+    dump = data.decode("utf-8", errors='backslashreplace')
+
+    if verbatim:
+        dump = ''.join([x if x in string.printable or x in "\b\x1b" else "." for x in dump])
+    else:
+        dump = ''.join([x if x in string.printable and x not in "\a\b\t\n\r\x0b\x0c" else "." for x in dump])
+    return dump
 
 def atomic_write(filename, data):
-    tmp_file = "/tmp/" + str(uuid.uuid4())
-    f = open(tmp_file, 'wb')
-    f.write(data)
-    f.flush()
-    os.fsync(f.fileno())
-    f.close()
-    shutil.move(tmp_file, filename)
-
+    # rename() is atomic only on same filesystem so the tempfile must be in same directory
+    with tempfile.NamedTemporaryFile(dir=os.path.dirname(filename), delete=False) as f:
+        f.write(data)
+    os.rename(f.name, filename)
 
 def read_binary_file(filename):
-    payload = ""
-    f = open(filename, 'rb')
-    while True:
-        buf = f.read(1024)
-        if len(buf) == 0:
-            break
-        payload += buf
-
-    f.close()
-    return payload
-
+    with open(filename, 'rb') as f:
+        return f.read()
 
 def find_diffs(data_a, data_b):
     first_diff = 0
@@ -73,15 +63,17 @@ def find_diffs(data_a, data_b):
             last_diff = i
     return first_diff, last_diff
 
+def prepare_working_dir(workdir, purge=False):
+    if os.path.exists(workdir) and not purge:
+        return False
 
-def prepare_working_dir(directory_path):
-    folders = ["/corpus/regular", "/metadata", "/corpus/crash", "/corpus/kasan", "/corpus/timeout", "/bitmaps",
-               "/imports"]
+    folders = ["/corpus/regular", "/corpus/crash",
+               "/corpus/kasan", "/corpus/timeout",
+               "/metadata", "/bitmaps", "/imports"]
 
-    project_name = directory_path.split("/")[-1]
+    shutil.rmtree(workdir, ignore_errors=True)
 
-    shutil.rmtree(directory_path, ignore_errors=True)
-
+    project_name = workdir.split("/")[-1]
     for path in glob.glob("/dev/shm/kafl_%s_*" % project_name):
         os.remove(path)
 
@@ -89,60 +81,40 @@ def prepare_working_dir(directory_path):
         os.remove("/dev/shm/kafl_tfilter")
 
     for folder in folders:
-        os.makedirs(directory_path + folder)
+        os.makedirs(workdir + folder)
 
-    open(directory_path + "/filter", "wb").close()
-    open(directory_path + "/page_cache.lock", "wb").close()
-    open(directory_path + "/page_cache.dump", "wb").close()
-    open(directory_path + "/page_cache.addr", "wb").close()
-
+    return True
 
 def copy_seed_files(working_directory, seed_directory):
     if len(os.listdir(seed_directory)) == 0:
         return False
 
     if len(os.listdir(working_directory)) == 0:
-        return True
+        return False
 
     i = 0
     for (directory, _, files) in os.walk(seed_directory):
         for f in files:
             path = os.path.join(directory, f)
             if os.path.exists(path):
-                copyfile(path, working_directory + "/imports/" + "seed_%05d" % i)
-                i += 1
-
+                try:
+                    copyfile(path, working_directory + "/imports/" + "seed_%05d" % i)
+                    i += 1
+                except PermissionError:
+                    print_warning("Skipping seed file %s (permission denied)." % path)
     return True
 
+def print_note(msg):
+    sys.stdout.write(color.WARNING + msg + color.ENDC + "\n")
+    sys.stdout.flush()
 
 def print_warning(msg):
-    sys.stdout.write("\033[0;33m\033[1m[WARNING] " + msg + "\033[0m\n")
+    sys.stdout.write(color.WARNING + color.BOLD + "[WARNING] " + msg + color.ENDC + "\n")
     sys.stdout.flush()
-
 
 def print_fail(msg):
-    sys.stdout.write("\033[91m\033[1m[FAIL] " + msg + "\033[0m\n")
+    sys.stdout.write(color.FAIL + color.BOLD + "[FATAL] " + msg + color.ENDC + "\n")
     sys.stdout.flush()
-
-
-def print_pre_exit_msg(num_dots, clrscr=False):
-    dots = ""
-    for i in range((num_dots % 3) + 1):
-        dots += "."
-    for i in range(3 - len(dots)):
-        dots += " "
-
-    if clrscr:
-        print
-        '\x1b[2J'
-    print
-    '\x1b[1;1H' + '\x1b[1;1H' + '\033[0;33m' + "[*] Terminating Slaves" + dots + '\033[0m' + "\n"
-
-
-def print_exit_msg():
-    print
-    '\x1b[2J' + '\x1b[1;1H' + '\033[92m' + "[!] Data saved! Bye!" + '\033[0m' + "\n"
-
 
 def is_float(value):
     try:
@@ -158,43 +130,6 @@ def is_int(value):
         return True
     except ValueError:
         return False
-
-
-def getch():
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
-    try:
-        tty.setraw(sys.stdin.fileno())
-        ch = sys.stdin.read(1)
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-    return ch
-
-
-def ask_for_permission(data, text, color='\033[91m'):
-    ENDC = '\033[0m'
-    print("Enter " + data + text)
-    i = 0
-    print(len(data) * '_'),
-    while True:
-        input_char = getch()
-
-        # Check for CTRL+C
-        if input_char == chr(0x3):
-            print("")
-            return False
-
-        # Check for matching character
-        if (data[i] == input_char):
-            i += 1
-            print("\r" + color + data[:i] + ENDC + (len(data) - i) * '_'),
-
-        # Check if we are done here ...
-        if i == len(data):
-            break
-    print("")
-    return True
-
 
 def json_dumper(obj):
     return obj.__dict__

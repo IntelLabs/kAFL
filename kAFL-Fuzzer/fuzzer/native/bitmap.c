@@ -1,19 +1,11 @@
 /*
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * Copyright 2017-2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *
+ * Parts of this file are adopted from American Fuzzy Lop by Michal Zalewski
+ * - Copyright 2013, 2014, 2015, 2016 Google Inc. All rights reserved.
+ * - Released under terms and conditions of Apache License, Version 2.0.
+ */
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -92,7 +84,7 @@ void apply_bucket_lut(uint8_t * bitmap, uint64_t bitmap_size) {
   }
 }
 
-/* AFL source code incoming... */
+/* Adopted from American Fuzzy Lop (AFL) by Michal Zalewski */
 uint8_t could_be_bitflip(uint32_t xor_val) {
 
   uint32_t sh = 0;
@@ -119,13 +111,13 @@ uint8_t could_be_bitflip(uint32_t xor_val) {
 
 }
 
-/* AFL source code incoming... */
+/* Adopted from American Fuzzy Lop (AFL) by Michal Zalewski */
 #define SWAP16(_x) ({ \
     uint16_t _ret = (_x); \
     (uint16_t)((_ret << 8) | (_ret >> 8)); \
   })
 
-/* AFL source code incoming... */
+/* Adopted from American Fuzzy Lop (AFL) by Michal Zalewski */
 #define SWAP32(_x) ({ \
     uint32_t _ret = (_x); \
     (uint32_t)((_ret << 24) | (_ret >> 24) | \
@@ -133,7 +125,7 @@ uint8_t could_be_bitflip(uint32_t xor_val) {
           ((_ret >> 8) & 0x0000FF00)); \
   })
 
-/* AFL source code incoming... */
+/* Adopted from American Fuzzy Lop (AFL) by Michal Zalewski */
 uint8_t could_be_arith(uint32_t old_val, uint32_t new_val, uint8_t blen, uint8_t ARITH_MAX) {
 
   uint32_t i, ov = 0, nv = 0, diffs = 0;
@@ -252,6 +244,7 @@ static s16 interesting_16[] = { INTERESTING_8, INTERESTING_16 };
 static s32 interesting_32[] = { INTERESTING_8, INTERESTING_16, INTERESTING_32 };
 
 
+/* Adopted from American Fuzzy Lop (AFL) by Michal Zalewski */
 uint8_t could_be_interest(uint32_t old_val, uint32_t new_val, uint8_t blen, uint8_t check_le) {
 
   uint32_t i, j;

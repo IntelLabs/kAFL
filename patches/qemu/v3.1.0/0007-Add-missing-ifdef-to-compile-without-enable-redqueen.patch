@@ -1,0 +1,168 @@
+From 30a9acff9f65f3d6be47bff9987fda63d1a0265e Mon Sep 17 00:00:00 2001
+From: Steffen Schulz <steffen.schulz@intel.com>
+Date: Fri, 15 Nov 2019 12:04:20 +0000
+Subject: [PATCH 1/2] Add missing #ifdef to compile without --enable-redqueen
+
+---
+ pt.c              |  7 +++++++
+ pt/Makefile.objs  |  4 ++--
+ pt/disassembler.c |  8 ++++++++
+ pt/hypercall.c    | 14 +++++++-------
+ pt/interface.c    |  2 ++
+ 5 files changed, 26 insertions(+), 9 deletions(-)
+
+diff --git a/pt.c b/pt.c
+index a3caa300..e409cf0c 100644
+--- a/pt.c
++++ b/pt.c
+@@ -234,6 +234,7 @@ int pt_enable_ip_filtering(CPUState *cpu, uint8_t addrn, uint64_t ip_a, uint64_t
+ 		fclose(pt_file);
+ 	}
+ 
++#ifdef CONFIG_REDQUEEN	
+ 	FILE* rq_file = fopen(redqueen_workdir.target_code_dump, "wb");
+ 	if (!rq_file) {
+ 		QEMU_PT_ERROR(CORE_PREFIX, "Error writing RQ file %s)", redqueen_workdir.target_code_dump);
+@@ -243,6 +244,7 @@ int pt_enable_ip_filtering(CPUState *cpu, uint8_t addrn, uint64_t ip_a, uint64_t
+ 		fclose(rq_file);
+ 	}
+ #endif
++#endif
+ 
+ 
+ 	QEMU_PT_DEBUG(PT_PREFIX, "Configuring new trace region (addr%d, 0x%lx-0x%lx)", addrn, ip_a, ip_b);
+@@ -311,8 +313,12 @@ void pt_kvm_init(CPUState *cpu){
+ 		cpu->pt_ip_filter_a[i] = 0x0;
+ 		cpu->pt_ip_filter_b[i] = 0x0;
+ 		cpu->pt_decoder_state[i] = NULL;
++#ifdef CONFIG_REDQUEEN
+ 		cpu->redqueen_state[i]=NULL;
++#endif
+ 	}
++
++#ifdef CONFIG_REDQUEEN
+ 	cpu->redqueen_patch_state = patcher_new(cpu);
+ 	cpu->redqueen_enable_pending = false;
+ 	cpu->redqueen_disable_pending = false;
+@@ -321,6 +327,7 @@ void pt_kvm_init(CPUState *cpu){
+ 
+ 	cpu->patches_enable_pending = false;//TODO don't enable this
+ 	cpu->patches_disable_pending = false;
++#endif
+    	// setting the target's word with is critical to RQ operation
+ 	// Initialize as invalid, set by submit_CR3 or submit_mode hypercalls
+ 	cpu->disassembler_word_width = 0;
+diff --git a/pt/Makefile.objs b/pt/Makefile.objs
+index ff0ea4bb..5cf53f3e 100644
+--- a/pt/Makefile.objs
++++ b/pt/Makefile.objs
+@@ -1,2 +1,2 @@
+-obj-y += decoder.o disassembler.o tnt_cache.o hypercall.o filter.o logger.o memory_access.o interface.o printk.o synchronization.o
+-obj-$(CONFIG_REDQUEEN) += redqueen.o patcher.o redqueen_patch.o file_helper.o asm_decoder.o
++obj-y += decoder.o disassembler.o tnt_cache.o hypercall.o filter.o logger.o memory_access.o interface.o printk.o synchronization.o asm_decoder.o
++obj-$(CONFIG_REDQUEEN) += redqueen.o patcher.o redqueen_patch.o file_helper.o
+diff --git a/pt/disassembler.c b/pt/disassembler.c
+index 75e887b9..4ef5bb41 100644
+--- a/pt/disassembler.c
++++ b/pt/disassembler.c
+@@ -253,6 +253,7 @@ static inline uint64_t hex_to_bin(char* str){
+ 	return fast_strtoull(str);
+ }
+ 
++#ifdef CONFIG_REDQUEEN
+ static bool is_interessting_lea_at(disassembler_t* self, uint64_t addr){
+   asm_operand_t op1 = {0};
+   asm_operand_t op2 = {0};
+@@ -328,6 +329,7 @@ static bool is_interessting_xor_at(disassembler_t* self, uint64_t addr){
+   asm_decoder_clear(&op2);
+   return res;
+ }
++#endif
+ 
+ static cofi_type opcode_analyzer(disassembler_t* self, cs_insn *ins){
+ 	uint8_t i, j;
+@@ -587,7 +589,9 @@ void inform_disassembler_target_ip(disassembler_t* self, uint64_t target_ip){
+  __attribute__((hot)) bool trace_disassembler(disassembler_t* self, uint64_t entry_point, uint64_t limit, tnt_cache_t* tnt_cache_state){
+ 
+ 	cofi_list *obj, *last_obj;
++#ifdef CONFIG_REDQUEEN
+ 	bool redqueen_tracing = (self->redqueen_mode && self->redqueen_state->trace_mode);
++#endif
+ 	//int last_type = -1;
+ 		
+ 	inform_disassembler_target_ip(self, entry_point);
+@@ -695,19 +699,23 @@ void inform_disassembler_target_ip(disassembler_t* self, uint64_t target_ip){
+ 			case COFI_TYPE_INDIRECT_BRANCH:
+ 				self->handler(obj->cofi.ins_addr); //BROKEN, TODO move to inform_disassembler_target_ip
+ 				
++#ifdef CONFIG_REDQUEEN
+ 				if(redqueen_tracing){
+ 					self->has_pending_indirect_branch = true;
+ 					self->pending_indirect_branch_src = obj->cofi.ins_addr;
+ 				}
++#endif
+ 				
+ 				WRITE_SAMPLE_DECODED_DETAILED("(2)\t%lx\n",obj->cofi.ins_addr);
+ 				return false;
+ 
+ 			case COFI_TYPE_NEAR_RET:
++#ifdef CONFIG_REDQUEEN
+ 				if(redqueen_tracing){
+ 					self->has_pending_indirect_branch = true;
+ 					self->pending_indirect_branch_src = obj->cofi.ins_addr;
+ 				}
++#endif
+ 				WRITE_SAMPLE_DECODED_DETAILED("(3)\t%lx\n",obj->cofi.ins_addr);
+ 				return false;
+ 
+diff --git a/pt/hypercall.c b/pt/hypercall.c
+index 308df1d2..f501afb1 100644
+--- a/pt/hypercall.c
++++ b/pt/hypercall.c
+@@ -502,6 +502,13 @@ void handle_hypercall_kafl_user_submit_mode(struct kvm_run *run, CPUState *cpu){
+ 	}
+ }
+ 
++void handle_hypercall_kafl_user_abort(struct kvm_run *run, CPUState *cpu){
++	if(hypercall_enabled){
++		hypercall_snd_char(KAFL_PROTO_PT_ABORT);
++	}
++	qemu_system_shutdown_request(SHUTDOWN_CAUSE_HOST_SIGNAL);
++}
++
+ #ifdef CONFIG_REDQUEEN
+ bool handle_hypercall_kafl_hook(struct kvm_run *run, CPUState *cpu){
+ 	X86CPU *cpux86 = X86_CPU(cpu);
+@@ -519,13 +526,6 @@ bool handle_hypercall_kafl_hook(struct kvm_run *run, CPUState *cpu){
+ 	return false;
+ }
+ 
+-void handle_hypercall_kafl_user_abort(struct kvm_run *run, CPUState *cpu){
+-	if(hypercall_enabled){
+-		hypercall_snd_char(KAFL_PROTO_PT_ABORT);
+-	}
+-	qemu_system_shutdown_request(SHUTDOWN_CAUSE_HOST_SIGNAL);
+-}
+-
+ void pt_enable_rqi(CPUState *cpu){
+ 	((uint8_t*) payload_buffer)[PAYLOAD_SIZE-1] = 1;
+ 	cpu->redqueen_enable_pending = true;
+diff --git a/pt/interface.c b/pt/interface.c
+index 8d5e9e1b..958e6e33 100644
+--- a/pt/interface.c
++++ b/pt/interface.c
+@@ -287,9 +287,11 @@ static void pci_kafl_guest_realize(DeviceState *dev, Error **errp){
+ 		kafl_guest_create_memory_bar(s, 1, PROGRAM_SIZE, s->data_bar_fd_0, errp);
+ 	if (s->data_bar_fd_1 != NULL)
+ 		kafl_guest_create_memory_bar(s, 2, PAYLOAD_SIZE, s->data_bar_fd_1, errp);
++#ifdef CONFIG_REDQUEEN
+ 	if (s->redqueen_workdir){
+ 		setup_redqueen_workdir(s->redqueen_workdir);
+ 	}
++#endif
+ 	
+ 	if(&s->chr)
+ 		qemu_chr_fe_set_handlers(&s->chr, kafl_guest_can_receive, kafl_guest_receive, kafl_guest_event, NULL, s, NULL, true);
+-- 
+2.20.1
+

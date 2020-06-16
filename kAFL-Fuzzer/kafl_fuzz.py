@@ -1,19 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+#
+# Copyright (C) 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright (C) 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Launcher for Fuzzing with kAFL. Check fuzzer/core.py for more.
 """
 
 import os
@@ -21,24 +14,27 @@ import sys
 
 import common.color
 from common.self_check import self_check
+from common.config import FuzzerConfiguration
 
-__author__ = 'sergej'
-
+KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/"
+KAFL_BANNER = KAFL_ROOT + "banner.txt"
+KAFL_CONFIG = KAFL_ROOT + "kafl.ini"
 
 def main():
-    f = open(os.path.dirname(sys.argv[0]) + "/help.txt")
-    for line in f:
-        print(line.replace("\n", ""))
-    f.close()
 
-    print("<< " + common.color.BOLD + common.color.OKGREEN + sys.argv[
-        0] + ": Kernel Fuzzer " + common.color.ENDC + ">>\n")
+    with open(KAFL_BANNER) as f:
+        for line in f:
+            print(line.replace("\n", ""))
 
-    if not self_check():
+    print("<< " + common.color.BOLD + common.color.OKGREEN +
+            sys.argv[0] + ": Kernel Fuzzer " + common.color.ENDC + ">>\n")
+
+    if not self_check(KAFL_ROOT):
         return 1
 
-    from fuzzer.core import start
-    return start()
+    import fuzzer.core
+    cfg = FuzzerConfiguration(KAFL_CONFIG)
+    return fuzzer.core.start(cfg)
 
 
 if __name__ == "__main__":

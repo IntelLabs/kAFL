@@ -1,0 +1,20 @@
+{
+	"some_string" : "zephyr 123 uABCD456",
+	"some_int":	42,
+	"some_bool":true,
+	"some_nested_struct": {
+		"nested_int":-1234,
+		"nested_bool":false,
+		"nested_string":"this should be escaped:"
+	},
+	"some_array":[11,22, 33,45,299],
+	"another_b!@l":true,
+	"if":false,
+	"another-array":[2,3,5,7],
+	"4nother_ne$+":{
+		"nested_int":1234,
+		"nested_bool":true,
+		"nested_string":"no escape necessary"
+	}
+}
+

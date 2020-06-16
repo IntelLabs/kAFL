@@ -1,26 +1,18 @@
+# Copyright (C) 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright (C) 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Redqueen execution inference & deterministic insertion (inference stage)
 """
 
 import os.path
 from array import array
 from shutil import copyfile, rmtree
 
-import parser
 from common.debug import log_redq
+from .parser import parse_rq
 
 MAX_NUMBER_PERMUTATIONS = 1000  # number of trials per address, lhs and encoding
 
@@ -42,7 +34,7 @@ class RedqueenInfoGatherer:
     def get_info(self, input_data):
         self.num_alternative_inputs += 1
         self.save_rq_data(self.num_alternative_inputs, input_data)
-        print("redqueen saving stuff....")
+        log_redq("redqueen saving new input %d" % self.num_alternative_inputs)
         with open(self.collected_infos_path + "/input_%d.bin" % (self.num_alternative_inputs), "wb") as f:
             f.write(input_data)
 
@@ -54,7 +46,7 @@ class RedqueenInfoGatherer:
     def __get_redqueen_proposals(self):
         num_colored_versions = self.num_alternative_inputs
         orig_id = self.num_alternative_inputs
-        rq_info, (num_mutations, offset_to_lhs_to_rhs_to_info) = parser.parse_rq(self.collected_infos_path,
+        rq_info, (num_mutations, offset_to_lhs_to_rhs_to_info) = parse_rq(self.collected_infos_path,
                                                                                  num_colored_versions, orig_id)
         self.rq_info = rq_info
         self.rq_offsets_to_lhs_to_rhs_to_info = offset_to_lhs_to_rhs_to_info
@@ -75,15 +67,17 @@ class RedqueenInfoGatherer:
                 for rhs in self.rq_offsets_to_lhs_to_rhs_to_info[offsets][lhs]:
                     yield (offsets, lhs, rhs, self.rq_offsets_to_lhs_to_rhs_to_info[offsets][lhs][rhs])
 
-    def run_mutate_redqueen(self, payload_array, func, default_info):
+    def run_mutate_redqueen(self, payload_array, func):
         for (offset, lhs, rhs, info) in self.enumerate_mutations():
             if self.verbose:
                 log_redq("redqueen fuzz data %s" % repr((offset, lhs, rhs, info)))
 
             def run(data):
-                default_info["redqueen"] = [repr(lhs), repr(rhs)] + list(info.infos)
-                func(data, default_info)
+                extra_info = {"redqueen": [repr(lhs), repr(rhs)] + list(info.infos)}
+                func(data, None, extra_info)
 
+            assert isinstance(payload_array, bytearray), print(
+                    "fuzz_data:", type(payload_array), type(lhs[0]), type(rhs[0]))
             RedqueenInfoGatherer.fuzz_data(payload_array, run, offset, lhs, rhs)
 
     def get_num_mutations(self):
@@ -98,30 +92,36 @@ class RedqueenInfoGatherer:
     def fuzz_data_same_len(data, func, offset_tuple, repl_tuple):
         backup = {}
         for i, repl in zip(offset_tuple, repl_tuple):
-            for j in xrange(i, i + len(repl)):
+            for j in range(i, i + len(repl)):
                 backup[j] = data[j]
 
         for i, repl in zip(offset_tuple, repl_tuple):
-            RedqueenInfoGatherer.replace_data(data, i, array('B', repl))
-        func(data.tostring())
+            # FIXME: assert(not isinstance(repl, str)), "repl is a string: %s" % repr(repl)
+            if isinstance(repl, str):
+                repl = repl.encode()
+            RedqueenInfoGatherer.replace_data(data, i, repl)
+        func(data)
         for i in backup:
             data[i] = backup[i]
 
     @staticmethod
     def fuzz_data_different_len(data, func, offset_tuple, pat_length_tuple, repl_tuple):
-        res_str = ""
+        res_str = b''
         last_offset = 0
         for i, orig_length, repl in zip(sorted(offset_tuple), pat_length_tuple, repl_tuple):
-            res_str += data[last_offset:i].tostring()
+            # FIXME: assert(not isinstance(repl, str)), "repl is a string: %s" % repr(repl))
+            if isinstance(repl, str):
+                repl = repl.encode()
+            res_str += data[last_offset:i]
             res_str += repl
             last_offset = i + orig_length
-        res_str += data[last_offset:].tostring()
+        res_str += data[last_offset:]
         func(res_str)
 
     @staticmethod
     def fuzz_data(data, func, offset_tuple, pat_tuple, repl_tuple):
-        pat_len_tuple = map(len, pat_tuple)
-        if pat_len_tuple != map(len, repl_tuple):
+        pat_len_tuple = list(map(len, pat_tuple))
+        if pat_len_tuple != list(map(len, repl_tuple)):
             RedqueenInfoGatherer.fuzz_data_different_len(data, func, offset_tuple, pat_len_tuple, repl_tuple)
         else:
             RedqueenInfoGatherer.fuzz_data_same_len(data, func, offset_tuple, repl_tuple)

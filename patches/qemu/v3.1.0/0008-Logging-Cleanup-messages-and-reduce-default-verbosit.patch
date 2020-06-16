@@ -1,0 +1,436 @@
+From 5d493cf329132b50759af5b8d9aea6654f6d0756 Mon Sep 17 00:00:00 2001
+From: Steffen Schulz <steffen.schulz@intel.com>
+Date: Fri, 15 Nov 2019 11:57:06 +0000
+Subject: [PATCH 1/2] Logging: Cleanup messages and reduce default verbosity
+
+Also some whitespace fixes..
+---
+ accel/kvm/kvm-all.c | 72 ++++++++++++++++++++++-----------------------
+ include/qom/cpu.h   | 11 +++----
+ pt/hypercall.c      | 47 ++++++++++++++---------------
+ pt/interface.c      | 28 +++++++++---------
+ 4 files changed, 77 insertions(+), 81 deletions(-)
+
+diff --git a/accel/kvm/kvm-all.c b/accel/kvm/kvm-all.c
+index 12be1f85..16863b32 100644
+--- a/accel/kvm/kvm-all.c
++++ b/accel/kvm/kvm-all.c
+@@ -2122,38 +2122,38 @@ int kvm_cpu_exec(CPUState *cpu)
+             handle_hypercall_kafl_info(run, cpu);
+             ret = 0;
+             break;
+-        case KVM_EXIT_KAFL_NEXT_PAYLOAD:                                                                                                                                     
+-            handle_hypercall_kafl_next_payload(run, cpu);                                                                                                                    
+-            ret = 0;                                                                                                                                                         
+-            break;      
+-        case KVM_EXIT_KAFL_PRINTF:                                                                                                                                     
+-            handle_hypercall_kafl_printf(run, cpu);                                                                                                                    
+-            ret = 0;                                                                                                                                                         
+-            break;       
+-        case KVM_EXIT_KAFL_PRINTK_ADDR:                                                                                                                                     
+-            handle_hypercall_kafl_printk_addr(run, cpu);                                                                                                                    
+-            ret = 0;                                                                                                                                                         
+-            break;   
+-        case KVM_EXIT_KAFL_PRINTK:                                                                                                                                     
+-            handle_hypercall_kafl_printk(run, cpu);                                                                                                                    
+-            ret = 0;                                                                                                                                                         
++        case KVM_EXIT_KAFL_NEXT_PAYLOAD:
++            handle_hypercall_kafl_next_payload(run, cpu);
++            ret = 0;
++            break;
++        case KVM_EXIT_KAFL_PRINTF:
++            handle_hypercall_kafl_printf(run, cpu);
++            ret = 0;
++            break;
++        case KVM_EXIT_KAFL_PRINTK_ADDR:
++            handle_hypercall_kafl_printk_addr(run, cpu);
++            ret = 0;
++            break;
++        case KVM_EXIT_KAFL_PRINTK:
++            handle_hypercall_kafl_printk(run, cpu);
++            ret = 0;
+             break;
+ 
+         /* user space only exit reasons */
+         case KVM_EXIT_KAFL_USER_RANGE_ADVISE:
+             handle_hypercall_kafl_user_range_advise(run, cpu);
+-            ret = 0;  
++            ret = 0;
+             break;
+         case KVM_EXIT_KAFL_USER_SUBMIT_MODE:
+             handle_hypercall_kafl_user_submit_mode(run, cpu);
+-            ret = 0;  
++            ret = 0;
+             break;
+         case KVM_EXIT_KAFL_USER_FAST_ACQUIRE:
+             if(handle_hypercall_kafl_next_payload(run, cpu)){
+-                handle_hypercall_kafl_cr3(run, cpu);   
++                handle_hypercall_kafl_cr3(run, cpu);
+                 handle_hypercall_kafl_acquire(run, cpu);
+             }
+-            ret = 0;  
++            ret = 0;
+             break;
+         case KVM_EXIT_KAFL_TOPA_MAIN_FULL:
+             pt_handle_overflow(cpu);
+@@ -2161,22 +2161,20 @@ int kvm_cpu_exec(CPUState *cpu)
+             break;
+         case KVM_EXIT_KAFL_USER_ABORT:
+             handle_hypercall_kafl_user_abort(run, cpu);
+-            ret = 0;  
++            ret = 0;
+             break;
+-
+-#ifdef CONFIG_REDQUEEN                                                                                                                                                    
+-        case KVM_EXIT_DEBUG:                                                                                                                                                 
+-            kvm_arch_get_registers(cpu);                                                                                                                                     
+-            if(!handle_hypercall_kafl_hook(run, cpu)){                                                                                                                       
+-                ret = kvm_arch_handle_exit(cpu, run);                                                                                                                        
+-            }                                                                                                                                                                
+-            else {                                                                                                                                                           
+-                ret = 0;                                                                                                                                                     
+-            }                                                                                                                                                                
+-            break;      
+-#endif                                                                                                                                                     
+-#endif     
+-
++#ifdef CONFIG_REDQUEEN
++        case KVM_EXIT_DEBUG:
++            kvm_arch_get_registers(cpu);
++            if(!handle_hypercall_kafl_hook(run, cpu)){
++                ret = kvm_arch_handle_exit(cpu, run);
++            }
++            else {
++                ret = 0;
++            }
++            break;
++#endif
++#endif
+         case KVM_EXIT_SYSTEM_EVENT:
+             switch (run->system_event.type) {
+             case KVM_SYSTEM_EVENT_SHUTDOWN:
+@@ -2205,9 +2203,9 @@ int kvm_cpu_exec(CPUState *cpu)
+             ret = kvm_arch_handle_exit(cpu, run);
+             break;
+         }
+-#ifdef CONFIG_PROCESSOR_TRACE                                                                                                                                                
+-            pt_post_kvm_run(cpu);                                                                                                                                            
+-#endif    
++#ifdef CONFIG_PROCESSOR_TRACE
++            pt_post_kvm_run(cpu);
++#endif
+     } while (ret == 0);
+ 
+     cpu_exec_end(cpu);
+diff --git a/include/qom/cpu.h b/include/qom/cpu.h
+index 59529664..bf6b1ff6 100644
+--- a/include/qom/cpu.h
++++ b/include/qom/cpu.h
+@@ -413,6 +413,7 @@ struct CPUState {
+     MMUAccessType mem_io_access_type;
+ 
+ #ifdef CONFIG_PROCESSOR_TRACE
++#include "pt/interface.h"
+     volatile int pt_cmd;
+     volatile uint64_t pt_arg;
+     volatile int pt_ret;
+@@ -426,10 +427,10 @@ struct CPUState {
+ 
+     uint64_t pt_features;
+ 
+-    volatile bool pt_ip_filter_enabled[4];
+-    uint64_t pt_ip_filter_a[4];
+-    uint64_t pt_ip_filter_b[4];
+-    void* pt_decoder_state[4];
++    volatile bool pt_ip_filter_enabled[INTEL_PT_MAX_RANGES];
++    uint64_t pt_ip_filter_a[INTEL_PT_MAX_RANGES];
++    uint64_t pt_ip_filter_b[INTEL_PT_MAX_RANGES];
++    void* pt_decoder_state[INTEL_PT_MAX_RANGES];
+     uint64_t pt_c3_filter;
+ 
+     FILE *pt_target_file;
+@@ -439,7 +440,7 @@ struct CPUState {
+     bool intel_pt_run_trashed;
+ 
+ #ifdef CONFIG_REDQUEEN
+-    void* redqueen_state[4];
++    void* redqueen_state[INTEL_PT_MAX_RANGES];
+     bool redqueen_enable_pending;
+     bool redqueen_disable_pending;
+ 
+diff --git a/pt/hypercall.c b/pt/hypercall.c
+index f501afb1..6839264d 100644
+--- a/pt/hypercall.c
++++ b/pt/hypercall.c
+@@ -239,10 +239,10 @@ bool handle_hypercall_kafl_next_payload(struct kvm_run *run, CPUState *cpu){
+ 				pt_reset_bitmap();
+ 				/* decrease RIP value by vmcall instruction size */
+ 				X86CPU *x86_cpu = X86_CPU(cpu);
+-	    		CPUX86State *env = &x86_cpu->env;
+-	    		kvm_cpu_synchronize_state(cpu);
+-	    		env->eip -= 3; /* vmcall size */
+-	    		kvm_arch_put_registers(cpu, KVM_PUT_FULL_STATE);
++				CPUX86State *env = &x86_cpu->env;
++				kvm_cpu_synchronize_state(cpu);
++				env->eip -= 3; /* vmcall size */
++				kvm_arch_put_registers(cpu, KVM_PUT_FULL_STATE);
+ 
+ 				setup_snapshot_once = true;
+ 				for(int i = 0; i < INTEL_PT_MAX_RANGES; i++){
+@@ -280,7 +280,7 @@ void handle_hypercall_kafl_acquire(struct kvm_run *run, CPUState *cpu){
+ void handle_hypercall_get_payload(struct kvm_run *run, CPUState *cpu){
+ 	if(hypercall_enabled){
+ 		if(payload_buffer){
+-			QEMU_PT_PRINTF(CORE_PREFIX, "Payload Address:\t%llx", run->hypercall.args[0]);
++			QEMU_PT_PRINTF(CORE_PREFIX, "Got payload address:\t%llx", run->hypercall.args[0]);
+ 			payload_buffer_guest = (void*)run->hypercall.args[0];
+ 			write_virtual_memory((uint64_t)payload_buffer_guest, payload_buffer, PAYLOAD_SIZE, cpu);
+ 		}
+@@ -290,7 +290,7 @@ void handle_hypercall_get_payload(struct kvm_run *run, CPUState *cpu){
+ void handle_hypercall_get_program(struct kvm_run *run, CPUState *cpu){
+ 	if(hypercall_enabled){
+ 		if(program_buffer){
+-			QEMU_PT_PRINTF(CORE_PREFIX, "Program Address:\t%llx", run->hypercall.args[0]);
++			QEMU_PT_PRINTF(CORE_PREFIX, "Got program address:\t%llx", run->hypercall.args[0]);
+ 			write_virtual_memory((uint64_t)run->hypercall.args[0], program_buffer, PROGRAM_SIZE, cpu);
+ 		}
+ 	}
+@@ -312,15 +312,15 @@ void handle_hypercall_kafl_release(struct kvm_run *run, CPUState *cpu){
+ 
+ void handle_hypercall_kafl_cr3(struct kvm_run *run, CPUState *cpu){
+ 	if(hypercall_enabled){
+-		QEMU_PT_PRINTF(CORE_PREFIX, "CR3 address:\t\t%llx", run->hypercall.args[0]);
++		QEMU_PT_PRINTF(CORE_PREFIX, "Got CR3 address:\t\t%llx", run->hypercall.args[0]);
+ 		pt_set_cr3(cpu, run->hypercall.args[0], false);
+ 
+ 		if (cpu->disassembler_word_width == 0) {
+ 			if (run->hypercall.longmode) {
+-				QEMU_PT_PRINTF(CORE_PREFIX, "Setting arch=64 (longmode=%d)\n", run->hypercall.longmode);
++				QEMU_PT_PRINTF(CORE_PREFIX, "Auto-detected word width as 64bit (longmode=%d)", run->hypercall.longmode);
+ 				cpu->disassembler_word_width = 64;
+ 			} else {
+-				QEMU_PT_PRINTF(CORE_PREFIX, "Setting arch=32 (longmode=%d)\n", run->hypercall.longmode);
++				QEMU_PT_PRINTF(CORE_PREFIX, "Auto-detected word width as 32bit (longmode=%d)", run->hypercall.longmode);
+ 				cpu->disassembler_word_width = 32;
+ 			}
+ 		}
+@@ -329,7 +329,7 @@ void handle_hypercall_kafl_cr3(struct kvm_run *run, CPUState *cpu){
+ 
+ void handle_hypercall_kafl_submit_panic(struct kvm_run *run, CPUState *cpu){
+ 	if(hypercall_enabled){
+-		QEMU_PT_PRINTF(CORE_PREFIX, "Patching PANIC address:\t%llx, longmode=%x\n", run->hypercall.args[0], run->hypercall.longmode);
++		QEMU_PT_PRINTF(CORE_PREFIX, "Patching PANIC address:\t%llx, longmode=%x", run->hypercall.args[0], run->hypercall.longmode);
+ 		if(notifiers_enabled){
+ 			if (run->hypercall.longmode) {
+ 				write_virtual_memory(run->hypercall.args[0], (uint8_t*)PANIC_PAYLOAD_64, PAYLOAD_BUFFER_SIZE, cpu);
+@@ -342,7 +342,7 @@ void handle_hypercall_kafl_submit_panic(struct kvm_run *run, CPUState *cpu){
+ 
+ void handle_hypercall_kafl_submit_kasan(struct kvm_run *run, CPUState *cpu){
+ 	if(hypercall_enabled){
+-		QEMU_PT_PRINTF(CORE_PREFIX, "Patching kASAN address:\t%llx, longmode=%x\n", run->hypercall.args[0], run->hypercall.longmode);
++		QEMU_PT_PRINTF(CORE_PREFIX, "Patching kASAN address:\t%llx, longmode=%x", run->hypercall.args[0], run->hypercall.longmode);
+ 		if(notifiers_enabled){
+ 			if (run->hypercall.longmode){
+ 				write_virtual_memory(run->hypercall.args[0], (uint8_t*)KASAN_PAYLOAD_64, PAYLOAD_BUFFER_SIZE, cpu);
+@@ -360,15 +360,14 @@ void handle_hypercall_kafl_panic(struct kvm_run *run, CPUState *cpu){
+ 		} else{
+ 			QEMU_PT_DEBUG(CORE_PREFIX, "Panic in kernel mode!");
+ 		}
+-    QEMU_PT_PRINTF(CORE_PREFIX, "Panic detected during initialization of stage 1 or stage 2 loader");
+-    hypercall_snd_char(KAFL_PROTO_CRASH);
++		hypercall_snd_char(KAFL_PROTO_CRASH);
+ 	}
+ }
+ 
+ void handle_hypercall_kafl_timeout(struct kvm_run *run, CPUState *cpu){
+ 	if(hypercall_enabled){
+-    QEMU_PT_PRINTF(CORE_PREFIX, "Timeout detected during initialization of stage 1 or stage 2 loader");
+-    hypercall_snd_char(KAFL_PROTO_TIMEOUT);
++		QEMU_PT_DEBUG(CORE_PREFIX, "Timeout detected!");
++		hypercall_snd_char(KAFL_PROTO_TIMEOUT);
+ 	}
+ }
+ 
+@@ -379,8 +378,7 @@ void handle_hypercall_kafl_kasan(struct kvm_run *run, CPUState *cpu){
+ 		} else{
+ 			QEMU_PT_DEBUG(CORE_PREFIX, "ASan notification in kernel mode!");
+ 		}
+-    QEMU_PT_PRINTF(CORE_PREFIX, "KASAN detected during initialization of stage 1 or stage 2 loader");
+-    hypercall_snd_char(KAFL_PROTO_KASAN);
++		hypercall_snd_char(KAFL_PROTO_KASAN);
+ 	}
+ }
+ 
+@@ -389,7 +387,7 @@ void handle_hypercall_kafl_lock(struct kvm_run *run, CPUState *cpu){
+ 		Error *err = NULL;
+ 		QEMU_PT_PRINTF(CORE_PREFIX, "Creating snapshot <kafl> ...");
+ 		qemu_mutex_lock_iothread();
+-	    kvm_cpu_synchronize_state(qemu_get_cpu(0));
++		kvm_cpu_synchronize_state(qemu_get_cpu(0));
+ 		save_snapshot("kafl", &err);
+         if (err)
+             error_reportf_err(err, "Error: ");
+@@ -421,7 +419,7 @@ void enable_notifies(void){
+ }
+ 
+ void enable_reload_mode(void){
+-  assert(false);
++	assert(false);
+ }
+ 
+ void hprintf(char* msg){
+@@ -436,8 +434,7 @@ void hprintf(char* msg){
+ 			hypercall_snd_char(KAFL_PROTO_PRINTF);
+ 		}
+ 		hprintf_counter++;
+-
+-	}		
++	}
+ }
+ 
+ void handle_hypercall_kafl_printf(struct kvm_run *run, CPUState *cpu){
+@@ -484,19 +481,19 @@ void handle_hypercall_kafl_user_submit_mode(struct kvm_run *run, CPUState *cpu){
+ 	//printf("%s\n", __func__);
+ 	switch((uint64_t)run->hypercall.args[0]){
+ 		case KAFL_MODE_64:
+-			QEMU_PT_PRINTF(CORE_PREFIX, "target runs in KAFL_MODE_64 ...");
++			QEMU_PT_PRINTF(CORE_PREFIX, "Target reports 64bit word width");
+ 			cpu->disassembler_word_width = 64;
+ 			break;
+ 		case KAFL_MODE_32:
+-			QEMU_PT_PRINTF(CORE_PREFIX, "target runs in KAFL_MODE_32 ...");
++			QEMU_PT_PRINTF(CORE_PREFIX, "Target reports 32bit word width");
+ 			cpu->disassembler_word_width = 32;
+ 			break;
+ 		case KAFL_MODE_16:
+-			QEMU_PT_PRINTF(CORE_PREFIX, "target runs in KAFL_MODE_16 ...");
++			QEMU_PT_PRINTF(CORE_PREFIX, "Target reports 16bit word width");
+ 			cpu->disassembler_word_width = 16;
+ 			break;
+ 		default:
+-			QEMU_PT_ERROR(CORE_PREFIX, "Error: target uses unknown word width..");
++			QEMU_PT_ERROR(CORE_PREFIX, "Error: target uses unknown word width!");
+ 			cpu->disassembler_word_width = -1;
+ 			break;
+ 	}
+diff --git a/pt/interface.c b/pt/interface.c
+index 958e6e33..580a91a3 100644
+--- a/pt/interface.c
++++ b/pt/interface.c
+@@ -142,7 +142,7 @@ static void kafl_guest_receive(void *opaque, const uint8_t * buf, int size){
+ 				
+ 			/* enable redqueen intercept mode */
+ 			case KAFL_PROTO_ENABLE_RQI_MODE:
+-				//QEMU_PT_PRINTF(REDQUEEN_PREFIX, "proto enable rqi");
++				QEMU_PT_DEBUG(REDQUEEN_PREFIX, "proto enable rqi");
+ 				assert(qemu_get_cpu(0)->redqueen_instrumentation_mode != REDQUEEN_NO_INSTRUMENTATION);
+ 				pt_enable_rqi(qemu_get_cpu(0));
+ 				send_char(KAFL_PROTO_ENABLE_RQI_MODE, s);
+@@ -150,7 +150,7 @@ static void kafl_guest_receive(void *opaque, const uint8_t * buf, int size){
+ 
+ 			/* disable redqueen intercept mode */
+ 			case KAFL_PROTO_DISABLE_RQI_MODE:
+-				 //QEMU_PT_PRINTF(REDQUEEN_PREFIX, "proto disable rqi");
++				QEMU_PT_DEBUG(REDQUEEN_PREFIX, "proto disable rqi");
+ 				pt_set_redqueen_instrumentation_mode(qemu_get_cpu(0),REDQUEEN_NO_INSTRUMENTATION);
+ 				pt_set_redqueen_update_blacklist(qemu_get_cpu(0), false);
+ 				pt_disable_rqi(qemu_get_cpu(0));
+@@ -158,52 +158,52 @@ static void kafl_guest_receive(void *opaque, const uint8_t * buf, int size){
+ 				break;
+ 
+ 			case KAFL_PROTO_REDQUEEN_SET_LIGHT_INSTRUMENTATION:
+-				//QEMU_PT_PRINTF(REDQUEEN_PREFIX, "proto set light");
++				QEMU_PT_DEBUG(REDQUEEN_PREFIX, "proto set light");
+ 				pt_set_redqueen_instrumentation_mode(qemu_get_cpu(0),REDQUEEN_LIGHT_INSTRUMENTATION);
+ 				send_char(KAFL_PROTO_REDQUEEN_SET_LIGHT_INSTRUMENTATION, s);
+ 				break;
+ 
+ 			case KAFL_PROTO_REDQUEEN_SET_SE_INSTRUMENTATION:
+-				//QEMU_PT_PRINTF(REDQUEEN_PREFIX, "proto set se");
++				QEMU_PT_DEBUG(REDQUEEN_PREFIX, "proto set se");
+ 				pt_set_redqueen_instrumentation_mode(qemu_get_cpu(0),REDQUEEN_SE_INSTRUMENTATION);
+ 				send_char(KAFL_PROTO_REDQUEEN_SET_SE_INSTRUMENTATION, s);
+ 				break;
+ 
+ 			case KAFL_PROTO_REDQUEEN_SET_WHITELIST_INSTRUMENTATION:
+-				//QEMU_PT_PRINTF(REDQUEEN_PREFIX, "proto set whitelist");
++				QEMU_PT_DEBUG(REDQUEEN_PREFIX, "proto set whitelist");
+ 				pt_set_redqueen_instrumentation_mode(qemu_get_cpu(0),REDQUEEN_WHITELIST_INSTRUMENTATION);
+ 				send_char(KAFL_PROTO_REDQUEEN_SET_WHITELIST_INSTRUMENTATION, s);
+ 				break;
+ 
+ 			case KAFL_PROTO_REDQUEEN_SET_BLACKLIST:
+-				//QEMU_PT_PRINTF(REDQUEEN_PREFIX, "proto set blacklist");
++				QEMU_PT_DEBUG(REDQUEEN_PREFIX, "proto set blacklist");
+ 				pt_set_redqueen_update_blacklist(qemu_get_cpu(0), true);
+ 				send_char(KAFL_PROTO_REDQUEEN_SET_BLACKLIST, s);
+ 				break;
+ 
+ 			/* enable symbolic execution mode */
+ 			case KAFL_PROTO_ENABLE_TRACE_MODE:
+-				//QEMU_PT_PRINTF(REDQUEEN_PREFIX, "proto enable trace");
++				QEMU_PT_DEBUG(REDQUEEN_PREFIX, "proto enable trace");
+ 				pt_enable_rqi_trace(qemu_get_cpu(0));
+ 				send_char(KAFL_PROTO_ENABLE_TRACE_MODE, s);
+ 				break;
+ 
+ 			/* disable symbolic execution mode */
+ 			case KAFL_PROTO_DISABLE_TRACE_MODE:
+- 				//QEMU_PT_PRINTF(REDQUEEN_PREFIX, "proto disable trace");
++				QEMU_PT_DEBUG(REDQUEEN_PREFIX, "proto disable trace");
+ 				pt_disable_rqi_trace(qemu_get_cpu(0));
+ 				send_char(KAFL_PROTO_DISABLE_TRACE_MODE, s);
+ 				break;
+ 			/* apply patches to target */
+ 			case KAFL_PROTO_ENABLE_PATCHES:
+-				//QEMU_PT_PRINTF(REDQUEEN_PREFIX, "proto patches enable");
++				QEMU_PT_DEBUG(REDQUEEN_PREFIX, "proto patches enable");
+ 				pt_set_enable_patches_pending(qemu_get_cpu(0));
+ 				send_char(KAFL_PROTO_ENABLE_PATCHES, s);
+ 				break;
+ 
+ 			/* remove all patches from the target */
+ 			case KAFL_PROTO_DISABLE_PATCHES:
+-				//QEMU_PT_PRINTF(REDQUEEN_PREFIX, "proto patches disable");
++				QEMU_PT_DEBUG(REDQUEEN_PREFIX, "proto patches disable");
+ 				pt_set_disable_patches_pending(qemu_get_cpu(0));
+ 				send_char(KAFL_PROTO_DISABLE_PATCHES, s);
+ 				break;
+@@ -220,7 +220,7 @@ static int kafl_guest_create_memory_bar(kafl_mem_state *s, int region_num, uint6
+ 	fd = open(file, O_CREAT|O_RDWR, S_IRWXU|S_IRWXG|S_IRWXO);
+ 	assert(ftruncate(fd, bar_size) == 0);
+ 	stat(file, &st);
+-	QEMU_PT_PRINTF(INTERFACE_PREFIX, "new shm file: (max size: %lx) %lx", bar_size, st.st_size);
++	QEMU_PT_DEBUG(INTERFACE_PREFIX, "new shm file: (max size: %lx) %lx", bar_size, st.st_size);
+ 	
+ 	assert(bar_size == st.st_size);
+ 	ptr = mmap(0, bar_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+@@ -259,14 +259,14 @@ static void* kafl_guest_setup_filter_bitmap(kafl_mem_state *s, char* filter, uin
+ 	int fd;
+ 	struct stat st;
+ 	
+-	QEMU_PT_PRINTF(INTERFACE_PREFIX, "setup filter file: %s", filter);
++	QEMU_PT_DEBUG(INTERFACE_PREFIX, "setup filter file: %s", filter);
+ 	fd = open(filter, O_CREAT|O_RDWR, S_IRWXU|S_IRWXG|S_IRWXO);
+ 	stat(filter, &st);
+ 	if (st.st_size != size){
+ 		assert(ftruncate(fd, size) == 0);
+ 	}
+ 	ptr = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+-	QEMU_PT_PRINTF(INTERFACE_PREFIX, "filter file size: %lx (addr: %p)", size, ptr);
++	QEMU_PT_DEBUG(INTERFACE_PREFIX, "filter file size: %lx (addr: %p)", size, ptr);
+ 	return ptr;
+ 	//pt_setup_bitmap((void*)ptr);
+ }
+@@ -337,7 +337,7 @@ static void pci_kafl_guest_realize(DeviceState *dev, Error **errp){
+ 
+ 
+ 	pt_setup_enable_hypercalls();
+-  asm_decoder_compile();
++	asm_decoder_compile();
+ }
+ 
+ static Property kafl_guest_properties[] = {
+-- 
+2.20.1
+

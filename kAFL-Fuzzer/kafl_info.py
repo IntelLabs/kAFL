@@ -1,45 +1,44 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+#
+# Copyright (C) 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright (C) 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+""" 
+Execute a kAFL target once, using a special "info" binary as agent.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+This is used in cases where we want to automatically extract some information
+from a target before proper fuzzing, e.g. the location of kernel modules in a VM
+snapshot. Perhaps this feature should be merged into kafl_debug.py.
 """
 
-
+import os
 import sys
 
 import common.color
 from common.self_check import self_check
+from common.config import InfoConfiguration
 
-__author__ = 'sergej'
-
+KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/"
+KAFL_BANNER = KAFL_ROOT + "banner.txt"
+KAFL_CONFIG = KAFL_ROOT + "kafl.ini"
 
 def main():
-    f = open("help.txt")
-    for line in f:
-        print(line.replace("\n", ""))
-    f.close()
 
-    print("<< " + common.color.BOLD + common.color.OKGREEN + sys.argv[
-        0] + ": Kernel Address Dumper " + common.color.ENDC + ">>\n")
+    with open(KAFL_BANNER) as f:
+        for line in f:
+            print(line.replace("\n", ""))
 
-    if not self_check():
+    print("<< " + common.color.BOLD + common.color.OKGREEN +
+            sys.argv[0] + ": Agent Info Dumper " + common.color.ENDC + ">>\n")
+
+    if not self_check(KAFL_ROOT):
         return 1
 
-    from info.core import start
-    return start()
+    import info.core
+    cfg = InfoConfiguration(KAFL_CONFIG)
+    return info.core.start(cfg)
 
 
 if __name__ == "__main__":

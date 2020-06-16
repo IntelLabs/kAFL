@@ -1,22 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+#
+# Copyright (C) 2017-2019 Sergej Schumilo, Cornelius Aschermann
+# Copyright (C) 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
 
 """
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Helper script to harness simple Linux userspace binaries for use within a kAFL guest VM.
 """
-
 
 import argparse
 import os
@@ -26,30 +17,30 @@ import sys
 import tarfile
 import uuid
 
-import common.color
 from common.color import WARNING_PREFIX, ERROR_PREFIX, FAIL, WARNING, ENDC, OKGREEN, BOLD, OKBLUE, INFO_PREFIX, OKGREEN
 from common.self_check import self_check
-from common.util import ask_for_permission
 
-__author__ = 'sergej'
 
+KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/"
+KAFL_BANNER = KAFL_ROOT + "banner.txt"
+KAFL_CONFIG = KAFL_ROOT + "kafl.ini"
 
 def create_dependencies(target_binary_path, tmp_folder, objcopy_type, ld_type):
     result_string = ""
+    is_asan_build = False
     print("\n" + OKGREEN + INFO_PREFIX + "Gathering dependencies of " + target_binary_path + ENDC)
     cmd = "lddtree -l " + target_binary_path
     try:
         proc = subprocess.Popen(cmd.split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if proc.wait() is not 0:
+        if proc.wait() != 0:
             raise Exception(proc.stderr.read())
 
-        dependencies = proc.stdout.read().rstrip().split("\n")
+        dependencies = proc.stdout.read().decode().rstrip().split("\n")
 
         library_name = []
 
         libasan_name = ""
 
-        # First line contains only the filename
         i = 1
         for d in dependencies[1:]:
             print(OKGREEN + INFO_PREFIX + "  => " + d + ENDC)
@@ -61,12 +52,11 @@ def create_dependencies(target_binary_path, tmp_folder, objcopy_type, ld_type):
 
             if "libasan" in d:
                 libasan_name = os.path.basename(d)
+                is_asan_build = True
 
         if len(library_name) != 0:
             execute(("ld -r -m " + ld_type + " " + " ".join("%d.o" % i for i in range(1, i)) + " -o libraries.o").split(
                 " "), tmp_folder, print_cmd=True)
-        # else:
-        #	execute(("ld -r -m " + ld_type + " " + " -o libraries.o").split(" "), tmp_folder, print_cmd=True)
         if (i >= 1):
             for e in range(1, i):
                 result_string += "extern uint8_t _binary_" + str(e) + "_start;\n"
@@ -83,19 +73,17 @@ def create_dependencies(target_binary_path, tmp_folder, objcopy_type, ld_type):
             result_string += "uint32_t libraries = " + str(i - 1) + ";\n"
             result_string += "char* libasan_name = \"" + libasan_name + "\";\n"
         else:
-            esult_string += "uint8_t* library_address_start[] = {" "};\n"
+            result_string += "uint8_t* library_address_start[] = {" "};\n"
             result_string += "uint8_t* library_address_end[] = {" "};\n"
             result_string += "uint8_t* library_size[] = {" "};\n"
             result_string += "char* library_name[] = {};\n"
             result_string += "uint32_t libraries = 0;\n"
             result_string += "char* libasan_name = \"\";\n"
 
-    # print(result_string)
-
     except Exception as e:
         print(FAIL + "Error while running lddtree: " + str(e) + ENDC)
 
-    return result_string
+    return result_string, is_asan_build
 
 
 def execute(cmd, cwd, print_output=True, print_cmd=False):
@@ -107,22 +95,22 @@ def execute(cmd, cwd, print_output=True, print_cmd=False):
         while True:
             output = proc.stdout.readline()
             if output:
-                print(output),
+                print(output.decode()),
             else:
                 break
         while True:
             output = proc.stderr.readline()
             if output:
-                print(FAIL + output + ENDC),
+                print(FAIL + output.decode() + ENDC),
             else:
                 break
-    if proc.wait() is not 0:
+    if proc.wait() != 0:
         print(FAIL + "Error while executing " + " ".join(cmd) + ENDC)
 
 
 def check_elf(file):
     proc = subprocess.Popen(("file " + file).split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    output = proc.stdout.readline()
+    output = proc.stdout.readline().decode()
     proc.wait()
 
     if not (not "ELF" in output and not "executable" in output and not "Intel" in output):
@@ -157,12 +145,7 @@ def checks(config):
 
     if not os.path.isdir(config.config_values["AGENTS-FOLDER"] + "/linux_x86_64-userspace/bin/"):
         print(FAIL + ERROR_PREFIX + "Userspace agents are not precompiled..." + ENDC)
-
-        print(WARNING + WARNING_PREFIX + "Would you like to compile all agents now?" + ENDC)
-        if not ask_for_permission("COMPILE", " to compile agents:", color=WARNING):
-            return False
-        else:
-            execute(["sh", "compile.sh"], config.config_values["AGENTS-FOLDER"])
+        return False
 
     files = ["userspace_loader_32.o", "ld_preload_info_32.o", "ld_preload_fuzz_32.o", "userspace_loader_64.o",
              "ld_preload_info_64.o", "ld_preload_fuzz_64.o"]
@@ -177,18 +160,17 @@ def checks(config):
 
 def compile(config):
     if not check_memlimit(config.argument_values["m"], config.argument_values["mode"] == "m32"):
-        return
+        return False
 
     elf_mode = check_elf(config.argument_values["binary_file"])
     if not elf_mode:
-        return
+        return False
 
     print(OKGREEN + INFO_PREFIX + "Executable architecture is Intel " + elf_mode + "-bit ..." + ENDC)
     if (elf_mode == "32" and config.argument_values["mode"] == "m64") or (
             elf_mode == "64" and config.argument_values["mode"] == "m32"):
         print(WARNING + WARNING_PREFIX + "Executable architecture mismatch!" + ENDC)
-        if not ask_for_permission("IGNORE", " to continue:", color=WARNING):
-            return
+        return False
 
     if config.argument_values["mode"] == "m64":
         objcopy_type = "elf64-x86-64"
@@ -218,10 +200,6 @@ def compile(config):
         execute(
             ("objcopy -I binary -O " + objcopy_type + " -B i386 ld_preload_target ld_preload_target_info.o").split(" "),
             tmp_folder, print_cmd=True)
-
-        # Create library archive
-        # creade_dependencies_archive(config.argument_values["binary_file"], tmp_folder + "libarchive")
-        # execute(("objcopy -I binary -O " + objcopy_type + " -B i386 libarchive libarchive.o").split(" "), tmp_folder, print_cmd=True)
 
         print(OKGREEN + INFO_PREFIX + "Creating argv.o file ..." + ENDC)
         argv_template = "#include <stdint.h>\n#include <stddef.h>\n"
@@ -259,8 +237,8 @@ def compile(config):
         f.write(argv_template)
         f.close()
 
-        argv_template += create_dependencies(config.argument_values["binary_file"], tmp_folder, objcopy_type, ld_type)
-
+        argv_res, is_asan_build = create_dependencies(config.argument_values["binary_file"], tmp_folder, objcopy_type, ld_type)
+        argv_template += argv_res
         print("------------------------")
         print(argv_template)
         print("------------------------")
@@ -274,9 +252,16 @@ def compile(config):
                 print_cmd=True)
 
         print(OKGREEN + INFO_PREFIX + "Creating ld_preload_target_fuzz.o file ..." + ENDC)
-        shutil.copy2(
-            config.config_values["AGENTS-FOLDER"] + "/linux_x86_64-userspace/bin/" + "ld_preload_fuzz_" + mode + ".o",
-            tmp_folder + "ld_preload_fuzz.o")
+
+        if is_asan_build or (config.argument_values["asan"]):
+            print(WARNING + INFO_PREFIX + FAIL + "ASAN BINARY DETECTED => Disabling memlimits!" + ENDC)
+            shutil.copy2(
+                config.config_values["AGENTS-FOLDER"] + "/linux_x86_64-userspace/bin/" + "ld_preload_fuzz_" + mode + "_asan.o",
+                tmp_folder + "ld_preload_fuzz.o")
+        else:
+            shutil.copy2(
+                config.config_values["AGENTS-FOLDER"] + "/linux_x86_64-userspace/bin/" + "ld_preload_fuzz_" + mode + ".o",
+                tmp_folder + "ld_preload_fuzz.o")
         execute(("gcc -m" + mode + " -shared -fPIC argv.o ld_preload_fuzz.o -o ld_preload_target -ldl").split(" "),
                 tmp_folder, print_cmd=True)
         execute(
@@ -286,28 +271,25 @@ def compile(config):
         if os.path.isfile(tmp_folder + "/libraries.o"):
             # Create the final executables
             print(OKGREEN + INFO_PREFIX + "Creating info_binary file ..." + ENDC)
-            shutil.copy2(config.config_values[
-                             "AGENTS-FOLDER"] + "/linux_x86_64-userspace/bin/" + "userspace_loader_" + mode + ".o",
+            shutil.copy2(config.config_values["AGENTS-FOLDER"] + "/linux_x86_64-userspace/bin/" + "userspace_loader_" + mode + ".o",
                          tmp_folder + "userspace_loader.o")
             execute((
-                    "gcc -m" + mode + " argv_libraries.o userspace_loader.o target.o ld_preload_target_info.o libraries.o -o info_binary").split(
+                                "gcc -static -m" + mode + " argv_libraries.o userspace_loader.o target.o ld_preload_target_info.o libraries.o -o info_binary").split(
                 " "), tmp_folder, print_cmd=True)
 
             print(OKGREEN + INFO_PREFIX + "Creating fuzz_binary file ..." + ENDC)
-            shutil.copy2(config.config_values[
-                             "AGENTS-FOLDER"] + "/linux_x86_64-userspace/bin/" + "userspace_loader_" + mode + ".o",
+            shutil.copy2(config.config_values["AGENTS-FOLDER"] + "/linux_x86_64-userspace/bin/" + "userspace_loader_" + mode + ".o",
                          tmp_folder + "userspace_loader.o")
             execute((
-                    "gcc -m" + mode + " argv_libraries.o userspace_loader.o target.o ld_preload_target_fuzz.o libraries.o -o fuzz_binary").split(
+                                "gcc -static -m" + mode + " argv_libraries.o userspace_loader.o target.o ld_preload_target_fuzz.o libraries.o -o fuzz_binary").split(
                 " "), tmp_folder, print_cmd=True)
         else:
             # Create the final executables
             print(OKGREEN + INFO_PREFIX + "Creating info_binary file ..." + ENDC)
-            shutil.copy2(config.config_values[
-                             "AGENTS-FOLDER"] + "/linux_x86_64-userspace/bin/" + "userspace_loader_" + mode + ".o",
+            shutil.copy2(config.config_values["AGENTS-FOLDER"] + "/linux_x86_64-userspace/bin/" + "userspace_loader_" + mode + ".o",
                          tmp_folder + "userspace_loader.o")
             execute((
-                    "gcc -m" + mode + " argv_libraries.o userspace_loader.o target.o ld_preload_target_info.o -o info_binary").split(
+                                "gcc -static -m" + mode + " argv_libraries.o userspace_loader.o target.o ld_preload_target_info.o -o info_binary").split(
                 " "), tmp_folder, print_cmd=True)
 
             print(OKGREEN + INFO_PREFIX + "Creating fuzz_binary file ..." + ENDC)
@@ -315,7 +297,7 @@ def compile(config):
                              "AGENTS-FOLDER"] + "/linux_x86_64-userspace/bin/" + "userspace_loader_" + mode + ".o",
                          tmp_folder + "userspace_loader.o")
             execute((
-                    "gcc -m" + mode + " argv_libraries.o userspace_loader.o target.o ld_preload_target_fuzz.o -o fuzz_binary").split(
+                                "gcc -static -m" + mode + " argv_libraries.o userspace_loader.o target.o ld_preload_target_fuzz.o -o fuzz_binary").split(
                 " "), tmp_folder, print_cmd=True)
 
         shutil.copy2(tmp_folder + "info_binary", config.argument_values["output_dir"] + "/" + os.path.basename(
@@ -333,26 +315,31 @@ def compile(config):
     print(OKBLUE + BOLD + " ==>  " + config.argument_values["output_dir"] + "/" + os.path.basename(
         config.argument_values["binary_file"]) + "_fuzz" + ENDC)
 
+    return True
 
 def main():
-    f = open("help.txt")
-    for line in f:
-        print(line.replace("\n", ""))
-    f.close()
 
-    print("<< " + BOLD + OKGREEN + sys.argv[0] + ": kAFL Binary Packer for Userspace Fuzzing " + ENDC + ">>\n")
+    print(BOLD + OKGREEN + sys.argv[0] +
+            ": kAFL Binary Packer for Userspace Fuzzing " + ENDC + "\n")
 
-    if not self_check():
-        return 1
+    if not self_check(KAFL_ROOT):
+        sys.exit(os.EX_SOFTWARE)
 
     from common.config import UserPrepareConfiguration
-    config = UserPrepareConfiguration()
+    try:
+        config = UserPrepareConfiguration(KAFL_CONFIG)
+    except:
+        sys.exit(os.EX_USAGE)
 
     if not checks(config):
-        return False
+        sys.exit(os.EX_USAGE)
 
-    compile(config)
+    if not compile(config):
+        sys.exit(os.EX_USAGE)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except:
+        sys.exit(os.EX_SOFTWARE)

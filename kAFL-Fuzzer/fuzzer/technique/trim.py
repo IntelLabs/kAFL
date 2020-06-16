@@ -1,18 +1,10 @@
+# Copyright (C) 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright (C) 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+AFL-style trim algorithms (init stage)
 """
 
 from fuzzer.bitmap import GlobalBitmap
@@ -50,9 +42,9 @@ def check_trim_still_valid(old_node, old_bitmap, new_bitmap):
         return GlobalBitmap.all_new_bits_still_set(old_bits, new_bitmap)
 
 
-def perform_center_trim(payload, old_node, send_handler, default_info, error_handler, trimming_bytes):
+def perform_center_trim(payload, old_node, send_handler, error_handler, trimming_bytes):
     index = 0
-    old_bitmap, _ = send_handler(payload, default_info)
+    old_bitmap, _ = send_handler(payload, label="center_trim_funky")
 
     if error_handler():
         return payload
@@ -60,7 +52,7 @@ def perform_center_trim(payload, old_node, send_handler, default_info, error_han
     while index < len(payload):
         test_payload = payload[0: index] + payload[index + trimming_bytes:]
 
-        new_bitmap, _ = send_handler(test_payload, default_info)
+        new_bitmap, _ = send_handler(test_payload, label="center_trim")
 
         # if error_handler():
         #     return payload
@@ -73,20 +65,20 @@ def perform_center_trim(payload, old_node, send_handler, default_info, error_han
     return payload
 
 
-def perform_trim(payload, old_node, send_handler, default_info, error_handler):
+def perform_trim(payload, old_node, send_handler, error_handler):
     global MAX_ROUNDS, MAX_EXECS, MIN_SIZE, APPEND_BYTES
     if len(payload) <= MIN_SIZE:
         return payload
 
-    old_bitmap, _ = send_handler(payload, default_info)
+    old_bitmap, _ = send_handler(payload, label="trim_funky")
     if error_handler():
         return payload
     execs = 0
     new_size = len(payload)
 
-    for _ in xrange(MAX_ROUNDS):
+    for _ in range(MAX_ROUNDS):
         abort = True
-        for i in reversed(xrange(0, pow2_values.index(get_pow2_value(new_size)) + 1)):
+        for i in reversed(range(0, pow2_values.index(get_pow2_value(new_size)) + 1)):
             if pow2_values[i] < new_size:
 
                 execs += 1
@@ -94,7 +86,7 @@ def perform_trim(payload, old_node, send_handler, default_info, error_handler):
                     abort = True
                     break
 
-                new_bitmap, _ = send_handler(payload[0:new_size - pow2_values[i]], default_info)
+                new_bitmap, _ = send_handler(payload[0:new_size - pow2_values[i]], label="trim")
 
                 if error_handler():
                     return payload[0:new_size]
@@ -118,7 +110,7 @@ def perform_trim(payload, old_node, send_handler, default_info, error_handler):
 
     new_size += APPEND_BYTES
 
-    new_bitmap, _ = send_handler(payload[0:new_size], default_info)
+    new_bitmap, _ = send_handler(payload[0:new_size], label="trim")
     if not check_trim_still_valid(old_node, old_bitmap, new_bitmap):
         return payload[0:min(new_size_backup, len(payload))]
 

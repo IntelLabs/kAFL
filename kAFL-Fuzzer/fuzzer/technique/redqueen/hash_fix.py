@@ -1,26 +1,18 @@
+# Copyright (C) 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright (C) 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Redqueen Checksum Fixer
 """
 
 import traceback
 from array import array
 
-import parser
 from common.debug import log_redq
-from parser import Cmp, RedqueenRunInfo
+from .parser import RedqueenRunInfo
+from .cmp import Cmp
 
 MAX_NUMBER_PERMUTATIONS = 100000
 
@@ -72,8 +64,8 @@ class HashFixer:
     def try_fix_data(self, data):
         self.qemu.send_payload(timeout_detection=True, apply_patches=False)
         self.qemu.send_payload(timeout_detection=True, apply_patches=True)
-        log_redq("PATCHES %s\n" % repr(map(hex, self.redqueen_state.get_candidate_hash_addrs())))
-        log_redq("BLACKLIST %s\n" % repr(map(hex, self.redqueen_state.get_blacklisted_hash_addrs())))
+        log_redq("PATCHES %s\n" % repr(list(map(hex, self.redqueen_state.get_candidate_hash_addrs()))))
+        log_redq("BLACKLIST %s\n" % repr(list(map(hex, self.redqueen_state.get_blacklisted_hash_addrs()))))
         self.redqueen_state.update_redqueen_patches(self.qemu.redqueen_workdir)
         self.redqueen_state.update_redqueen_whitelist(self.qemu.redqueen_workdir,
                                                       self.redqueen_state.get_candidate_hash_addrs())
@@ -129,7 +121,7 @@ class HashFixer:
 
     def try_fix_cmp_with(self, shape, fixed_data, cmp, offsets, lhs, rhs, enc):
         log_redq("Trying mutation %s" % (repr((offsets, lhs, rhs, enc))))
-        if map(len, lhs) != map(len, rhs):
+        if list(map(len, lhs)) != list(map(len, rhs)):
             return False
         self.redqueen_state.update_redqueen_whitelist(self.qemu.redqueen_workdir,
                                                       self.redqueen_state.get_candidate_hash_addrs())

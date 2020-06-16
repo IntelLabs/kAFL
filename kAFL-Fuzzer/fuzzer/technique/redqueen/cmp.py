@@ -1,28 +1,20 @@
+# Copyright (C) 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright (C) 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Redqueen Input Analysis
 """
 
 import itertools
 import re
 import struct
 
-import fuzzer
 from common.debug import log_redq
-from encoding import Encoders
 from fuzzer.technique import havoc_handler
+from fuzzer.technique import helper as helper
+from .encoding import Encoders
 
 MAX_NUMBER_PERMUTATIONS = 256  # number of trials per address, lhs and encoding
 
@@ -75,13 +67,13 @@ class Cmp:
             return False
         else:
             unpack_keys = {1: "B", 2: "H", 4: "L", 8: "Q"}
-            bytes = self.size / 8
-            key = unpack_keys.get(bytes, None)
+            num_bytes = int(self.size / 8)
+            key = unpack_keys.get(num_bytes, None)
             ilhs = struct.unpack(">" + key, lhs)[0]
             irhs = struct.unpack(">" + key, rhs)[0]
-            if abs(ilhs - irhs) < fuzzer.technique.helper.AFL_ARITH_MAX:
+            if abs(ilhs - irhs) < helper.AFL_ARITH_MAX:
                 return True
-            if lhs == "\0" * bytes:
+            if lhs == bytes(num_bytes):
                 return True
         return False
 
@@ -158,7 +150,7 @@ class CmpEncoded:
         res = list(offset_tuple)
         valid_offsets = self.get_offset_intersect_tuple(orig_run_info)
         if valid_offsets != None:
-            for i in xrange(len(offset_tuple)):
+            for i in range(len(offset_tuple)):
                 res[i] &= valid_offsets[i]
         else:
             assert (len(self.cmp.run_info_to_pairs) == 1)
@@ -173,18 +165,18 @@ class CmpEncoded:
                     self.all_valid_offsets = self.get_offset_union_tuple(run_info)
                 else:
                     other_offsets = self.get_offset_union_tuple(run_info)
-                    for i in xrange(len(self.all_valid_offsets)):
-                        self.all_valid_offsets[i] &= other_offets[i]
+                    for i in range(len(self.all_valid_offsets)):
+                        self.all_valid_offsets[i] &= other_offsets[i]
         return self.all_valid_offsets
 
     def get_offset_union_tuple(self, run_info):
-        union_tuple = [set() for _ in xrange(self.enc.size())]
+        union_tuple = [set() for _ in range(self.enc.size())]
         set_of_lhs = set()
         for (lhs, rhs) in self.cmp.run_info_to_pairs[run_info]:
             set_of_lhs.add(lhs)
         for lhs in set_of_lhs:
             offset_tuple = run_info.get_offset_tuple(self.__get_encoded(lhs))
-            for i in xrange(len(offset_tuple)):
+            for i in range(len(offset_tuple)):
                 union_tuple[i] |= offset_tuple[i]
 
         if not all(union_tuple):
@@ -195,20 +187,24 @@ class CmpEncoded:
     def get_str_variants(self, rhs):
         base = self.__get_encoded(rhs)[0]
         res = [(base,)]
-        if not "\0" in base:
-            res += [(base + "\0",)]
-        if re.match('^[[:print:]]+$', base):
-            if not "\n" in base:
-                res += [(base + "\n",)]
-            if not " " in base:
-                res += [(base + " ",)]
-            if not '"' in base:
-                res += [('"' + base + '"',)]
-            if not "'" in base:
-                res += [("'" + base + "'",)]
+        if not b'\0' in base:
+            res += [(base + b'\0',)]
+
+        try:
+            sub = base.decode(errors='strict')
+        except:
+            sub = "\0" # mark as non-printable
+
+        if sub.isprintable():
+            if not b'\n' in base:
+                res += [(base + b'\n',)]
+            if not b' ' in base:
+                res += [(base + b' ',)]
+            if not b'"' in base:
+                res += [(b'"' + base + b'"',)]
+            if not b"'" in base:
+                res += [(b"'" + base + b"'",)]
         return res
-        # return [ (base+"\n",), (base+"\0",), (base,)]
-        # return [ (base+"\n",), (base+"\0",), (base+" ",), ('"'+base+'"',),("'"+base+"'",), (base,)]
 
     def get_int_variants(self, rhs):
         global HAMMER_LEA
@@ -216,12 +212,12 @@ class CmpEncoded:
         unpack_keys = {1: "B", 2: "H", 4: "L", 8: "Q"}
         bytes = self.cmp.size / 8
         key = unpack_keys.get(bytes, None)
-        max = 2 ** (8 * bytes) - 1
+        max = int(2 ** (8 * bytes) - 1)
         val = struct.unpack(">" + key, rhs)[0]
         max_offset = 1
         if HAMMER_LEA and self.cmp.hammer:
             max_offset = 64
-        for i in xrange(1, max_offset + 1):
+        for i in range(1, max_offset + 1):
             res.append(tuple(self.__get_encoded(struct.pack(">" + key, (val + i) % max))))
             res.append(tuple(self.__get_encoded(struct.pack(">" + key, (val - i) % max))))
         return tuple(res)
@@ -231,9 +227,9 @@ class CmpEncoded:
         unpack_keys = {1: "B", 2: "H", 4: "L", 8: "Q"}
         bytes = self.cmp.size / 8
         key = unpack_keys.get(bytes, None)
-        max = 2 ** (8 * bytes) - 1
+        max = int(2 ** (8 * bytes) - 1)
         val = struct.unpack(">" + key, rhs)[0]
-        for i in xrange(-16, 16):
+        for i in range(-16, 16):
             res.append(tuple(self.__get_encoded(struct.pack(">" + key, (val + i) % max))))
         return tuple(res)
 

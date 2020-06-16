@@ -1,18 +1,10 @@
+# Copyright (C) 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright (C) 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+AFL-style havoc and splicing stage 
 """
 
 import glob
@@ -36,16 +28,18 @@ def load_dict(file_name):
 
 def init_havoc(config):
     global location_corpus
-    if config.argument_values["I"]:
-        set_dict(load_dict(FuzzerConfiguration().argument_values["I"]))
-        append_handler(havoc_dict)
-        append_handler(havoc_dict)
+    if config.argument_values["dict"]:
+        set_dict(load_dict(FuzzerConfiguration().argument_values["dict"]))
+    # AFL havoc adds these at runtime as soon as available dicts are non-empty
+    if config.argument_values["dict"] or config.argument_values["redqueen"]:
+        append_handler(havoc_dict_insert)
+        append_handler(havoc_dict_replace)
 
     location_corpus = config.argument_values['work_dir'] + "/corpus/"
 
 
 def havoc_range(perf_score):
-    max_iterations = int(perf_score * 2.5)
+    max_iterations = int(2*perf_score)
 
     if max_iterations < AFL_HAVOC_MIN:
         max_iterations = AFL_HAVOC_MIN
@@ -53,41 +47,32 @@ def havoc_range(perf_score):
     return max_iterations
 
 
-def mutate_seq_havoc_array(data, func, default_info, max_iterations, stacked=True, resize=False, files_to_splice=None):
-    reseed()
+def mutate_seq_havoc_array(data, func, max_iterations, resize=False):
     if resize:
-        copy = array('B', data.tostring() + data.tostring())
+        data = data + data
     else:
-        copy = array('B', data.tostring())
+        data = data
 
-    cnt = 0
     for i in range(max_iterations):
-        # if resize:
-        #    copy = array('B', data.tostring() + data.tostring())
-        # else:
-        copy = array('B', data.tostring())
+        stacking = rand.int(AFL_HAVOC_STACK_POW2)
 
-        value = RAND(AFL_HAVOC_STACK_POW2)
-
-        for j in range(1 << (1 + value)):
-            handler = havoc_handler[RAND(len(havoc_handler))]
-            # if not stacked:
-            #    if resize:
-            #        copy = array('B', data.tostring() + data.tostring())
-            #    else:
-            #        copy = array('B', data.tostring())
-            copy = handler(copy)
-            if len(copy) >= 64 << 10:
-                copy = copy[:(64 << 10)]
-            # cnt += 1
-            # if cnt >= max_iterations:
-            #    return
-        func(copy.tostring(), default_info)
-    pass
+        for j in range(1 << (1 + stacking)):
+            handler = rand.select(havoc_handler)
+            data = handler(data)
+            if len(data) >= KAFL_MAX_FILE:
+                data = data[:KAFL_MAX_FILE]
+        func(data)
 
 
-def mutate_seq_splice_array(data, func, default_info, max_iterations, stacked=True, resize=False):
+def mutate_seq_splice_array(data, func, max_iterations, resize=False):
+    global location_corpus
+    splice_rounds = 16
     files = glob.glob(location_corpus + "/*/payload_*")
-    random.shuffle(files)
-    mutate_seq_havoc_array(havoc_splicing(data, files), func, default_info, max_iterations, stacked=stacked,
-                           resize=resize)
+    for _ in range(splice_rounds):
+        spliced_data = havoc_splicing(data, files)
+        if spliced_data is None:
+            return # could not find any suitable splice pair for this file
+        mutate_seq_havoc_array(spliced_data,
+                               func,
+                               int(2*max_iterations/splice_rounds),
+                               resize=resize)

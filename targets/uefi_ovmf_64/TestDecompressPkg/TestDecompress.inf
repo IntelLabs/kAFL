@@ -1,0 +1,52 @@
+## @file TestDecompress.inf
+#
+# Copyright 2020 Intel Corporation. All rights reserved.
+# SPDX-License-Identifier: BSD-2-Clause
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = TestDecompress
+  FILE_GUID                      = E6020274-067D-40B2-B007-BE19B6EEF825
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = UefiMain
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = IA32 X64
+#
+
+[Sources]
+  TestDecompress.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  kAFLAgentPkg/kAFLAgentPkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+
+[Protocols]
+  gEfiShellParametersProtocolGuid
+  gEfiShellProtocolGuid
+
+[LibraryClasses]
+
+kAFLAgentLib
+BaseLib
+PrintLib
+UefiApplicationEntryPoint
+BaseMemoryLib
+DebugLib
+MemoryAllocationLib
+SafeIntLib
+UefiBootServicesTableLib
+DebugLib
+SerialPortLib
+PcdLib
+DebugPrintErrorLevelLib
+UefiApplicationEntryPoint
+UefiLib
+UefiDecompressLib
+CpuExceptionHandlerLib
+

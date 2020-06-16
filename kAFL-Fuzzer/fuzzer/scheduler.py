@@ -1,36 +1,39 @@
+# Copyright 2019-2020 Intel Corporation
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+Funny Experimental Scheduler. Appears better than original kAFL
+scheduler especially for slow targets.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+Idea is to favorize nodes based on speed, depth, number of new edges. Weights
+are tuned such that initial/redq/grim stages are processed first for all fav
+nodes, then non-favs start getting processed while at the same time the
+high-scoring fav nodes will also go through deterministic stages. Particularly
+strong fav nodes may overcome the stage buff and go all the way to havoc before
+others are done.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
+Queue sorting can become a bottleneck on large queues or very fast
+execution/finding rate.
 
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from fuzzer.technique.helper import RAND
 
+from fuzzer.technique.helper import rand
+from math import log, log2, ceil
 
-class GrimoireScheduler:
-    def __init__(self):
-        self.nodes = []
+# scale arbitrarily large / small inputs down to interval [1,scale]
+# supply alternative log to get a better fit
+def log_scale(value, scale=1, base=2):
 
-    def get_next(self):
-        if len(self.nodes) > 0:
-            return self.nodes.pop(0)
-        return None
+    if value <= base:
+        return 1
 
-    def insert_input(self, node):
-        if len(node.get_new_bytes()) > 0:
-            node.set_state("grimoire_inference")
-            self.nodes.append(node)
+    if base == 2:
+        val = log2(value)
+    else:
+        val = log(value, base)
+
+    return ceil(scale*val-scale+1)
 
 
 class Scheduler:
@@ -38,36 +41,65 @@ class Scheduler:
     def __init__(self):
         pass
 
+    # TODO: node skipping by p(x) conflicts with queue sorting..
     def should_be_scheduled(self, queue, node):
-        SKIP_TO_NEW_PROB = 99  # ...when there are new, pending favorites
-        SKIP_NFAV_OLD_PROB = 95  # ...no new favs, cur entry already fuzzed
-        SKIP_NFAV_NEW_PROB = 75  # ...no new favs, cur entry not fuzzed yet
+        SKIP_CRASHING_PROB = 80
+        SKIP_NONFAV_PROB = 50
 
         if node.get_exit_reason() != "regular":
-            return False
-
-        if queue.pending_favorites:
-            if (node.get_state() == "finished" or not node.get_favorite()) and RAND(100) < SKIP_TO_NEW_PROB:
+            if rand.int(100) < SKIP_CRASHING_PROB:
                 return False
-        elif not node.get_favorite() and queue.num_inputs() > 10:
-            if queue.num_cycles >= 1 and node.get_state() != "finished":
-                if RAND(100) < SKIP_NFAV_NEW_PROB:
-                    return False
-            else:
-                if RAND(100) < SKIP_NFAV_OLD_PROB:
-                    return False
+
+        if node.get_state() == "final":
+            if not node.get_favorite() and rand.int(100) < SKIP_NONFAV_PROB:
+                return False
         return True
 
-    def score_priority(self, node):
-        if node.get_performance() == 0:
-            return (0,)
+    def score_impact(self, node):
+        # each fav bit counts 8 times the depth level
+        impact = 8*len(node.get_fav_bits()) + node.get_level()
+        return log_scale(impact, scale=5)
 
-        is_fast = 1 if 1 / node.get_performance() >= 150 else 0  # TODO calculate adaptive as fastest n% or similar metric for "fast"
+    def score_speed(self, node):
+        p_len = node.get_payload_len()
+        p_len = 1 if p_len == 0 else p_len
+        return log_scale(10000/(node.get_performance()*p_len), scale=6, base=256)
 
-        return (is_fast, len(node.get_fav_bits()), -node.get_level(), -node.get_fav_factor())
+    def score_priority_favs(self, node):
+        score = node.get_fav_factor() # score_speed()
 
-    def score_fav(self, node):
-        return node.get_performance() * node.get_payload_len()
+        # below stage buffs are invalid for busy nodes.
+        # sort in with <final> nodes as these are the only ones we can process in parallel
+        if node.is_busy() or node.get_exit_reason() != "regular":
+            return (1, score)
 
-    def get_attention(node):
-        return 1
+        # boost nodes deeper in the tree
+        if node.get_level() > 0:
+            score += node.get_level()//5
+
+        # boost nodes with many fav bits
+        if len(node.get_fav_bits()) > 0:
+            score += 2*len(node.get_fav_bits())
+
+        # TODO: only actually have to compute all this for new nodes and fav bit changes...
+        node.set_score(score)
+
+        if node.get_state() in ["initial", "redq/grim"]:
+            phase = 256
+        elif node.get_state() in ["deterministic"]:
+            phase = 8
+        elif node.get_state() in ["havoc"]:
+            phase = 1
+        elif node.get_state() in ["final"]:
+            # promote later discovered nodes by compensating for total time spend in havoc.
+            # TODO some nodes are buffed on purpose - should only promote based on relative
+            # time or cycles rather than total face time
+            time_spent = node.node_struct.get("state_time_havoc",1)
+            score = score/log_scale(time_spent)
+            return (1, score)
+        else:
+            assert(False), "unknown state"
+
+        # first solve all initial phases, and highest-ranking score/impact there
+        return (score*phase, score)
+

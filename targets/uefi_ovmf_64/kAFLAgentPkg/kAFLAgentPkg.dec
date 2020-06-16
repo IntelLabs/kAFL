@@ -1,0 +1,25 @@
+## @file kAFLAgentPkg.dec
+#
+# Copyright 2020 Intel Corporation. All rights reserved.
+# SPDX-License-Identifier: BSD-2-Clause
+#
+##
+
+[Defines]
+  DEC_SPECIFICATION              = 0x00010005
+  PACKAGE_NAME                   = kAFLAgentPkg
+  #PACKAGE_UNI_FILE               = AFLPkg.uni
+  PACKAGE_GUID                   = a636c575-4a18-45c6-b0a3-31bb0ae5e5ee
+  PACKAGE_VERSION                = 0.01
+
+[Includes]
+  Include
+
+[LibraryClasses]
+AFLLib|Include/Library/kAFLAgentLib.h
+#CollectorLib|Include/Library/CollectorLib.h
+
+
+[Protocols]
+  # Include/Protocol/ChipsecProt.h
+  #gChipsecProtocolGuid = { 0x64a58468, 0xfb81, 0x4e17, { 0xa0, 0xa4, 0xff, 0x94, 0x3b, 0x1d, 0x43, 0x36 } }

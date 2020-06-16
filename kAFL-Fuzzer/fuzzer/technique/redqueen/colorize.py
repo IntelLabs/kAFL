@@ -1,23 +1,14 @@
+# Copyright (C) 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright (C) 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Redqueen Input Colorizer
 """
 
-# import time
 import array
-import random
+from fuzzer.technique.helper import rand
 
 
 # definition of range indicies:
@@ -32,7 +23,7 @@ class ColorizerStrategy:
     FIXED = -1
 
     def __init__(self, data_length, checker):
-        self.color_info = array.array('b', [self.UNKNOWN for _ in xrange(0, data_length)])
+        self.color_info = array.array('b', [self.UNKNOWN for _ in range(0, data_length)])
         self.unknown_ranges = set()
         if data_length > 0:
             self.add_unknown_range(0, data_length)
@@ -40,7 +31,7 @@ class ColorizerStrategy:
 
     def is_range_colorable(self, min_, max_):
         if self.checker(min_, max_):
-            for i in xrange(min_, max_):
+            for i in range(min_, max_):
                 self.color_info[i] = self.COLORABLE
             return True
         else:
@@ -51,12 +42,12 @@ class ColorizerStrategy:
     def bin_search(self, min_, max_):
         if self.is_range_colorable(min_, max_) or min_ + 1 == max_:
             return
-        center = min_ + (max_ - min_) / 2
+        center = int(min_ + (max_ - min_) / 2)
         self.add_unknown_range(min_, center)
         self.add_unknown_range(center, max_)
 
     def colorize_step(self):
-        (min_i, max_i) = max(self.unknown_ranges, key=lambda (mi, ma): ma - mi)
+        (min_i, max_i) = max(self.unknown_ranges, key=lambda mi_ma: mi_ma[1] - mi_ma[0])
         self.unknown_ranges.remove((min_i, max_i))
         self.bin_search(min_i, max_i)
 
@@ -66,15 +57,15 @@ class ColorizerStrategy:
 
 
 import unittest
-
+import random
 
 def check(min_, max_, array):
-    res = all([array[i] == 0 for i in xrange(min_, max_)])
+    res = all([array[i] == 0 for i in range(min_, max_)])
     return res
 
 
 def check_nondet(min_, max_, array):
-    res = all([array[i] == 0 for i in xrange(min_, max_)])
+    res = all([array[i] == 0 for i in range(min_, max_)])
     if random.randint(0, 100) < 10:
         return False
     return res
@@ -107,7 +98,7 @@ class TestColorizer(unittest.TestCase):
         self.check_fuzz_result(0, [0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1])
 
     def test_fuzz_colorize_step(self):
-        for i in xrange(0, 1000):
+        for i in range(0, 1000):
             random.seed(i)
             tlen = random.randint(1, 40)
             testcase = [0] * tlen

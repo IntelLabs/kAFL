@@ -1,51 +1,39 @@
-"""
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+ACQUIRE = b'R'
+RELEASE = b'D'
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
+RELOAD = b'L'
+ENABLE_SAMPLING = b'S'
+DISABLE_SAMPLING = b'O'
+COMMIT_FILTER = b'T'
+FINALIZE = b'F'
 
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+ENABLE_RQI_MODE = b'A'
+DISABLE_RQI_MODE = b'B'
+ENABLE_TRACE_MODE = b'E'
+DISABLE_TRACE_MODE = b'G'
+ENABLE_PATCHES = b'P'
+DISABLE_PATCHES = b'Q'
+REDQUEEN_SET_LIGHT_INSTRUMENTATION = b'U'
+REDQUEEN_SET_WHITELIST_INSTRUMENTATION = b'W'
+REDQUEEN_SET_BLACKLIST = b'X'
 
-ACQUIRE = 'R'
-RELEASE = 'D'
+CRASH = b'C'
+KASAN = b'K'
+INFO = b'I'
+TIMEOUT = b't'
 
-RELOAD = 'L'
-ENABLE_SAMPLING = 'S'
-DISABLE_SAMPLING = 'O'
-COMMIT_FILTER = 'T'
-FINALIZE = 'F'
+PRINTF = b'X'
 
-ENABLE_RQI_MODE = 'A'
-DISABLE_RQI_MODE = 'B'
-ENABLE_TRACE_MODE = 'E'
-DISABLE_TRACE_MODE = 'G'
-ENABLE_PATCHES = 'P'
-DISABLE_PATCHES = 'Q'
-REDQUEEN_SET_LIGHT_INSTRUMENTATION = 'U'
-REDQUEEN_SET_SE_INSTRUMENTATION = 'V'
-REDQUEEN_SET_WHITELIST_INSTRUMENTATION = 'W'
-REDQUEEN_SET_BLACKLIST = 'X'
+PT_TRASHED = b'Z'
+PT_TRASHED_CRASH = b'M'
+PT_TRASHED_KASAN = b'N'
 
-CRASH = 'C'
-KASAN = 'K'
-INFO = 'I'
-
-PRINTF = 'X'
-
-PT_TRASHED = 'Z'
-PT_TRASHED_CRASH = 'M'
-PT_TRASHED_KASAN = 'N'
-
-ABORT = 'H'
+ABORT = b'H'
 
 CMDS = {
     ACQUIRE: "ACQUIRE",
@@ -65,7 +53,6 @@ CMDS = {
     ENABLE_PATCHES: "ENABLE_PATCHES",
     DISABLE_PATCHES: "DISABLE_PATCHES",
     REDQUEEN_SET_LIGHT_INSTRUMENTATION: "REDQUEEN_SET_LIGHT_INSTRUMENTATION",
-    REDQUEEN_SET_SE_INSTRUMENTATION: "REDQUEEN_SET_SE_INSTRUMENTATION",
     REDQUEEN_SET_WHITELIST_INSTRUMENTATION: "REDQUEEN_SET_WHITELIST_INSTRUMENTATION",
     REDQUEEN_SET_BLACKLIST: "REDQUEEN_SET_BLACKLIST",
 

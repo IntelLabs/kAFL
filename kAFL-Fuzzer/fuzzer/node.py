@@ -1,22 +1,13 @@
+# Copyright 2017-2019 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright 2019-2020 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-Copyright (C) 2019  Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Fuzz inputs are managed as nodes in a queue. Any persistent metadata is stored here as node attributes.
 """
 
-import zlib
-
+import lz4.frame
 import mmh3
 import msgpack
 
@@ -29,18 +20,19 @@ class QueueNode:
 
     def __init__(self, payload, bitmap, node_struct, write=True):
         self.node_struct = node_struct
+        self.busy = False
 
         self.set_id(QueueNode.NextID, write=False)
-
         QueueNode.NextID += 1
 
-        self.set_payload(payload, write=False)
-        self.set_bitmap(bitmap)
-        self.update_file(write)
+        self.set_payload(payload, write=write)
+        # store individual bitmaps only in debug mode
+        if bitmap and FuzzerConfiguration().argument_values['v']:
+            self.write_bitmap(bitmap)
 
     @staticmethod
     def get_metadata(id):
-        return msgpack.unpackb(read_binary_file(QueueNode.__get_metadata_filename(id)))
+        return msgpack.unpackb(read_binary_file(QueueNode.__get_metadata_filename(id)), raw=False, strict_map_key=False)
 
     @staticmethod
     def get_payload(exitreason, id):
@@ -48,7 +40,7 @@ class QueueNode:
 
     def __get_bitmap_filename(self):
         workdir = FuzzerConfiguration().argument_values['work_dir']
-        filename = "/bitmaps/payload_%05d.gzip" % (self.get_id())
+        filename = "/bitmaps/payload_%05d.lz4" % (self.get_id())
         return workdir + filename
 
     @staticmethod
@@ -69,14 +61,11 @@ class QueueNode:
         else:
             self.dirty = True
 
-    def set_bitmap(self, bitmap):
-        atomic_write(self.__get_bitmap_filename(), zlib.compress(bitmap))
-
-    def get_bitmap(self):
-        return zlib.decompress(read_binary_file(self.__get_bitmap_filename()))
+    def write_bitmap(self, bitmap):
+        atomic_write(self.__get_bitmap_filename(), lz4.frame.compress(bitmap))
 
     def write_metadata(self):
-        return atomic_write(QueueNode.__get_metadata_filename(self.get_id()), msgpack.packb(self.node_struct))
+        return atomic_write(QueueNode.__get_metadata_filename(self.get_id()), msgpack.packb(self.node_struct, use_bin_type=True))
 
     def load_metadata(self):
         QueueNode.get_metadata(self.id)
@@ -102,11 +91,10 @@ class QueueNode:
 
     def update_metadata(self, delta, write=True):
         self.node_struct = QueueNode.apply_metadata_update(self.node_struct, delta)
-        self.update_file(write)
+        self.update_file(write=True)
 
     def set_payload(self, payload, write=True):
         self.set_payload_len(len(payload), write=False)
-        self.set_payload_hash(mmh3.hash(payload), write)
         atomic_write(QueueNode.__get_payload_filename(self.get_exit_reason(), self.get_id()), payload)
 
     def load_payload(self):
@@ -124,13 +112,6 @@ class QueueNode:
 
     def set_id(self, val, write=True):
         self.node_struct["id"] = val
-        self.update_file(write)
-
-    def get_payload_hash(self):
-        return self.node_struct["payload_hash"]
-
-    def set_payload_hash(self, val, write=True):
-        self.node_struct["payload_hash"] = val
         self.update_file(write)
 
     def get_new_byte_count(self):
@@ -186,12 +167,18 @@ class QueueNode:
 
     def get_favorite(self):
         return len(self.node_struct["fav_bits"]) > 0
+    
+    def get_parent_id(self):
+        return self.node_struct["info"]["parent"]
 
-    def get_performance(self):
+    def get_initial_performance(self):
         return self.node_struct["info"]["performance"]
 
+    def get_performance(self):
+        return self.node_struct["performance"]
+
     def set_performance(self, val, write=True):
-        self.node_struct["info"]["performance"] = val
+        self.node_struct["performance"] = val
         self.update_file(write)
 
     def get_state(self):
@@ -211,6 +198,21 @@ class QueueNode:
     def get_fav_factor(self):
         return self.node_struct["fav_factor"]
 
+    def set_score(self, val):
+        self.node_struct["score"] = val
+
+    def get_score(self):
+        return self.node_struct["score"]
+
     def set_fav_factor(self, val, write=True):
         self.node_struct["fav_factor"] = val
         self.update_file(write)
+
+    def set_free(self):
+        self.busy = False
+
+    def set_busy(self):
+        self.busy = True
+
+    def is_busy(self):
+        return self.busy
