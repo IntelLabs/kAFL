@@ -58,14 +58,17 @@ EFI_STATUS EFIAPI RunTestHarness(IN VOID *InputBuffer, IN UINTN InputLength)
 		goto ERROR;
 	}
 
-	// Allocate destination buffer, ensuring the requested size does not overflow
+	/* terribly complicated way of incrementing DestingationSize...who needs this?
 	Status = SafeUint32Add(DestinationSize, 1, &DestinationSize);
 	if (EFI_ERROR (Status)) {
 		KAFL_PRINT (L"Error S%d\n", Status);
 		goto ERROR;
 	}
+	*/
 
-	Destination = AllocateZeroPool (DestinationSize);
+	// Allocate destination buffer, adding an extra page for security!
+	// Surely this cannot overflow, can it..?!
+	Destination = AllocateZeroPool (DestinationSize + 1);
 	if (Destination == NULL) {
 		KAFL_PRINT (L"Error A%d\n", Status);
 		goto ERROR;
