@@ -10,7 +10,7 @@ X-Copyright-Info: ## (C) Sergej Schumilo, 2019 <sergej@schumilo.de>
 X-Copyright-Info: ## (C) Cornelius Aschermann, 2019 <cornelius.aschermann@rub.de>
 X-Copyright-Info: ##
 X-Copyright-Info: ## With adaptations by Steffen Schulz <steffen.schulz@intel.com>
-X-Copyright-Info: ## (C) 2019, Intel Corporation
+X-Copyright-Info: ## (C) 2020, Intel Corporation
 X-Copyright-Info: ##
 X-Copyright-Info: ## SPDX-License-Identifier: GPL-2.0-or-later
 X-Copyright-Info: ##
@@ -414,7 +414,7 @@ index 000000000..8196ce99f
 + * (C) Cornelius Aschermann, 2019 <cornelius.aschermann@rub.de>
 + *
 + * With adaptations by Steffen Schulz
-+ * (C) 2019, Intel Corporation
++ * (C) 2020, Intel Corporation
 + *
 + * SPDX-License-Identifier: GPL-2.0-or-later
 + */
@@ -1213,7 +1213,7 @@ index 000000000..3acab145d
 + * (C) Cornelius Aschermann, 2019 <cornelius.aschermann@rub.de>
 + *
 + * With adaptations by Steffen Schulz
-+ * (C) 2019, Intel Corporation
++ * (C) 2020, Intel Corporation
 + *
 + * SPDX-License-Identifier: GPL-2.0-or-later
 + */
