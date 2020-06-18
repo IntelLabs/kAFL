@@ -15,7 +15,7 @@
 #include <string.h>
 #include <sys/types.h>
 
-const size_t INPUT_LENGTH = 256;
+const size_t INPUT_LENGTH = 32;
 
 void target_init() {};
 
