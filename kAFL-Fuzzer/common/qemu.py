@@ -552,6 +552,7 @@ class qemu:
             return True
 
         self.shutdown()
+        time.sleep(0.1)
         return self.start()
 
     # Reload is not part of released Redqueen backend, it seems we can simply disable it here..

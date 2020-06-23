@@ -63,17 +63,21 @@ def find_diffs(data_a, data_b):
             last_diff = i
     return first_diff, last_diff
 
-def prepare_working_dir(workdir, purge=False):
-    if os.path.exists(workdir) and not purge:
+def prepare_working_dir(config):
+
+    work_dir   = config.argument_values["work_dir"]
+    purge      = config.argument_values['purge']
+
+    if os.path.exists(work_dir) and not purge:
         return False
 
     folders = ["/corpus/regular", "/corpus/crash",
                "/corpus/kasan", "/corpus/timeout",
                "/metadata", "/bitmaps", "/imports"]
 
-    shutil.rmtree(workdir, ignore_errors=True)
+    shutil.rmtree(work_dir, ignore_errors=True)
 
-    project_name = workdir.split("/")[-1]
+    project_name = work_dir.split("/")[-1]
     for path in glob.glob("/dev/shm/kafl_%s_*" % project_name):
         os.remove(path)
 
@@ -81,7 +85,13 @@ def prepare_working_dir(workdir, purge=False):
         os.remove("/dev/shm/kafl_tfilter")
 
     for folder in folders:
-        os.makedirs(workdir + folder)
+        os.makedirs(work_dir + folder)
+
+    if config.argument_values['funky']:
+        os.makedirs(work_dir + "/funky/")
+
+    if config.argument_values['trace']:
+        os.makedirs(work_dir + "/traces/")
 
     return True
 

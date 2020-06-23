@@ -26,38 +26,34 @@ def get_pow2_value(value):
     return 1
 
 
-def check_trim_still_valid(old_node, old_bitmap, new_bitmap):
+def check_trim_still_valid(old_node, old_res, new_res):
     # non-det input
-    if not new_bitmap:
+    if not new_res:
         return False
-    if not new_bitmap.is_lut_applied():
-        new_bitmap.apply_lut()
+    if not new_res.is_lut_applied():
+        new_res.apply_lut()
     trim_simple = False
     if trim_simple:
         assert False  # todo fixme wrt to bitmaps, == doesnt work on bitmap_wrapper
-        return old_bitmap == new_bitmap
+        return old_res == new_res
     else:
         old_bits = old_node["new_bytes"].copy()
         old_bits.update(old_node["new_bits"])
-        return GlobalBitmap.all_new_bits_still_set(old_bits, new_bitmap)
+        return GlobalBitmap.all_new_bits_still_set(old_bits, new_res)
 
 
-def perform_center_trim(payload, old_node, send_handler, error_handler, trimming_bytes):
+def perform_center_trim(payload, old_node, send_handler, trimming_bytes):
     index = 0
-    old_bitmap, _ = send_handler(payload, label="center_trim_funky")
 
-    if error_handler():
+    old_res, _ = send_handler(payload, label="center_trim_funky")
+    if old_res.is_crash():
         return payload
 
     while index < len(payload):
         test_payload = payload[0: index] + payload[index + trimming_bytes:]
+        exec_res, _ = send_handler(test_payload, label="center_trim")
 
-        new_bitmap, _ = send_handler(test_payload, label="center_trim")
-
-        # if error_handler():
-        #     return payload
-
-        if check_trim_still_valid(old_node, old_bitmap, new_bitmap):
+        if check_trim_still_valid(old_node, old_res, exec_res):
             payload = test_payload[:]
         else:
             index += trimming_bytes
@@ -65,14 +61,15 @@ def perform_center_trim(payload, old_node, send_handler, error_handler, trimming
     return payload
 
 
-def perform_trim(payload, old_node, send_handler, error_handler):
+def perform_trim(payload, old_node, send_handler):
     global MAX_ROUNDS, MAX_EXECS, MIN_SIZE, APPEND_BYTES
     if len(payload) <= MIN_SIZE:
         return payload
 
-    old_bitmap, _ = send_handler(payload, label="trim_funky")
-    if error_handler():
+    old_res, _ = send_handler(payload, label="trim_funky")
+    if old_res.is_crash():
         return payload
+
     execs = 0
     new_size = len(payload)
 
@@ -86,12 +83,12 @@ def perform_trim(payload, old_node, send_handler, error_handler):
                     abort = True
                     break
 
-                new_bitmap, _ = send_handler(payload[0:new_size - pow2_values[i]], label="trim")
+                new_res, _ = send_handler(payload[0:new_size - pow2_values[i]], label="trim")
 
-                if error_handler():
+                if new_res.is_crash():
                     return payload[0:new_size]
 
-                if check_trim_still_valid(old_node, old_bitmap, new_bitmap):
+                if check_trim_still_valid(old_node, old_res, new_res):
                     new_size -= pow2_values[i]
                     abort = False
                     break
@@ -110,8 +107,8 @@ def perform_trim(payload, old_node, send_handler, error_handler):
 
     new_size += APPEND_BYTES
 
-    new_bitmap, _ = send_handler(payload[0:new_size], label="trim")
-    if not check_trim_still_valid(old_node, old_bitmap, new_bitmap):
+    new_res, _ = send_handler(payload[0:new_size], label="trim")
+    if not check_trim_still_valid(old_node, old_res, new_res):
         return payload[0:min(new_size_backup, len(payload))]
 
     return payload[0:min(new_size, len(payload))]

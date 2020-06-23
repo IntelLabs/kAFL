@@ -83,7 +83,8 @@ class MasterProcess:
                     self.send_next_task(conn)
                 elif msg["type"] == MSG_NEW_INPUT:
                     # Slave reports new interesting input
-                    log_master("Received new input: {}".format(repr(msg["input"]["payload"])))
+                    log_master("Received new input (exit=%s): %s" % (
+                        msg["input"]["info"]["exit_reason"], repr(msg["input"]["payload"][:24])))
                     node_struct = {"info": msg["input"]["info"], "state": {"name": "initial"}}
                     self.maybe_insert_node(msg["input"]["payload"], msg["input"]["bitmap"], node_struct)
                 elif msg["type"] == MSG_READY:

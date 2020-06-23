@@ -15,6 +15,9 @@ import psutil
 import time
 import signal
 import sys
+import shutil
+
+import lz4.frame as lz4
 
 from common.config import FuzzerConfiguration
 from common.debug import log_slave
@@ -31,7 +34,8 @@ from fuzzer.technique.helper import rand
 def slave_loader(slave_id):
 
     def sigterm_handler(signal, frame):
-        slave_process.q.async_exit()
+        if slave_process.q:
+            slave_process.q.async_exit()
         sys.exit(0)
 
 
@@ -134,22 +138,44 @@ class SlaveProcess:
             else:
                 raise ValueError("Unknown message type {}".format(msg))
 
-    def validate(self, data, old_array):
-        self.q.set_payload(data)
+    def quick_validate(self, data, old_res, quiet=False):
+        # Validate in persistent mode. Faster but problematic for very funky targets
         self.statistics.event_exec()
-        new_bitmap = self.q.send_payload().apply_lut()
-        new_array = new_bitmap.copy_to_array()
+        old_array = old_res.copy_to_array()
+
+        new_res = self.__execute(data).apply_lut()
+        new_array = new_res.copy_to_array()
+
         if new_array == old_array:
-            return True, new_bitmap
+            return True
 
-        log_slave("Validation failed, ignoring this input", self.slave_id)
-        if False: # activate detailed logging of funky bitmaps
-            for i in range(new_bitmap.bitmap_size):
-                if old_array[i] != new_array[i]:
-                    log_slave("Funky bit in validation bitmap: %d (%d vs %d)"
-                            % (i, old_array[i], new_array[i]), self.slave_id)
+        if not quiet:
+            log_slave("Input validation failed! Target is funky?..", self.slave_id)
+        return False
 
-        return False, None
+    def funky_validate(self, data, old_res):
+        # Validate in persistent mode with stochastic prop of funky results
+
+        validations = 8
+        confirmations = 0
+        for _ in range(validations):
+            if self.quick_validate(data, old_res, quiet=True):
+                confirmations += 1
+
+        if confirmations >= 0.8*validations:
+            return True
+
+        log_slave("Funky input received %d/%d confirmations. Rejecting.." % (confirmations, validations), self.slave_id)
+        self.store_funky(data)
+        return False
+
+    def store_funky(self, data):
+        global num_funky
+        num_funky += 1
+
+        # store funky input for further analysis 
+        funky_folder = self.config.argument_values['work_dir'] + "/funky/"
+        atomic_write(funky_folder + "input_%02d_%05d" % (self.slave_id, num_funky), data)
 
     def validate_bits(self, data, old_node, default_info):
         new_bitmap, _ = self.execute(data, default_info)
@@ -172,29 +198,6 @@ class SlaveProcess:
         self.statistics.event_exec_redqueen()
         return self.q.execute_in_redqueen_mode(data)
 
-    def __execute(self, data, retry=0):
-
-        try:
-            self.q.set_payload(data)
-            if False:  # activate detailed comparison of execution traces?
-                return self.check_funkyness_and_store_trace(data)
-            else:
-                return self.q.send_payload()
-        except BrokenPipeError:
-            if retry > 2:
-                # TODO if it reliably kills qemu, perhaps log to master for harvesting..
-                log_slave("Fatal: Repeated BrokenPipeError on input: %s" % repr(data), self.slave_id)
-                raise
-            else:
-                log_slave("BrokenPipeError, trying to restart qemu...", self.slave_id)
-                self.q.shutdown()
-                time.sleep(1)
-                self.q.start()
-                return self.__execute(data, retry=retry+1)
-
-        assert False
-
-
     def __send_to_master(self, data, execution_res, info):
         info["time"] = time.time()
         info["exit_reason"] = execution_res.exit_reason
@@ -202,22 +205,45 @@ class SlaveProcess:
         if self.conn is not None:
             self.conn.send_new_input(data, execution_res.copy_to_array(), info)
 
-    def check_funkyness_and_store_trace(self, data):
-        global num_funky
-        exec_res = self.q.send_payload()
-        hash = exec_res.hash()
-        trace1 = read_binary_file(self.config.argument_values['work_dir'] + "/pt_trace_dump_%d" % self.slave_id)
-        exec_res = self.q.send_payload()
-        if (hash != exec_res.hash()):
-            print_warning("Validation identified funky bits, dumping!")
-            num_funky += 1
-            trace_folder = self.config.argument_values['work_dir'] + "/traces/funky_%d_%d" % (num_funky, self.slave_id);
-            os.makedirs(trace_folder)
-            atomic_write(trace_folder + "/input", data)
-            atomic_write(trace_folder + "/trace_a", trace1)
-            trace2 = read_binary_file(self.config.argument_values["work_dir"] + "/pt_trace_dump_%d" % self.slave_id)
-            atomic_write(trace_folder + "/trace_b", trace2)
+    def trace_payload(self, data, info):
+        trace_file_in = self.config.argument_values['work_dir'] + "/redqueen_workdir_%d/pt_trace_results.txt" % self.slave_id;
+        trace_folder = self.config.argument_values['work_dir'] + "/traces/"
+        trace_file_out = trace_folder + "payload_%05d" % info['id']
+
+        log_slave("Tracing payload_%05d.." % info['id'], self.slave_id)
+
+        try:
+            self.q.set_payload(data)
+            exec_res = self.q.execute_in_trace_mode(timeout_detection=False)
+
+            with open(trace_file_in, 'rb') as f_in:
+                with lz4.LZ4FrameFile(trace_file_out + ".lz4", 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+
+            if not exec_res.is_regular():
+                self.statistics.event_reload()
+                self.q.restart()
+        except Exception as e:
+            log_slave("Failed to produce trace %s: %s (skipping..)" % (trace_file_out, e), self.slave_id)
+            return None
+
         return exec_res
+
+    def __execute(self, data, retry=0):
+
+        try:
+            self.q.set_payload(data)
+            return self.q.send_payload()
+        except BrokenPipeError:
+            if retry > 2:
+                # TODO if it reliably kills qemu, perhaps log to master for harvesting..
+                log_slave("Fatal: Repeated BrokenPipeError on input: %s" % repr(data), self.slave_id)
+                raise
+
+        log_slave("BrokenPipeError, trying to restart qemu...", self.slave_id)
+        self.q.restart()
+        return self.__execute(data, retry=retry+1)
+
 
     def execute(self, data, info):
         self.statistics.event_exec()
@@ -225,24 +251,23 @@ class SlaveProcess:
         exec_res = self.__execute(data)
 
         is_new_input = self.bitmap_storage.should_send_to_master(exec_res)
-        crash = self.execution_exited_abnormally()
+        crash = exec_res.is_crash()
+        stable = False;
 
         # store crashes and any validated new behavior
-        # do validate timeouts and crashes at this point as they tend to be nondeterministic
+        # do not validate timeouts and crashes at this point as they tend to be nondeterministic
         if is_new_input:
             if not crash:
                 assert exec_res.is_lut_applied()
-                bitmap_array = exec_res.copy_to_array()
-                valid, exec_res = self.validate(data, bitmap_array)
-                if not valid:
-                    self.statistics.event_funky()
-                    log_slave("Input validation failed, throttling N/A", self.slave_id)
+                if self.config.argument_values["funky"]:
+                    stable = self.funky_validate(data, exec_res)
+                else:
+                    stable = self.quick_validate(data, exec_res)
 
-                    # TODO: the funky event is already over at this point and the error may indeed not be deterministic
-                    # how about we store some $num funky payloads for more focused exploration rather than discarding them?
-                    #exec_res.exit_reason = 'funky'
-                    #self.__send_to_master(data, exec_res, info)
-            if crash or valid:
+                if not stable:
+                    # TODO: auto-throttle persistent runs based on funky rate?
+                    self.statistics.event_funky()
+            if crash or stable:
                 self.__send_to_master(data, exec_res, info)
         else:
             if crash:
@@ -254,6 +279,3 @@ class SlaveProcess:
             self.q.restart()
 
         return exec_res, is_new_input
-
-    def execution_exited_abnormally(self):
-        return self.q.crashed or self.q.timeout or self.q.kasan

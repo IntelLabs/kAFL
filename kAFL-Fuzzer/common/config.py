@@ -107,6 +107,10 @@ def add_args_fuzzer(parser):
                         type=parse_is_dir, help='path to the seed directory.')
     parser.add_argument('-dict', required=False, metavar='<file>', type=parse_is_file,
                         help='import dictionary file for use in havoc stage.', default=None)
+    parser.add_argument('-trace', required=False, help='store new traces while fuzzing.',
+                        action='store_true', default=False)
+    parser.add_argument('-funky', required=False, help='perform extra validation and store funky inputs.',
+                        action='store_true', default=False)
     parser.add_argument('-D', required=False, help='skip deterministic stage (dumb mode).',
                         action='store_false', default=True)
     parser.add_argument('-d', required=False, help='disable effector maps during deterministic stage.',

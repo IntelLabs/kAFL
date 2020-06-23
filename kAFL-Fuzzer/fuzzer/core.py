@@ -61,7 +61,7 @@ def start(config):
     if config.argument_values['v']:
         enable_logging(work_dir)
 
-    if not prepare_working_dir(work_dir, purge=config.argument_values['purge']):
+    if not prepare_working_dir(config):
         print_fail("Refuse to operate on existing work directory. Use --purge to override.")
         return 1
 

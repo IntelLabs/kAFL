@@ -173,6 +173,10 @@ class FuzzingStateLogic:
     def handle_initial(self, payload, metadata):
         time_initial_start = time.time()
 
+        if self.config.argument_values["trace"]:
+            self.stage_update_label("trace")
+            self.slave.trace_payload(payload, metadata)
+
         self.stage_update_label("calibrate")
         # Update input performance using multiple randomized executions
         # Scheduler will de-prioritize execution of very slow nodes..
@@ -189,12 +193,10 @@ class FuzzingStateLogic:
 
         center_trim = False
 
-        new_payload = perform_trim(payload, metadata, self.execute,
-                                   self.slave.execution_exited_abnormally)
+        new_payload = perform_trim(payload, metadata, self.execute)
 
         if center_trim:
-            new_payload = perform_center_trim(new_payload, metadata, self.execute,
-                                              self.slave.execution_exited_abnormally, trimming_bytes=2)
+            new_payload = perform_center_trim(new_payload, metadata, self.execute, trimming_bytes=2)
         self.initial_time += time.time() - time_initial_start
         if new_payload == payload:
             return None
