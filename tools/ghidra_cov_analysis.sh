@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: MIT
 
 KAFL_ROOT=~/kafl
-GHIDRA_ROOT=~/ghidra_9.1_PUBLIC
+GHIDRA_ROOT=~/ghidra_9.1.2_PUBLIC
 WORKDIR="$1" # kAFL work dir with traces/ folder
 TARGET="$2"  # original target input (tested with basic ELF file loaded as -kernel)
 

@@ -1,12 +1,12 @@
-#
 # Visualize Coverage of Basic Block Edges in Ghidra
 #
 # Copyright 2020 Intel Corporation
 # SPDX-License-Identifier: MIT
 #
-
 # Ghidra script to find + colorize blocks based on a list of edge transitions.
-# Edge transitions are read from external file. Format is one edge on each line:
+# Edge transitions are read from external file '/tmp/edges_uniq.lst'.
+#
+# Format is one edge on each line:
 #
 # 579094,579152
 # 579102,579108
@@ -16,10 +16,11 @@
 # 579158,579164
 # [...]
 #
-# Note that processing complete traces will be quite slow. Instead, the input
-# should be an aggregate list of all your traces with any duplicates removed.
+# Processing large amounts of traces can be quite slow.
+# Consider aggregating traces using sort -u.
 #
 #@category Fuzzing
+#@author Steffen Schulz
 
 from ghidra.app.plugin.core.colorizer import ColorizingService
 from ghidra.app.script import GhidraScript
@@ -32,20 +33,25 @@ from ghidra.program.model.block import SimpleBlockModel
 from ghidra.program.model.block import CodeBlockModel
 
 from ghidra.program.model.listing import ListingStub
-
 from ghidra.program.flatapi import FlatProgramAPI
 
+from ghidra.program.model.listing import CodeUnit
+from ghidra.program.model.listing import Listing
+
 from java.awt import Color
+
+# print list of missing/uncovered functions?
+print_missing = False
+# ignore funcitons with less than n blocks?
+ignore_threshold = 10
+# detailed log of edge scanning
+verbose = False
 
 service = None
 if state.getTool():
     service = state.getTool().getService(ColorizingService)
     if not service:
         print "Can't find ColorizingService service"
-
-blocklist = []
-unreached = dict()
-reached = dict()
 
 def colorize_test(address):
     anotherAddress = currentAddress.add(10)
@@ -83,7 +89,7 @@ def show_block(block):
 
     print "Info on block %s" % block.getName()
 
-    print "Listing all entry sources to this block:"
+    print "Entry vectors to this block:"
     for entry in block.getStartAddresses():
         print "  - 0x%08x (%08d)" % (entry.getUnsignedOffset(), entry.getUnsignedOffset())
 
@@ -98,88 +104,103 @@ def show_block(block):
     destIter = block.getDestinations(monitor);
     while (destIter.hasNext()):
         destRef = destIter.next()
-        destAddr = destRef.getReferent().getUnsignedOffset()
+        destAddr = destRef.getReference().getUnsignedOffset()
         print "  - 0x%08x (%08d)" % (destAddr, destAddr)
 
-    print "Addresses in this block:"
+    print "All addresses in this block:"
     AddrIter = block.getAddresses(True)
     while AddrIter.hasNext():
         Addr = AddrIter.next()
         print "  - 0x%08x" % Addr.getUnsignedOffset()
 
 
-def check_block(block, edge=None):
+blocklist=list()
+
+def check_block(block, edge=None, indent=" "):
+    global blocklist
 
     # only process new found blocks
     if block in blocklist:
-        return;
+        if verbose:
+            print indent + "`-> block %s already known, skipping.." % block.getName()
+        return
+
+    # Recursively check any blocks reached unconditionally from this one
+        if verbose:
+            print indent + "`-> added block %s, checking destinations.." % block.getName()
+    indent=indent+"  "
 
     # Mark this block. We have definitely reached it.
     blocklist.append(block)
     mark_new_block(block)
 
-    # Recursively check any blocks reached unconditionally from this one
+    # also trace this blocks unconditional/direct destinations, since PT won't trigger events on them
     destIter = block.getDestinations(monitor);
-    #print "Dest refs from this block:"
     while (destIter.hasNext()):
         destRef = destIter.next()
-        #destAddr = destRef.getReferent().getUnsignedOffset()
-        #print "  - 0x%08x (%08d)" % (destAddr, destAddr)
-        if destRef.getFlowType().isUnConditional():
-            check_block(destRef.getDestinationBlock())
+        destFlow = destRef.getFlowType()
 
-    # If we know the edge that led us here, try and find the corresponding source block
-    if not edge:
-        return
+        # Drop conditional and indirect items. isConditional() does not seem to
+        # work, so below we make double-sure to only tag
+        # - unconditional/direct calls/jmp
+        # - fallthroughs that are not identical with a (conditional) jmp
+        if destFlow.isConditional() or destFlow.isIndirect():
+            continue
 
-    found=0
-    srcIter = block.getSources(monitor);
-    while (srcIter.hasNext()):
-        srcRef = srcIter.next()
-        srcAddr = srcRef.getReferent().getUnsignedOffset()
-        if srcAddr == edge[0]:
-            check_block(srcRef.getSourceBlock())
-            found += 1
-
-    # In case we TBD: are we missing out on some source blocks here?
-    if found == 0:
-        print "WARN: Could not find source block for edge < 0x%08x, 0x%08x >" % (
-                edge[0].getUnsignedOffset(),
-                edge[1].getUnsignedOffset())
-        #show_block(block)
-
+        if str(destFlow) in ["UNCONDITIONAL_CALL", "UNCONDITIONAL_JUMP"]:
+            check_block(destRef.getDestinationBlock(), indent=indent)
+        elif destFlow.isFallthrough() and not destFlow.isJump():
+            check_block(destRef.getDestinationBlock(), indent=indent)
+        # report anything outside known false-positive list
+        elif str(destFlow) not in ["COMPUTED_JUMP", "FALL_THROUGH"]:
+            assert False, "Ooops on %s: 0x%08x -> 0x%08x" % (str(destFlow), destRef.getReferent().getUnsignedOffset(), destRef.getReference().getUnsignedOffset())
 
 def mark_new_block(block):
-
-    # Mark this block and record the 
     if service:
         setBackgroundColor(block, Color.GREEN)
 
+def mark_new_edge(edge):
+    if service:
+        #setBackgroundColor(edge[0], Color.CYAN)
+        #setBackgroundColor(edge[1], Color.CYAN)
+        listing = getCurrentProgram().getListing()
+        listing.setComment(edge[0], CodeUnit.EOL_COMMENT, "edge target: 0x%08x" % edge[1].getUnsignedOffset())
+        listing.setComment(edge[1], CodeUnit.EOL_COMMENT, "edge source: 0x%08x" % edge[0].getUnsignedOffset())
 
-# really, we want a way to find the block based on edge destination...this is way too slow..
 def scan_by_edges(blocks, edges):
 
     unmapped_edges = 0
 
     for edge in edges:
-        #print "Searching blocks for edge <0x%08x,0x%08x>.." % (edge[0], edge[1])
-        for addr in [edge[0], edge[1]]:
-            found = 0
-            block = blocks.getCodeBlockAt(addr, monitor)
-            if block:
-                check_block(block)
-                found += 1
-            else:
-                for block in blocks.getCodeBlocksContaining(addr, monitor):
-                    check_block(block)
-                    found += 1
-                    if found > 1:
-                        print "WARN: Found multiple blocks for this edge?!"
-                        #show_block(block)
+        if verbose:
+            print "Searching blocks for edge < 0x%08x, 0x%08x >.." % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset())
+        found = 0
 
-            if found == 0:
-                unmapped_edges += 1
-                print "Could not map edge < 0x%08x, 0x%08x >" % (
+        # jmp(), call() point at begin of a block, ret() points somewhere right after call()
+        block = blocks.getCodeBlockAt(edge[1], monitor)
+        if block:
+            #print "-> check jmp/call target block"
+            check_block(block, edge)
+        else:
+            block = blocks.getCodeBlocksContaining(edge[1], monitor)
+            #print "-> check ret target block"
+            assert(len(block) == 1), "Ambigious code block for edge < 0x%08x, 0x%08x >.." % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset())
+            check_block(block[0], edge)
+            found += 1
+
+        # source pointers will be mostly within a block.
+        # this also catches direct hits (getCodeBlockAt(edge[0]))
+        block = blocks.getCodeBlocksContaining(edge[0], monitor)
+        #print "-> jmp/call/ret from source"
+        assert(len(block) == 1), "Ambigious code block for edge < 0x%08x, 0x%08x >.." % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset())
+        check_block(block[0], edge)
+        found += 1
+
+        if found > 0:
+            mark_new_edge(edge)
+        else:
+            unmapped_edges += 1
+            print "Warning: Could not map edge < 0x%08x, 0x%08x >" % (
                                                     edge[0].getUnsignedOffset(),
                                                     edge[1].getUnsignedOffset())
 
@@ -203,52 +224,54 @@ def main():
     ##
     BlockIter = blocks.getCodeBlocks(monitor)
     total_blocks = 0
+    reached_map = dict() # map of reached blocks by function
+    blocks_map = dict()  # map of total blocks by function
     while BlockIter.hasNext():
         total_blocks += 1
         block = BlockIter.next()
         addr = block.getFirstStartAddress()
         func = getFunctionContaining(addr)
-        if block in blocklist:
-            if func in reached:
-                reached[func] += 1
-            else:
-                reached[func] = 1
+
+        if func in blocks_map:
+            blocks_map[func] += 1
         else:
-            if func in unreached:
-                unreached[func] += 1
+            blocks_map[func] = 1
+
+        if block in blocklist:
+            if func in reached_map:
+                reached_map[func] += 1
             else:
-                unreached[func] = 1
+                reached_map[func] = 1
 
     ##
-    ## Summarize blocks reached/not reached by function
+    ## Summarize blocks reached/missed by function
     ##
     print
-    min_report_blocks=10
-    for k,v in sorted(reached.items(), key=lambda x: x[1]):
-        total = v+unreached.get(k,0)
-        percent = v*100/total
-        if v > min_report_blocks and total > min_report_blocks:
-            print "Reached: %3d blocks (%3d%%) in %s" % (v, percent, k)
+    for func, blocks in sorted(reached_map.items(), key=lambda x: x[1]):
+        total = blocks_map[func]
+        percent = blocks * 100 / total
+        if total > ignore_threshold:
+            print "Reached: %3d blocks (%3d%%) in %s" % (blocks, percent, func)
 
     print
-    for k,v in sorted(unreached.items(), key=lambda x: x[1]):
-        total = v+reached.get(k,0)
-        percent = v*100/total
-        if v > min_report_blocks and total > min_report_blocks:
-            print "Missed: %3d blocks (%3d%%) in %s" % (v, percent, k)
+    if print_missing:
+        for func, blocks in sorted(blocks_map.items(), key=lambda x: x[1]):
+            if func not in reached_map and blocks > ignore_threshold:
+                print "Missed: %3d blocks in %s" % (blocks, func)
 
 
     ##
     # Overall Summary
     ##
-    bb_cov = len(blocklist)*100/total_blocks
+    block_cov = len(blocklist) * 100 / total_blocks
+    func_cov = len(reached_map) * 100 / len(blocks_map)
     print
     print "Total blocks in file: %6d" % total_blocks
     print "Total edges in trace: %6d" % len(edges)
     print "Failed to map edges:  %6d" % unmapped_edges
     print
-    print "Total reached funcs:  %6d" % len(reached)
-    print "Partly missed funcs:  %6d" % len(unreached)
-    print "Total reached blocks: %6d (%d%%)" % (len(blocklist), bb_cov)
+    print "Total reached funcs:  %5d / %5d (%d%%)" % (len(reached_map), len(blocks_map), func_cov)
+    print "Total reached blocks: %5d / %5d (%d%%)" % (len(blocklist), total_blocks, block_cov)
+    print
 
 main()
