@@ -481,11 +481,10 @@ class qemu:
             self.init()
             self.set_init_state()
         except:
-            if self.exiting:
-                return False
-
-            print_fail("Failed to launch Qemu, please see logs.")
-            log_qemu("Fatal error: Failed to launch Qemu.", self.qemu_id)
+            if not self.exiting:
+                print_fail("Failed to launch Qemu, please see logs.")
+                log_qemu("Fatal error: Failed to launch Qemu.", self.qemu_id)
+                self.shutdown()
             return False
 
         self.initial_mem_usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
@@ -772,6 +771,6 @@ class qemu:
             if self.exiting:
                 sys.exit(0)
             # Qemu crashed. Could be due to prior payload but more likely harness/config is broken..
-            print_fail("Failed to set new payload - Qemu crash?", self.qemu_id);
+            print_fail("Failed to set new payload - Qemu crash?");
             log_qemu("Failed to set new payload - Qemu crash?", self.qemu_id);
             raise
