@@ -158,7 +158,7 @@ def ptime(secs):
     hours = secs % 24
     days = secs  // 24
     if days > 0:
-        return "%dd, %2dh%02dm" % (days, hours, mins)
+        return "%dd,%02dh" % (days, hours)
     if hours > 0:
         return "%2dh%02dm" % (hours, mins)
     return     "%2dm%02ds" % (mins, seconds)
