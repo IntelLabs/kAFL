@@ -8,7 +8,7 @@ AFL-style trim algorithms (init stage)
 """
 
 from fuzzer.bitmap import GlobalBitmap
-from common.debug import log_redq
+from common.debug import log_trim
 
 MAX_EXECS = 16
 MAX_ROUNDS = 32
@@ -66,19 +66,28 @@ def perform_center_trim(payload, old_node, send_handler, trimming_bytes=2):
 
     return payload
 
+# Search a padding extension that does not make the target report a STARVED status.
+#
+# The target should pad with 0 by default so that length-extending with 0 here is a NOP.
+# However, it seems we can still get bitmap changes sometimes, i.e. the extension failed.
+# So we also try some colorized padding at this point, in hope of triggering the starved logic.
 def perform_extend(payload, old_node, send_handler):
-    exec_res, is_new = send_handler(payload, label="stream_funky")
-    if exec_res.is_crash() or not exec_res.is_starved():
+
+    num_findings = 0
+
+    # Skip if payload is not starved, not regular or funky (test run yields is_new=True)
+    old_res, is_new = send_handler(payload, label="stream_funky")
+    if old_res.is_crash() or not old_res.is_starved() or is_new:
         return None
 
-    # search a padding extension that makes it not starve
     padding = 128
     upper = 0
     lower = 0
     for _ in range(MAX_ROUNDS):
-        exec_res, _ = send_handler(payload + bytes(padding), label="stream_extend")
+        new_res, is_new = send_handler(payload + bytes(padding), label="stream_extend")
+        if is_new: num_findings += 1
 
-        if exec_res.is_starved():
+        if new_res.is_starved():
             lower = padding
         else:
             upper = padding
@@ -88,9 +97,28 @@ def perform_extend(payload, old_node, send_handler):
         if abs(upper - lower) <= 1:
             break
 
-    log_redq("stream_extend: pad_bytes=%d" % (upper))
-    return payload + bytes(upper)
+    pad_bytes = upper
+    log_trim("stream_extend: pad_bytes=%d" % (pad_bytes))
 
+    if pad_bytes == 0:
+        return None
+
+    # run the payload with some colorized padding to potentially trigger the starved code
+    pad_buffer = bytes(range(pad_bytes%256))
+    for _ in range(pad_bytes//256):
+        pad_buffer += bytes(range(256))
+    for i in range(min(len(pad_buffer),32)):
+        _, is_new = send_handler(payload + pad_buffer[i:] + pad_buffer[:i], label="stream_color")
+        if is_new: num_findings += 1
+
+    # check if zero-padded payload is still valid, drop otherwise..
+    new_res, is_new = send_handler(payload + bytes(pad_bytes), label="stream_extend")
+    if is_new: num_findings += 1
+    if check_trim_still_valid(old_node, old_res, new_res):
+        return payload + bytes(pad_bytes)
+    else:
+        log_trim("stream_extend: dropped funky NUL padding (len=%d, other finds=%d)" % (pad_bytes, num_findings))
+        return None
 
 
 def perform_trim(payload, old_node, send_handler):

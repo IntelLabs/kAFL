@@ -59,10 +59,11 @@ def log_tree(msg):
 def log_eval(msg):
     logger("[EVAL] \t" + msg)
 
+def log_trim(msg):
+    logger("[TRIM] \t" + msg)
 
 def log_redq(msg):
     logger("[RedQ] \t" + msg)
-
 
 def log_grimoire(msg):
     logger("[GRIM] \t" + msg)

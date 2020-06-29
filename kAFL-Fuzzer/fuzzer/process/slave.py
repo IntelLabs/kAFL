@@ -106,7 +106,7 @@ class SlaveProcess:
         payload = QueueNode.get_payload(meta_data["info"]["exit_reason"], meta_data["id"])
 
         results, new_payload = self.logic.process_node(payload, meta_data)
-        if new_payload and False:
+        if new_payload:
             default_info = {"method": "validate_bits", "parent": meta_data["id"]}
             if self.validate_bits(new_payload, meta_data, default_info):
                 log_slave("Stage %s found alternative payload for node %d"
