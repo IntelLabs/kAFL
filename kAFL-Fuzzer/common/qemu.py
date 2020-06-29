@@ -75,6 +75,7 @@ class qemu:
         self.redqueen_workdir = RedqueenWorkdir(self.qemu_id, config)
         self.redqueen_workdir.init_dir()
 
+        self.starved = False
         self.exiting = False
         self.tick_timeout_treshold = self.config.config_values["TIMEOUT_TICK_FACTOR"]
 
@@ -548,7 +549,7 @@ class qemu:
 
         self.__debug_send(qemu_protocol.RELOAD)
         self.__debug_recv_expect(qemu_protocol.RELOAD)
-        success = self.__debug_recv_expect(qemu_protocol.ACQUIRE + qemu_protocol.PT_TRASHED)
+        success = self.__debug_recv_expect(qemu_protocol.ACQUIRE + qemu_protocol.STARVED + qemu_protocol.PT_TRASHED)
 
         if not success:
             log_qemu("soft reload failed (ipt ovp quirk)", self.qemu_id)
@@ -575,6 +576,9 @@ class qemu:
         elif result == qemu_protocol.TIMEOUT:
             return 7
         elif result == qemu_protocol.ACQUIRE:
+            return 0
+        elif result == qemu_protocol.STARVED:
+            self.starved = True
             return 0
         elif result == qemu_protocol.PT_TRASHED:
             self.internal_buffer_overflow_counter += 1
@@ -670,7 +674,10 @@ class qemu:
                 res.performance = time.time() - start_time
                 return res
 
-        return ExecutionResult(self.c_bitmap, self.bitmap_size, self.exit_reason(), time.time() - start_time)
+        res = ExecutionResult(self.c_bitmap, self.bitmap_size, self.exit_reason(), time.time() - start_time)
+        res.set_starved(self.starved)
+        self.starved = False
+        return res
 
     def exit_reason(self):
         if self.crashed:

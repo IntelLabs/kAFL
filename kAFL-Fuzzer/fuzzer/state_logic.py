@@ -23,7 +23,7 @@ from fuzzer.technique.grimoire_inference import GrimoireInference
 from fuzzer.technique.redqueen.colorize import ColorizerStrategy
 from fuzzer.technique.redqueen.mod import RedqueenInfoGatherer
 from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
-from fuzzer.technique.trim import perform_trim, perform_center_trim
+from fuzzer.technique.trim import perform_trim, perform_center_trim, perform_extend
 from fuzzer.technique.helper import rand
 
 
@@ -197,10 +197,12 @@ class FuzzingStateLogic:
             log_slave("Validate: Skip trimming..", self.slave.slave_id)
             return None
 
-        center_trim = True
+        if metadata['info']['starved']:
+            return perform_extend(payload, metadata, self.execute)
 
         new_payload = perform_trim(payload, metadata, self.execute)
 
+        center_trim = True
         if center_trim:
             new_payload = perform_center_trim(new_payload, metadata, self.execute)
 
@@ -390,12 +392,13 @@ class FuzzingStateLogic:
 
 
     def dilate_effector_map(self, effector_map, limiter_map):
+        ignore_limit = 2
         effector_map[0] = 1
         effector_map[-1] = 1
-        for i in range(len(effector_map) // 8):
-            base = i * 8
-            effector_slice = effector_map[base:base + 8]
-            limiter_slice = limiter_map[base:base + 8]
+        for i in range(len(effector_map) // ignore_limit):
+            base = i * ignore_limit
+            effector_slice = effector_map[base:base + ignore_limit]
+            limiter_slice = limiter_map[base:base + ignore_limit]
             if any(effector_slice) and any(limiter_slice):
                 for j in range(len(effector_slice)):
                     effector_map[i + j] = 1

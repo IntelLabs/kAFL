@@ -27,10 +27,17 @@ class ExecutionResult:
         self.lut_applied = False  # By default we assume that the bucket lut has not yet been applied
         self.exit_reason = exit_reason
         self.performance = performance
+        self.starved = False
 
     def invalidate(self):
         self.cbuffer = None
         return self
+    
+    def set_starved(self, _starved):
+        self.starved = _starved
+
+    def is_starved(self):
+        return self.starved
 
     def is_crash(self):
         return self.exit_reason != "regular"

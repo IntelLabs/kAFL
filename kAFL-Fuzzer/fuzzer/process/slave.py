@@ -106,7 +106,7 @@ class SlaveProcess:
         payload = QueueNode.get_payload(meta_data["info"]["exit_reason"], meta_data["id"])
 
         results, new_payload = self.logic.process_node(payload, meta_data)
-        if new_payload:
+        if new_payload and False:
             default_info = {"method": "validate_bits", "parent": meta_data["id"]}
             if self.validate_bits(new_payload, meta_data, default_info):
                 log_slave("Stage %s found alternative payload for node %d"
@@ -200,12 +200,13 @@ class SlaveProcess:
         self.statistics.event_exec_redqueen()
         return self.q.execute_in_redqueen_mode(data)
 
-    def __send_to_master(self, data, execution_res, info):
+    def __send_to_master(self, data, exec_res, info):
         info["time"] = time.time()
-        info["exit_reason"] = execution_res.exit_reason
-        info["performance"] = execution_res.performance
+        info["exit_reason"] = exec_res.exit_reason
+        info["performance"] = exec_res.performance
+        info["starved"]     = exec_res.is_starved()
         if self.conn is not None:
-            self.conn.send_new_input(data, execution_res.copy_to_array(), info)
+            self.conn.send_new_input(data, exec_res.copy_to_array(), info)
 
     def trace_payload(self, data, info):
         trace_file_in = self.config.argument_values['work_dir'] + "/redqueen_workdir_%d/pt_trace_results.txt" % self.slave_id;

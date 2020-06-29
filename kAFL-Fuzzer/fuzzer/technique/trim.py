@@ -8,6 +8,7 @@ AFL-style trim algorithms (init stage)
 """
 
 from fuzzer.bitmap import GlobalBitmap
+from common.debug import log_redq
 
 MAX_EXECS = 16
 MAX_ROUNDS = 32
@@ -64,6 +65,32 @@ def perform_center_trim(payload, old_node, send_handler, trimming_bytes=2):
             index += trimming_bytes
 
     return payload
+
+def perform_extend(payload, old_node, send_handler):
+    exec_res, is_new = send_handler(payload, label="stream_funky")
+    if exec_res.is_crash() or not exec_res.is_starved():
+        return None
+
+    # search a padding extension that makes it not starve
+    padding = 128
+    upper = 0
+    lower = 0
+    for _ in range(MAX_ROUNDS):
+        exec_res, _ = send_handler(payload + bytes(padding), label="stream_extend")
+
+        if exec_res.is_starved():
+            lower = padding
+        else:
+            upper = padding
+
+        #print("stream_extend: upper=%d, lower=%d" % (upper, lower))
+        padding = lower + abs(upper - lower)//2
+        if abs(upper - lower) <= 1:
+            break
+
+    log_redq("stream_extend: pad_bytes=%d" % (upper))
+    return payload + bytes(upper)
+
 
 
 def perform_trim(payload, old_node, send_handler):
