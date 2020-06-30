@@ -15,8 +15,9 @@ from common.util import print_fail, is_float, is_int, Singleton
 import six
 
 default_section = "Fuzzer"
-default_config = {"PAYLOAD_SHM_SIZE": (65 << 10),
-                  "BITMAP_SHM_SIZE": (64 << 10),
+default_config = {"PAYLOAD_SHM_SIZE": 131072,
+                  "BITMAP_SHM_SIZE": 65536,
+                  "AGENT_MAX_SIZE": 134217728,
                   "QEMU_KAFL_LOCATION": "",
                   "RADAMSA_LOCATION": "radamsa/bin/radamsa",
                   "TIMEOUT_TICK_FACTOR": 10.0,

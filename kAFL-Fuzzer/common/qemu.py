@@ -52,7 +52,9 @@ class qemu:
         self.needs_execution_for_patches = False
         self.debug_counter = 0
 
+        self.agent_size = config.config_values['AGENT_MAX_SIZE']
         self.bitmap_size = config.config_values['BITMAP_SHM_SIZE']
+        self.payload_size = config.config_values['PAYLOAD_SHM_SIZE']
         self.config = config
         self.qemu_id = str(qid)
 
@@ -74,8 +76,6 @@ class qemu:
         self.redqueen_workdir.init_dir()
 
         self.exiting = False
-        self.start_ticks = 0
-        self.end_ticks = 0
         self.tick_timeout_treshold = self.config.config_values["TIMEOUT_TICK_FACTOR"]
 
         self.cmd = self.config.config_values['QEMU_KAFL_LOCATION']
@@ -154,24 +154,10 @@ class qemu:
         else:
             self.cmd += " -machine q35 "
 
-        self.kafl_shm_f = None
-        self.kafl_shm   = None
-        self.fs_shm_f   = None
-        self.fs_shm     = None
-
-        self.payload_shm_f   = None
-        self.payload_shm     = None
-
-        self.bitmap_shm_f   = None
-        self.bitmap_shm     = None
 
         self.crashed = False
         self.timeout = False
         self.kasan = False
-        self.shm_problem = False
-        self.initial_mem_usage = 0
-
-        self.stat_fd = None
 
         self.virgin_bitmap = bytes(self.bitmap_size)
 
@@ -383,6 +369,7 @@ class qemu:
             except:
                 pass
 
+
     def shutdown(self):
         log_qemu("Shutting down Qemu after %d execs.." % self.persistent_runs, self.qemu_id)
         
@@ -416,8 +403,9 @@ class qemu:
 
 
         try:
+            # TODO: exec_res keeps from_buffer() reference to kafl_shm
             self.kafl_shm.close()
-        except:
+        except BufferError as e:
             pass
 
         try:
@@ -435,20 +423,12 @@ class qemu:
         except:
             pass
 
-        try:
-            if self.stat_fd:
-                self.stat_fd.close()
-        except:
-            pass
-
-
         return self.process.returncode
 
     def __set_agent(self):
-        max_size = (128 << 20)
         agent_bin = self.config.argument_values['agent']
         bin = read_binary_file(agent_bin)
-        assert (len(bin) <= max_size)
+        assert (len(bin) <= self.agent_size)
         atomic_write(self.binary_filename, bin)
 
     def start(self):
@@ -456,16 +436,15 @@ class qemu:
         if self.exiting:
             return False
 
+        self.persistent_runs = 0
+        self.handshake_stage_1 = True
+        self.handshake_stage_2 = True
+
         if self.qemu_id == "0" or self.qemu_id == "1337": ## 1337 is debug instance!
             log_qemu("Launching virtual machine...CMD:\n" + ' '.join(self.cmd), self.qemu_id)
         else:
             log_qemu("Launching virtual machine...", self.qemu_id)
 
-        self.persistent_runs = 0
-        # Have not received+send first RELEASE (init handshake)
-        self.handshake_stage_1 = True
-        # Have not received first ACQUIRE (ready for payload execution)
-        self.handshake_stage_2 = True
 
         # Launch Qemu. stderr to stdout, stdout is logged on VM exit
         # os.setpgrp() prevents signals from being propagated to Qemu, instead allowing an
@@ -477,36 +456,27 @@ class qemu:
                 stderr=subprocess.STDOUT)
 
         try:
-            self.stat_fd = open("/proc/" + str(self.process.pid) + "/stat")
-            self.init()
-            self.set_init_state()
-        except:
+            self.__qemu_connect()
+            self.__qemu_handshake()
+        except (OSError, BrokenPipeError) as e:
             if not self.exiting:
-                print_fail("Failed to launch Qemu, please see logs.")
-                log_qemu("Fatal error: Failed to launch Qemu.", self.qemu_id)
+                print_fail("Failed to launch Qemu, please see logs." + str(e))
+                log_qemu("Fatal error: Failed to launch Qemu." + str(e), self.qemu_id)
                 self.shutdown()
             return False
 
-        self.initial_mem_usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        self.kafl_shm.seek(0x0)
-        self.kafl_shm.write(self.virgin_bitmap)
-        self.kafl_shm.flush()
-
         return True
 
-    def set_init_state(self):
-        self.start_ticks = 0
-        self.end_ticks = 0
+    def __qemu_handshake(self):
 
         if self.config.argument_values['agent']:
             self.__set_agent()
-
 
         self.__debug_recv_expect(qemu_protocol.RELEASE + qemu_protocol.PT_TRASHED)
         self.__debug_send(qemu_protocol.RELEASE)
         log_qemu("Stage 1 handshake done [INIT]", self.qemu_id)
 
-        # notify user if harness loads slow or not at all..
+        # TODO: notify user if target/VM loads really slow or not at all..
         #ready = select.select([self.control], [], [], 0.5)
         #while not ready[0]:
         #    print("[Slave %d] Waiting for Qemu handshake..." % self.qemu_id)
@@ -517,7 +487,7 @@ class qemu:
         log_qemu("Stage 2 handshake done [READY]", self.qemu_id)
         self.handshake_stage_2 = False
 
-    def init(self):
+    def __qemu_connect(self):
         # Note: setblocking() disables the timeout! settimeout() will automatically set blocking!
         self.control = socket.socket(socket.AF_UNIX)
         self.control.settimeout(None)
@@ -537,12 +507,15 @@ class qemu:
 
         open(self.tracedump_filename, "wb").close()
 
-        os.ftruncate(self.kafl_shm_f, self.bitmap_size)
-        os.ftruncate(self.fs_shm_f, (128 << 10))
+        with open(self.binary_filename, 'bw') as f:
+            os.ftruncate(f.fileno(), self.agent_size)
 
-        self.kafl_shm = mmap.mmap(self.kafl_shm_f, self.bitmap_size, mmap.MAP_SHARED, mmap.PROT_WRITE | mmap.PROT_READ)
+        os.ftruncate(self.kafl_shm_f, self.bitmap_size)
+        os.ftruncate(self.fs_shm_f, self.payload_size)
+
+        self.kafl_shm = mmap.mmap(self.kafl_shm_f, 0)
         self.c_bitmap = (ctypes.c_uint8 * self.bitmap_size).from_buffer(self.kafl_shm)
-        self.fs_shm = mmap.mmap(self.fs_shm_f, (128 << 10), mmap.MAP_SHARED, mmap.PROT_WRITE | mmap.PROT_READ)
+        self.fs_shm = mmap.mmap(self.fs_shm_f, 0)
 
         return True
 
@@ -552,6 +525,8 @@ class qemu:
             return True
 
         self.shutdown()
+        # TODO: Need to wait here or else the next instance dies in set_payload()
+        # Perhaps Qemu should do proper munmap()/close() on exit?
         time.sleep(0.1)
         return self.start()
 
@@ -563,8 +538,6 @@ class qemu:
         self.crashed = False
         self.timeout = False
         self.kasan = False
-        self.start_ticks = 0
-        self.end_ticks = 0
 
         self.__debug_send(qemu_protocol.RELOAD)
         self.__debug_recv_expect(qemu_protocol.RELOAD)
@@ -754,11 +727,9 @@ class qemu:
         if self.exiting:
             sys.exit(0)
 
-        # TODO: enforce single global size limit through frontend/mutations/backend
-        # PAYLOAD_SIZE-sizeof(uint32)-sizeof(uint8) = 131067!
-        if len(payload) > 65400:
-            payload = payload[:65400]
-
+        # actual payload is limited to payload_size - sizeof(uint32) - sizeof(uint8)
+        if len(payload) > self.payload_size-5:
+            payload = payload[:self.payload_size-5]
         try:
             self.fs_shm.seek(0)
             input_len = to_string_32(len(payload))
@@ -768,7 +739,7 @@ class qemu:
             self.fs_shm.write_byte(input_len[0])
             self.fs_shm.write(payload)
             self.fs_shm.flush()
-        except:
+        except ValueError:
             if self.exiting:
                 sys.exit(0)
             # Qemu crashed. Could be due to prior payload but more likely harness/config is broken..
