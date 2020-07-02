@@ -1,9 +1,8 @@
-# HW-assisted Feedback Fuzzing for x86 Kernels and Firmware
+# kAFL: HW-assisted Feedback Fuzzing for x86 Kernels
 
-This is a fork of the kAFL kernel fuzzer. In cooperation with the original
-developers, this can be used to explore VM-based fuzzing and target
-x86-compatible low-level SW.
-
+This is a fork of the kAFL kernel fuzzer. It can be used for targets that
+execute efficiently as Qemu/KVM guests, including BIOS, custom kernels and
+full-blown Linux VMs.
 
 ## How is it different?
 
