@@ -13,7 +13,7 @@ QEMU_VERSION="5.0.0"
 QEMU_URL="https://download.qemu.org/qemu-${QEMU_VERSION}.tar.xz"
 
 echo "================================================="
-echo "       kAFL/RedQueen auto-magic installer        "
+echo "           kAFL auto-magic installer             "
 echo "================================================="
 
 check_gitconfig()
@@ -111,7 +111,13 @@ build_qemu()
 	echo "-------------------------------------------------"
 	./configure --target-list=i386-softmmu,x86_64-softmmu --enable-vnc --enable-gtk --enable-pt --enable-redqueen --disable-werror
 	make -j $jobs
+	echo
 	echo "-------------------------------------------------"
+	echo "Qemu build should be done now. Note that you do not have to install this Qemu build into the system."
+	echo "Just update kAFL-Fuzzer/kafl.ini to point it in the proper direction:"
+	echo
+	echo    QEMU_KAFL_LOCATION = qemu-${QEMU_VERSION}/x86_64-softmmu/qemu-system-x86_64
+	echo
 
 	popd
 }
@@ -230,11 +236,6 @@ install_note()
 	echo "  $ sudo make INSTALL_MOD_STRIP=1 modules_install"
 	echo "  $ sudo make install"
 	echo
-	echo "You don't have to install the custom Qemu build. Just add it to kafl.ini:"
-	echo "(the fuzzer will create a default config for you on first launch)"
-	echo
-	echo    QEMU_KAFL_LOCATION:  ../qemu-${QEMU_VERSION}/x86_64-softmmu/qemu-system-x86_64
-	echo
 }
 
 ####################################
@@ -290,7 +291,7 @@ echo "[*] All done."
 echo
 
 case $1 in
-	"qemu"|"linux"|"all")
+	"linux"|"all")
 		install_note
 		;;
 esac
