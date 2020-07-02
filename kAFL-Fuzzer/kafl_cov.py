@@ -163,7 +163,6 @@ def get_inputs_by_time(data_dir):
 
 def generate_traces(config, input_list):
 
-    is_purge = config.argument_values['purge']
     work_dir = config.argument_values['work_dir']
     data_dir = config.argument_values["input"]
     trace_dir = data_dir + "/traces/"
@@ -172,7 +171,7 @@ def generate_traces(config, input_list):
         print_note("Workdir must be separate from input/data dir. Aborting.")
         return None
 
-    prepare_working_dir(config.argument_values['work_dir'], is_purge)
+    prepare_working_dir(config)
 
     if os.path.exists(trace_dir):
         print_note("Input data_dir already has a traces/ subdir. Skipping trace generation..\n")

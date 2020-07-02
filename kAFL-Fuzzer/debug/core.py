@@ -81,12 +81,13 @@ def gdb_session(config, qemu_verbose=True, notifiers=True):
     q.shutdown()
 
 def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
-    log_debug("Starting debug execution...(%d traces)" % execs)
+    log_debug("Starting debug execution...(%d rounds)" % execs)
 
     payload_file = config.argument_values["input"]
-    zero_hash = mmh3.hash64(("\x00" * config.config_values['BITMAP_SHM_SIZE']))
+    zero_hash = mmh3.hash(("\x00" * config.config_values['BITMAP_SHM_SIZE']), signed=False)
     q = qemu(1337, config, debug_mode=True, notifiers=notifiers)
-    q.start()
+    assert q.start(), "Failed to start Qemu?"
+
     start = time.time()
     for i in range(execs):
         log_debug("Launching payload %d/%d.." % (i+1,execs))
@@ -115,27 +116,45 @@ def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
 def execution_exited_abnormally(qemu):
     return qemu.crashed or qemu.timeout or qemu.kasan
 
-def debug_non_det(config, payload, max_iterations=0):
+def debug_non_det(config, max_iterations=0):
     log_debug("Starting non-deterministic...")
 
-    # Define IP Range!!
+    payload_file=config.argument_values["input"]
+    assert os.path.isfile(payload_file), "Provided -input argument must be a file."
+    assert "ip0" in config.argument_values, "Must set -ip0 range in order to obtain PT traces."
+    
+    payload = read_binary_file(payload_file)
     q = qemu(1337, config, debug_mode=False)
-    q.start()
+    assert q.start(), "Failed to launch Qemu."
+
+    store_traces = config.argument_values["trace"]
+    if store_traces:
+        trace_out = config.argument_values["work_dir"] + "/redqueen_workdir_1337/pt_trace_results.txt"
+        trace_dir  = config.argument_values["work_dir"] + "/noise/"
+        os.makedirs(trace_dir)
 
     hash_value = None
     default_hash = None
-    hash_list = []
+    hashes = dict()
     try:
         q.set_payload(payload)
         time.sleep(0.2)
-        bitmap = q.send_payload()
-        default_hash = bitmap.hash()
-        hash_list.append(default_hash)
+        if store_traces: q.send_enable_trace()
+        exec_res = q.send_payload()
+        if store_traces: q.send_disable_trace()
+
+        default_hash = exec_res.hash()
+        hashes[default_hash] = 1
 
         log_debug("Default Hash: " + str(default_hash))
+
+        if store_traces:
+            shutil.copyfile(trace_out, trace_dir + "/trace_%08x.txt" % default_hash)
+
         total = 1
         hash_mismatch = 0
         count = 0
+        time.sleep(0.2)
         while True:
             mismatch_r = 0
             start = time.time()
@@ -143,30 +162,36 @@ def debug_non_det(config, payload, max_iterations=0):
             while (time.time() - start < REFRESH):
                 #time.sleep(0.0002 * rand.int(10))
                 q.set_payload(payload)
-                #time.sleep(0.3)
-                bitmap = q.send_payload()
+                time.sleep(0.2)
+                if store_traces: q.send_enable_trace()
+                exec_res = q.send_payload()
+                if store_traces: q.send_disable_trace()
 
-                if execution_exited_abnormally(q):
+                if exec_res.is_crash():
                     print("Crashed - restarting...")
                     q.restart()
 
-                hash_value = bitmap.hash()
+                time.sleep(0.2)
+                hash_value = exec_res.hash()
                 if hash_value != default_hash:
                     mismatch_r += 1
-                    if hash_value not in hash_list:
-                        hash_list.append(hash_value)
-                        log_debug("Full hexdump for %x:\n%s\n" % (hash_value, hexdump(bitmap.copy_to_array())))
+                if hash_value in hashes:
+                    hashes[hash_value] = hashes[hash_value] + 1
+                else:
+                    hashes[hash_value] = 1
+                    if store_traces:
+                        shutil.copyfile(trace_out, trace_dir + "/trace_%08x.txt" % hash_value)
                 execs += 1
             end = time.time()
             total += execs
             hash_mismatch += mismatch_r
             stdout.write(common.color.FLUSH_LINE + "Performance: " + str(
                 format(((execs * 1.0) / (end - start)), '.0f')) + "  t/s\tTotal: " + str(total) + "\tMismatch: ")
-            if (len(hash_list) != 1):
+            if (len(hashes) != 1):
                 stdout.write(common.color.FAIL + str(hash_mismatch) + common.color.ENDC + " (+" + str(
                     mismatch_r) + ")\tRatio: " + str(format(((hash_mismatch * 1.0) / total) * 100.00, '.2f')) + "%")
-                stdout.write("\t\tHashes:\t" + str(len(hash_list)) + " (" + str(
-                    format(((len(hash_list) * 1.0) / total) * 100.00, '.2f')) + "%)")
+                stdout.write("\t\tHashes:\t" + str(len(hashes.keys())) + " (" + str(
+                    format(((len(hashes.keys()) * 1.0) / total) * 100.00, '.2f')) + "%)")
             else:
                 stdout.write(common.color.OKGREEN + str(hash_mismatch) + common.color.ENDC + " (+" + str(
                     mismatch_r) + ")\tRatio: " + str(format(((hash_mismatch * 1.0) / total) * 100.00, '.2f')) + "%")
@@ -184,8 +209,11 @@ def debug_non_det(config, payload, max_iterations=0):
     finally:
         q.shutdown()
 
-    for h in hash_list:
-        print("%x" % h)
+    for h in hashes.keys():
+        if h == default_hash:
+            print("* %08x: %03d" % (h, hashes[h]))
+        else:
+            print("  %08x: %03d" % (h, hashes[h]))
 
     return 0
 
@@ -336,7 +364,7 @@ def verify_dbg(config, qemu_verbose=False):
 
 def start(config):
 
-    prepare_working_dir(config.argument_values['work_dir'])
+    prepare_working_dir(config)
 
     if not post_self_check(config):
         return -1
@@ -354,8 +382,7 @@ def start(config):
         # TODO: noise, benchmark, trace are working, others untested
         mode = config.argument_values['action']
         if   (mode == "noise"):
-                                        payload_file=config.argument_values["input"]
-                                        debug_non_det(config, read_binary_file(payload_file))
+                                        debug_non_det(config)
         elif (mode == "benchmark"):     benchmark(config)
         elif (mode == "gdb"):           gdb_session(config, qemu_verbose=True)
         elif (mode == "trace"):         debug_execution(config, config.argument_values['n'])

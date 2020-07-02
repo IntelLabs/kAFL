@@ -87,10 +87,10 @@ def prepare_working_dir(config):
     for folder in folders:
         os.makedirs(work_dir + folder)
 
-    if config.argument_values['funky']:
+    if config.argument_values.get('funky', False):
         os.makedirs(work_dir + "/funky/")
 
-    if config.argument_values['trace']:
+    if config.argument_values.get('trace', False):
         os.makedirs(work_dir + "/traces/")
 
     return True

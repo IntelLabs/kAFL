@@ -346,8 +346,10 @@ class DebugConfiguration(six.with_metaclass(Singleton)):
 
         general.add_argument('-input', metavar='<file/dir>', action=FullPath, type=str,
                             help='path to input file or workdir.')
-        general.add_argument('-n', metavar='<num>', help='debug iterations (default: 5)',
+        general.add_argument('-n', metavar='<num>', help='execute <num> times (for some actions)',
                             default=5, type=int)
+        parser.add_argument('-trace', required=False, help='capture full PT traces (for some actions)',
+                        action='store_true', default=False)
         general.add_argument('-action', required=False, metavar='<cmd>', choices=debug_modes, 
                             help=debug_modes_help)
 

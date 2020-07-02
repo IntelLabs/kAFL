@@ -41,7 +41,7 @@ class ExecutionResult:
         return bytearray(self.cbuffer)
 
     def hash(self):
-        return mmh3.hash(self.cbuffer)
+        return mmh3.hash(self.cbuffer, signed=False)
 
     def apply_lut(self):
         assert not self.lut_applied

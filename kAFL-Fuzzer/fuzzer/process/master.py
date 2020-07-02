@@ -32,7 +32,7 @@ class MasterProcess:
         self.comm = ServerConnection(self.config)
 
         self.busy_events = 0
-        self.empty_hash = mmh3.hash(("\x00" * self.config.config_values['BITMAP_SHM_SIZE']))
+        self.empty_hash = mmh3.hash(("\x00" * self.config.config_values['BITMAP_SHM_SIZE']), signed=False)
 
 
         self.statistics = MasterStatistics(self.config)
