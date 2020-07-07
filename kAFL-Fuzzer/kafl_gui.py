@@ -268,7 +268,7 @@ class GuiDrawer:
             if i == self.current_slave_id:
                 hl = ">"
             nid = d.slave_input_id(i)
-            if nid not in [None, 0]:
+            if nid not in [None, 0] and d.nodes.get(nid, None):
                 self.gui.print_info_line([(15, "", d.slave_stage(i)),
                                           (10, "node", "%d" % d.slave_input_id(i)),
                                           (14,  "fav/lvl",  "%d/%d" % (d.node_fav_bits(nid),
@@ -287,7 +287,7 @@ class GuiDrawer:
         self.gui.print_title_line("Payload Info")
         self.gui.print_sep_line()
         nid = d.slave_input_id(i)
-        if nid not in [None, 0]:
+        if nid not in [None, 0] and d.nodes.get(nid, None):
             self.gui.print_info_line([
                 (10, "Parent", "%8d" % d.node_parent_id(nid)),
                 (10, "Size",   pbyte(d.node_size(nid)) + "B"),
@@ -428,9 +428,6 @@ class GuiData:
     def runtime(self):
         return max([x["run_time"] for x in self.slave_stats])
 
-    def execs_p_sec(self):
-        return sum([x["execs/sec"] for x in self.slave_stats])
-
     def execs_p_sec_avg(self):
         return self.total_execs()/self.runtime()
 
@@ -438,7 +435,7 @@ class GuiData:
         return self.slave_stats[i].get(["execs/sec"],0)
 
     def total_execs(self):
-        return sum([x["total_execs"] for x in self.slave_stats])
+        return self.stats.get("total_execs", 0)
 
     def num_slaves(self):
         return len(self.slave_stats)
@@ -459,17 +456,15 @@ class GuiData:
 
     def stability(self):
         # chance p() to survive 100 executions: ((total-crashes)/total)^100
-        if self.total_execs() == 0:
-            return 0
         n = self.total_execs()
-        c = self.total_reloads()
-        return 100*((n-c)/n)**100
+        if n == 0:
+            return 0
+        else:
+            c = self.total_reloads()
+            return 100*((n-c)/n)**100
 
     def total_reloads(self):
-        total_reloads = 0
-        for slave_info in self.slave_stats:
-            total_reloads += slave_info["num_reload"]
-        return total_reloads
+        return self.stats.get("num_reload", 0)
 
     def reload_p_sec(self):
         return self.total_reloads()/self.runtime()
