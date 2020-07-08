@@ -15,7 +15,6 @@ from common.util import atomic_write, read_binary_file
 class MasterStatistics:
     def __init__(self, config):
         self.config = config
-        self.start_time = time.time()
         self.execs_last = 0
         self.execs_time = 0
         self.plot_last = 0
@@ -25,7 +24,7 @@ class MasterStatistics:
         self.num_slaves = self.config.argument_values['p']
         self.work_dir = self.config.argument_values['work_dir']
         self.data = {
-                "start_time": self.start_time
+                "start_time": time.time(),
                 "total_execs": 0,
                 "num_funky": 0,
                 "num_reload": 0,
@@ -130,13 +129,14 @@ class MasterStatistics:
 
     def write_plot(self):
         cur_time = time.time()
-        cur_execs = (self.data["total_execs"] - self.execs_last)/(cur_time-self.execs_time)
+        run_time = cur_time - self.data["start_time"]
+        cur_speed = (self.data["total_execs"] - self.execs_last)/(cur_time-self.execs_time)
         self.execs_last = self.data["total_execs"]
         self.execs_time = cur_time
         with open(self.plot_file, 'a') as fd:
             fd.write("%06d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d\n" % (
-                cur_time-self.start_time,   # elapsed time
-                cur_execs,                     # execs/sec
+                run_time,                      # elapsed time
+                cur_speed,                     # execs/sec
                 self.data["paths_total"],      # paths total
                 self.data["paths_pending"],    # paths pending
                 self.data["favs_total"],       # favs total

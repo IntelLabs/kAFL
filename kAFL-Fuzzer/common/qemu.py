@@ -293,6 +293,7 @@ class qemu:
             except ConnectionResetError:
                 if self.exiting:
                     sys.exit(0)
+                raise
 
             if (len(res) == 0):
                 # Another case of socket error, apparently on Qemu reset/crash
