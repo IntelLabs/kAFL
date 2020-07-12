@@ -116,10 +116,11 @@ def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
 def execution_exited_abnormally(qemu):
     return qemu.crashed or qemu.timeout or qemu.kasan
 
-def debug_non_det(config, max_iterations=0):
+def debug_non_det(config, max_execs=0):
     log_debug("Starting non-deterministic...")
 
-    payload_file=config.argument_values["input"]
+    delay = 0
+    payload_file = config.argument_values["input"]
     assert os.path.isfile(payload_file), "Provided -input argument must be a file."
     assert "ip0" in config.argument_values, "Must set -ip0 range in order to obtain PT traces."
     
@@ -138,7 +139,7 @@ def debug_non_det(config, max_iterations=0):
     hashes = dict()
     try:
         q.set_payload(payload)
-        time.sleep(0.2)
+        time.sleep(delay)
         if store_traces: q.send_enable_trace()
         exec_res = q.send_payload()
         if store_traces: q.send_disable_trace()
@@ -153,16 +154,15 @@ def debug_non_det(config, max_iterations=0):
 
         total = 1
         hash_mismatch = 0
-        count = 0
-        time.sleep(0.2)
-        while True:
+        time.sleep(delay)
+        while max_execs == 0 or total <= max_execs:
             mismatch_r = 0
             start = time.time()
             execs = 0
             while (time.time() - start < REFRESH):
                 #time.sleep(0.0002 * rand.int(10))
                 q.set_payload(payload)
-                time.sleep(0.2)
+                time.sleep(delay)
                 if store_traces: q.send_enable_trace()
                 exec_res = q.send_payload()
                 if store_traces: q.send_disable_trace()
@@ -171,7 +171,7 @@ def debug_non_det(config, max_iterations=0):
                     print("Crashed - restarting...")
                     q.restart()
 
-                time.sleep(0.2)
+                time.sleep(delay)
                 hash_value = exec_res.hash()
                 if hash_value != default_hash:
                     mismatch_r += 1
@@ -197,18 +197,14 @@ def debug_non_det(config, max_iterations=0):
                     mismatch_r) + ")\tRatio: " + str(format(((hash_mismatch * 1.0) / total) * 100.00, '.2f')) + "%")
             stdout.flush()
 
-            if max_iterations != 0 and total >= count:
-                break
-
-            count += 1
-
     except Exception as e:
         raise
     except KeyboardInterrupt:
-        stdout.write("\n")
+        pass
     finally:
         q.shutdown()
 
+    stdout.write("\n")
     for h in hashes.keys():
         if h == default_hash:
             print("* %08x: %03d" % (h, hashes[h]))
@@ -378,15 +374,17 @@ def start(config):
     if not config.argument_values['ip0']:
         print_warning("No trace region configured! Intel PT disabled!")
 
+    max_execs = config.argument_values['n']
+
     try:
         # TODO: noise, benchmark, trace are working, others untested
         mode = config.argument_values['action']
         if   (mode == "noise"):
-                                        debug_non_det(config)
+                                        debug_non_det(config, max_execs)
         elif (mode == "benchmark"):     benchmark(config)
         elif (mode == "gdb"):           gdb_session(config, qemu_verbose=True)
-        elif (mode == "trace"):         debug_execution(config, config.argument_values['n'])
-        elif (mode == "trace-qemu"):    debug_execution(config, config.argument_values['n'], qemu_verbose=True)
+        elif (mode == "trace"):         debug_execution(config, max_execs)
+        elif (mode == "trace-qemu"):    debug_execution(config, max_execs, qemu_verbose=True)
         elif (mode == "printk"):        debug_execution(config, 1, qemu_verbose=True, notifiers=False)
         elif (mode == "redqueen"):      redqueen_dbg(config, qemu_verbose=False)
         elif (mode == "redqueen-qemu"): redqueen_dbg(config, qemu_verbose=True)

@@ -104,6 +104,26 @@ function run()
 	popd
 }
 
+function noise()
+{
+	pushd $KAFL_ROOT
+	TEMPDIR=$(mktemp -d -p /dev/shm)
+	WORKDIR=$1; shift
+	echo
+	echo "Using temp workdir >>$TEMPDIR<<.."
+	echo
+	sleep 1
+
+	# Note: -ip0 and other VM settings should match those used during fuzzing
+	python3 kAFL-Fuzzer/kafl_debug.py -action noise -ip0 0x2000000-0x2F00000 --purge \
+		-bios $TARGET_ROOT/bios.bin \
+		-extra " -hda fat:rw:$TARGET_ROOT/fake_hda -net none -no-reboot" \
+		-mem 64 \
+		-work_dir $TEMPDIR \
+		-input $WORKDIR $*
+	popd
+}
+
 function cov()
 {
 	pushd $KAFL_ROOT
@@ -139,6 +159,7 @@ function usage() {
 	echo "     app  - build kAFL sample agent"
 	echo "     run  - run sample agent in kAFL"
 	echo "     cov <dir> - process <dir> in trace mode to collect coverage info"
+	echo "     noise <file> - process <file> in trace mode to collect coverage info"
 	exit
 }
 
@@ -148,6 +169,10 @@ CMD=$1; shift || usage
 case $CMD in
 	"run")
 		run $*
+		;;
+	"noise")
+		test -f "$1" || usage
+		noise $*
 		;;
 	"cov")
 		test -d "$1" || usage

@@ -145,6 +145,38 @@ function cov()
 	popd
 }
 
+function noise()
+{
+	pushd $KAFL_ROOT
+	TEMPDIR=$(mktemp -d -p /dev/shm)
+	PAYLOAD=$1
+
+	BIN=${TARGET_ROOT}/build/zephyr/zephyr.elf
+	MAP=${TARGET_ROOT}/build/zephyr/zephyr.map
+	test -f $BIN -a -f $MAP || exit
+
+	range=$(grep -A 1 ^text "$MAP" |xargs |cut -d\  -f 2,3)
+	ip_start=$(echo $range|sed 's/ .*//')
+	ip_end=$(echo -e "obase=16\nibase=16\n$(echo $range|sed s/x//g|sed 's/\ /+/'|tr a-z A-Z)"|bc)
+
+	echo
+	echo "Using temp workdir >>$TEMPDIR<<.."
+	echo "IP filter range: $ip_start-0x$ip_end"
+	echo
+	sleep 1
+
+
+	# Note: -ip0 and other VM settings should match those used during fuzzing
+	python3 kAFL-Fuzzer/kafl_debug.py -action noise \
+		-v -ip0 ${ip_start}-0x${ip_end} \
+		-kernel ${BIN} \
+		-mem 32 \
+		-n 0 \
+		-work_dir $TEMPDIR \
+		-input $PAYLOAD
+	popd
+}
+
 function usage() {
 	echo
 	echo "Build and run the Zephyr RTOS samples."
@@ -173,6 +205,10 @@ case $CMD in
 	"cov")
 		test -d "$1" || usage
 		cov $1
+		;;
+	"noise")
+		test -f "$1" || usage
+		noise "$1"
 		;;
 	"build")
 		test -n "$1" || usage
