@@ -15,7 +15,7 @@ SDK_URL="https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.11.3/
 KAFL_OPTS="-p $(nproc) -grimoire -redqueen -hammer_jmp_tables -catch_reset"
 
 function fetch_zephyr() {
-	echo -e "\nInstalling Zephyr to $KAFL_ROOT/zephyrproject.\n\tHit Enter to install or ctrl-c to abort."
+	echo -e "\nInstalling Zephyr to $KAFL_ROOT/zephyrproject.\n\n\tHit Enter to install or ctrl-c to abort."
 	read
 	echo "[-] Fetching dependencies.."
 	# https://docs.zephyrproject.org/latest/getting_started/installation_linux.html
@@ -47,6 +47,9 @@ function fetch_sdk() {
 	# Download Zephyr SDK. Not pretty.
 	pushd $KAFL_ROOT
 	INSTALLER=$(basename $SDK_URL)
+
+	echo -e "\nAttempting to fetch and execute Zephyr SDK installer from\n$SDK_URL\n\n\tHit Enter to continue or ctrl-c to abort."
+	read
 	wget -c -O $INSTALLER $SDK_URL
 	bash $INSTALLER
 }
@@ -54,13 +57,13 @@ function fetch_sdk() {
 function check_sdk() {
 
 	# fetch Zephyr and SDK if not available
-	test -d "$TARGET_ROOT/zephyrproject" || fetch_zephyr
-	test -f "$HOME/.zephyrrc" || fetch_sdk
+	test -d "$KAFL_ROOT/zephyrproject" || (echo "Could not find Zephyr."; fetch_zephyr)
+	test -f "$HOME/.zephyrrc" || (echo "Could not find a Zephyr SDK."; fetch_sdk)
 
 	# check again and this time bail out on error
-	test -d "$TARGET_ROOT/zephyrproject" || (echo "Could not find Zephyr install. Exit."; exit)
+	test -d "$KAFL_ROOT/zephyrproject" || (echo "Could not find Zephyr install. Exit."; exit)
 	test -f "$HOME/.zephyrrc" || (echo "Could not find Zephyr SDK. Exit."; exit)
-	source "$TARGET_ROOT/zephyrproject/zephyr/zephyr-env.sh"
+	source "$KAFL_ROOT/zephyrproject/zephyr/zephyr-env.sh"
 
 	echo "Using Zephyr build settings:"
 	echo " ZEPHYR_BASE=$ZEPHYR_BASE"

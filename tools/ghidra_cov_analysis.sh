@@ -14,13 +14,13 @@ BIN=$GHIDRA_ROOT/support/analyzeHeadless
 PROJDIR=$GHIDRA_ROOT/work
 PROJ=cov_analysis
 
-test -f "$BIN" || exit
-test -d "$PROJDIR" || exit
-test -f "$TARGET" || exit
-test -f "$KAFL_ROOT/tools/ghidra_cov_analysis.py" || exit
+test -f "$BIN" || (echo "Missing ghidra executable $BIN"; exit)
+test -d "$PROJDIR" || (echo "Missing ghidra workdir $PROJDIR"; exit)
+test -f "$TARGET" || (echo "Could not find target .elf at $TARGET"; exit)
+test -f "$KAFL_ROOT/tools/ghidra_cov_analysis.py" || (echo "Could not find coverage anaylsis script?"; exit)
 
 # Check if traces have been generated and optionally create unique edges file
-test -f "$WORKDIR/traces/coverage.csv" || exit
+test -d "$WORKDIR/traces/" || (echo "Could not find traces/ folder in workdir."; exit)
 test -f "$WORKDIR/traces/edges_uniq.lst" || $KAFL_ROOT/tools/unique_edges.sh $WORKDIR
 
 # TODO: how can we hand the file argument directly to ghidra script?
