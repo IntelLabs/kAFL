@@ -346,7 +346,7 @@ class qemu:
                 print_fail("Slave %d: Error in debug_recv(): Got %s, Expected: %s" % (self.qemu_id, str(res), str(cmd)))
                 assert False
         if res == qemu_protocol.PT_TRASHED:
-            log_qemu("PT_TRASHED")
+            log_qemu("PT_TRASHED", self.qemu_id)
             return False
         return True
 
