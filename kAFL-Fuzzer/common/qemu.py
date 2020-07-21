@@ -308,7 +308,7 @@ class qemu:
                     if sig == 0: # regular shutdown? still report as KASAN
                         return qemu_protocol.KASAN
                     else:
-                        raise EOFError("Qemu exited with signal: %s" % str(sig))
+                        raise BrokenPipeError("Qemu exited with signal: %s" % str(sig))
 
             if res == qemu_protocol.PRINTF:
                 self.__debug_hprintf()
@@ -343,8 +343,8 @@ class qemu:
                 # Reaching this part typically means there is a bug in the agent or target setup which
                 # messes up the expected interaction. Throw an error and exit.
                 log_qemu("Fatal error in debug_recv(): Got " + str(res) + ", Expected: " + str(cmd) + ")", self.qemu_id)
-                print_fail("Slave %d: Error in debug_recv(): Got %s, Expected: %s" % (self.qemu_id, str(res), str(cmd)))
-                assert False
+                print_fail("Slave %s: Error in debug_recv(): Got %s, Expected: %s" % (self.qemu_id, str(res), str(cmd)))
+                self.async_exit()
         if res == qemu_protocol.PT_TRASHED:
             log_qemu("PT_TRASHED", self.qemu_id)
             return False

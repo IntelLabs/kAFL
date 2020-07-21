@@ -239,14 +239,10 @@ class SlaveProcess:
                 # TODO if it reliably kills qemu, perhaps log to master for harvesting..
                 log_slave("Fatal: Repeated BrokenPipeError on input: %s" % repr(data), self.slave_id)
                 raise
-
             log_slave("SHM/pipe error, trying to restart qemu...", self.slave_id)
-            if self.q.restart():
-                return self.__execute(data, retry=retry+1)
-            else:
+            if not self.q.restart():
                 raise
-
-        assert False
+        return self.__execute(data, retry=retry+1)
 
 
     def execute(self, data, info):
