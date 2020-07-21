@@ -14,6 +14,13 @@ SDK_URL="https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.11.3/
 
 KAFL_OPTS="-p $(nproc) -grimoire -redqueen -hammer_jmp_tables -catch_reset"
 
+function fail {
+	echo
+	echo -e "$1"
+	echo
+	exit
+}
+
 function fetch_zephyr() {
 	echo -e "\nInstalling Zephyr to $KAFL_ROOT/zephyrproject.\n\n\tHit Enter to install or ctrl-c to abort."
 	read
@@ -31,7 +38,7 @@ function fetch_zephyr() {
 
 	# use west to fetch Zephyr
 	pip3 install --user west
-	which west || ( echo "Error: ~/.local/bin not in \$PATH?"; exit )
+	which west || fail "Error: ~/.local/bin not in \$PATH?"
 
 	echo "[-] Fetching Zephyr components.."
 	pushd $KAFL_ROOT
@@ -61,8 +68,8 @@ function check_sdk() {
 	test -f "$HOME/.zephyrrc" || (echo "Could not find a Zephyr SDK."; fetch_sdk)
 
 	# check again and this time bail out on error
-	test -d "$KAFL_ROOT/zephyrproject" || (echo "Could not find Zephyr install. Exit."; exit)
-	test -f "$HOME/.zephyrrc" || (echo "Could not find Zephyr SDK. Exit."; exit)
+	test -d "$KAFL_ROOT/zephyrproject" || fail "Could not find Zephyr install. Exit."
+	test -f "$HOME/.zephyrrc" || fail "Could not find Zephyr SDK. Exit."
 	source "$KAFL_ROOT/zephyrproject/zephyr/zephyr-env.sh"
 
 	echo "Using Zephyr build settings:"
@@ -85,7 +92,7 @@ function build_app() {
 
 	pushd $TARGET_ROOT
 	test -d build && rm -rf build
-   	mkdir build || exit
+   	mkdir build || fail "Could not create build/ directory. Exit."
 	cd build
 	cmake -GNinja -DBOARD=qemu_x86 -DKAFL_${APP}=y ..
 	ninja
@@ -97,7 +104,7 @@ function run() {
 
 	BIN=${TARGET_ROOT}/build/zephyr/zephyr.elf
 	MAP=${TARGET_ROOT}/build/zephyr/zephyr.map
-	test -f $BIN -a -f $MAP || exit
+	test -f $BIN -a -f $MAP || fail "Could not find Zephyr target .elf and .map files. Need to build first?"
 
 	range=$(grep -A 1 ^text "$MAP" |xargs |cut -d\  -f 2,3)
 	ip_start=$(echo $range|sed 's/ .*//')
@@ -122,7 +129,7 @@ function cov()
 
 	BIN=${TARGET_ROOT}/build/zephyr/zephyr.elf
 	MAP=${TARGET_ROOT}/build/zephyr/zephyr.map
-	test -f $BIN -a -f $MAP || exit
+	test -f $BIN -a -f $MAP || fail "Could not find Zephyr target .elf and .map files. Need to build first?"
 
 	range=$(grep -A 1 ^text "$MAP" |xargs |cut -d\  -f 2,3)
 	ip_start=$(echo $range|sed 's/ .*//')
@@ -153,7 +160,7 @@ function noise()
 
 	BIN=${TARGET_ROOT}/build/zephyr/zephyr.elf
 	MAP=${TARGET_ROOT}/build/zephyr/zephyr.map
-	test -f $BIN -a -f $MAP || exit
+	test -f $BIN -a -f $MAP || fail "Could not find Zephyr target .elf and .map files. Need to build first?"
 
 	range=$(grep -A 1 ^text "$MAP" |xargs |cut -d\  -f 2,3)
 	ip_start=$(echo $range|sed 's/ .*//')

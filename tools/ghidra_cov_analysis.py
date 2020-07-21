@@ -43,7 +43,7 @@ from java.awt import Color
 # print list of missing/uncovered functions?
 print_missing = False
 # ignore funcitons with less than n blocks?
-ignore_threshold = 10
+ignore_threshold = 4
 # detailed log of edge scanning
 verbose = False
 
@@ -167,7 +167,7 @@ def mark_new_edge(edge):
         listing.setComment(edge[0], CodeUnit.EOL_COMMENT, "edge target: 0x%08x" % edge[1].getUnsignedOffset())
         listing.setComment(edge[1], CodeUnit.EOL_COMMENT, "edge source: 0x%08x" % edge[0].getUnsignedOffset())
 
-def scan_by_edges(blocks, edges):
+def scan_by_edges(model, edges):
 
     unmapped_edges = 0
 
@@ -177,30 +177,34 @@ def scan_by_edges(blocks, edges):
         found = 0
 
         # jmp(), call() point at begin of a block, ret() points somewhere right after call()
-        block = blocks.getCodeBlockAt(edge[1], monitor)
-        if block:
+        b = model.getCodeBlockAt(edge[1], monitor)
+        if b:
             #print "-> check jmp/call target block"
-            check_block(block, edge)
+            check_block(b, edge)
         else:
-            block = blocks.getCodeBlocksContaining(edge[1], monitor)
+            blocks = model.getCodeBlocksContaining(edge[1], monitor)
             #print "-> check ret target block"
-            assert(len(block) == 1), "Ambigious code block for edge < 0x%08x, 0x%08x >.." % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset())
-            check_block(block[0], edge)
-            found += 1
+            if (len(blocks) > 1):
+                printf("Ambigious code block for edge < 0x%08x, 0x%08x >. Supplied the wrong binary?" % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset()))
+            for b in blocks:
+                check_block(b, edge)
+                found += 1
 
         # source pointers will be mostly within a block.
         # this also catches direct hits (getCodeBlockAt(edge[0]))
-        block = blocks.getCodeBlocksContaining(edge[0], monitor)
+        blocks = model.getCodeBlocksContaining(edge[0], monitor)
         #print "-> jmp/call/ret from source"
-        assert(len(block) == 1), "Ambigious code block for edge < 0x%08x, 0x%08x >.." % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset())
-        check_block(block[0], edge)
-        found += 1
+        if(len(blocks) > 1):
+            printf("Ambigious code block for edge < 0x%08x, 0x%08x >. Supplied the wrong binary?" % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset()))
+        for b in blocks:
+            check_block(b, edge)
+            found += 1
 
         if found > 0:
             mark_new_edge(edge)
         else:
             unmapped_edges += 1
-            print "Warning: Could not map edge < 0x%08x, 0x%08x >" % (
+            print "Warning: Could not map edge < 0x%08x, 0x%08x >. Supplied wrong binary?" % (
                                                     edge[0].getUnsignedOffset(),
                                                     edge[1].getUnsignedOffset())
 
@@ -210,19 +214,19 @@ def main():
 
     edges = read_edges("/tmp/edges_uniq.lst")
 
-    blocks = BasicBlockModel(getCurrentProgram())
-    print "Block Model: %s" % blocks.getName()
+    model = BasicBlockModel(getCurrentProgram())
+    print "Block Model: %s" % model.getName()
 
     ##
     # Scan program and mark any blocks we reached
     ##
-    unmapped_edges = scan_by_edges(blocks, edges)
+    unmapped_edges = scan_by_edges(model, edges)
 
     ##
     # Compute blocks reached/unreached by function
     # While at it, also count the total number of base blocks
     ##
-    BlockIter = blocks.getCodeBlocks(monitor)
+    BlockIter = model.getCodeBlocks(monitor)
     total_blocks = 0
     reached_map = dict() # map of reached blocks by function
     blocks_map = dict()  # map of total blocks by function
@@ -247,7 +251,7 @@ def main():
     ## Summarize blocks reached/missed by function
     ##
     print
-    for func, blocks in sorted(reached_map.items(), key=lambda x: x[1]):
+    for func, blocks in sorted(reached_map.items(), key=lambda x: str(x[0]).lower):
         total = blocks_map[func]
         percent = blocks * 100 / total
         if total > ignore_threshold:
@@ -255,7 +259,7 @@ def main():
 
     print
     if print_missing:
-        for func, blocks in sorted(blocks_map.items(), key=lambda x: x[1]):
+        for func, blocks in sorted(blocks_map.items(), key=lambda x: str(x[0]).lower):
             if func not in reached_map and blocks > ignore_threshold:
                 print "Missed: %3d blocks in %s" % (blocks, func)
 
