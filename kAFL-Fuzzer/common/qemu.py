@@ -397,10 +397,12 @@ class qemu:
         header = "\n=================<Qemu %s Console Output>==================\n" % self.qemu_id
         footer = "====================</Console Output>======================\n"
         log_qemu(header + output + footer, self.qemu_id)
-        header = "\n=================<Qemu %s Serial Output>==================\n" % self.qemu_id
-        footer = "====================</Serial Output>======================\n"
-        serial_out = strdump(read_binary_file(self.qemu_serial_log), verbatim=True)
-        log_qemu(header + serial_out + footer, self.qemu_id)
+
+        if os.path.isfile(self.qemu_serial_log):
+            header = "\n=================<Qemu %s Serial Output>==================\n" % self.qemu_id
+            footer = "====================</Serial Output>======================\n"
+            serial_out = strdump(read_binary_file(self.qemu_serial_log), verbatim=True)
+            log_qemu(header + serial_out + footer, self.qemu_id)
 
 
         try:
@@ -461,8 +463,8 @@ class qemu:
             self.__qemu_handshake()
         except (OSError, BrokenPipeError) as e:
             if not self.exiting:
-                print_fail("Failed to launch Qemu, please see logs." + str(e))
-                log_qemu("Fatal error: Failed to launch Qemu." + str(e), self.qemu_id)
+                print_fail("Failed to launch Qemu, please see logs. Error: " + str(e))
+                log_qemu("Fatal error: Failed to launch Qemu: " + str(e), self.qemu_id)
                 self.shutdown()
             return False
 

@@ -1,31 +1,13 @@
 # kAFL: Hardware-Assisted Feedback Fuzzing for OS Kernels
 
-Blazing fast x86-64 VM kernel fuzzing framework with performant VM reloads for Linux, MacOS and Windows.
+This Readme is adopted from the original kAFL release. The described flow
+creates a regular Qemu VM image with a snapshot that is automatically loaded and
+restored as part of kAFL fuzzing.
 
-Published at USENIX Security 2017.
-
-### Currently missing: 
-
-- full documentation
-- agents for macOS and Windows (except for our test driver)
-
-## BibTex:
-```
-@inproceedings{schumilo2017kafl,
-    author = {Schumilo, Sergej and Aschermann, Cornelius and Gawlik, Robert and Schinzel, Sebastian and Holz, Thorsten},
-    title = {{kAFL: Hardware-Assisted Feedback Fuzzing for OS Kernels}},
-    year = {2017},
-    booktitle = {USENIX Security Symposium} 
-}
-```
-
-## Trophies
-
-- [Linux keyctl null pointer dereference](http://seclists.org/fulldisclosure/2016/Nov/76) (**CVE-2016-8650**)
-- [Linux EXT4 memory corruption](http://seclists.org/fulldisclosure/2016/Nov/75)
-- [Linux EXT4 denial of service](http://seclists.org/bugtraq/2016/Nov/1) 
-- [macOS APFS memory corruption](https://support.apple.com/en-us/HT208221) (**CVE-2017-13800**)
-- [macOS HFS memory corruption](https://support.apple.com/en-us/HT208221) (**CVE-2017-13830**)
+This "VM mode" fuzzing is now just one of the ways that kAFL can be used to
+target full-blown OS installations such as Windows. The alternative "direct
+kernel boot" (-kernel/-initrd) will typically work better due to the much smaller
+memory footprint and easy parallelization (-p).
 
 
 ## Setup
@@ -33,8 +15,9 @@ Published at USENIX Security 2017.
 This is a short introduction on how to setup kAFL to fuzz Linux kernel components.
 
 ### Download kAFL and install necessary components
+
 ```
-$ git clone https://github.com/RUB-SysSec/kAFL.git
+$ git clone https://github.com/IntelLabs/kAFL.git
 $ cd kAFL
 $ chmod u+x install.sh
 $ sudo ./install.sh
@@ -42,6 +25,7 @@ $ sudo reboot
 ```
 
 ### Setup VM
+
 * Create QEMU hard drive image:
 
 ```
@@ -52,7 +36,7 @@ $ qemu-img create -f qcow2 linux.qcow2 20G
 
 ```
 $ wget -O ~/ubuntu.iso http://de.releases.ubuntu.com/16.04/ubuntu-16.04.3-server-amd64.iso
-$ qemu-system-x86_64 -cpu host -enable-kvm -m 512 -hda linux.qcow2 -cdrom ~/ubuntu.iso -usbdevice tablet
+$ qemu-system-x86_64 -machine q35 -cpu host -enable-kvm -m 512 -hda linux.qcow2 -cdrom ~/ubuntu.iso -usbdevice tablet
 ```
 
 * Download kAFL and compile the loader agent:
@@ -75,17 +59,20 @@ qemu-img create -b /absolute/path/to/hdd/linux.qcow2 -f qcow2 overlay_0.qcow2
 qemu-img create -f qcow2 ram.qcow2 512
 ```
 
-* Start the VM using QEMU-PT:
+* Start the VM using QEMU-PT.  Note that if you change the platform
+  configuration here to change the machine type or add a NIC, you may also have
+  to fix the commandline used in common/qemu.py where the snapshot is loaded for
+  fuzzing.
 
 ```
 cd ~/kafl
 ./qemu-4.0.0/x86_64-softmmu/qemu-system-x86_64 \
 	-hdb ~/kafl/snapshot/ram.qcow2 \
 	-hda ~/kafl/snapshot/overlay_0.qcow2 \
-	-machine pc-i440fx-2.6 -serial mon:stdio -enable-kvm -m 512
+	-machine q35 -serial mon:stdio -net none -enable-kvm -m 512
 ```
 
-* (Optional) Install and load the vulnerable Test Driver:
+* (Optional) Install and load the vulnerable Test Driver inside the guest:
 
 ```
 cd ~/kafl/tests/test_cases/simple/linux_x86-64/
@@ -93,7 +80,19 @@ chmod u+x load.sh
 sudo ./load.sh
 ```
 
-* Execute loader binary which is in `~/kafl/targets/linux_x86_64/bin/loader/` as `root`. VM should freeze. Switch to the QEMU management console and create a snapshot:
+* Execute `loader` binary inside the guest. This will freeze your VM and cause
+  Qemu to create a snapshot named "kafl" inside the image files. When resuming
+  this snapshot on subsequent executions, the loader will perform a handshake
+  with kAFL and launch the desired kAFL agent binary:
+
+```
+cd ~/kafl/
+./install.sh targets
+sudo targets/linux_x86_64/bin/loader/loader
+```
+
+* Switch to the QEMU management console and create a snapshot
+  (Obsolete! Snapshot is automatically created as part of the KAFL_LOCK hypercall)
 
 ```
 # press CTRL-a + c
@@ -101,20 +100,24 @@ savevm kafl
 q 
 ```
 
+To use an image in parallel fuzzing mode (-p N), create the corresponding
+number of overlay files for launch via common/qemu.py: `snapshot/overlay_<0...N>.qcow2`.
+
 ## Fuzz a Target
 
 ### Compile and configure kAFL components
-* Edit `~/kafl/kAFL-Fuzzer/kafl.ini` (`qemu_kafl_location` to point to `~/kafl/qemu-4.0.0/x86_64-softmmu/qemu-system-x86_64`)
 
-* Compile agents:
+* Edit `~/kafl/kAFL-Fuzzer/kafl.ini` to ensure `qemu_kafl_location` points to the customized
+  qemu build, .e.g. `~/kafl/qemu-5.0.0/x86_64-softmmu/qemu-system-x86_64`.
+
+* Make sure agents are compiled on the host:
 
 ```
 cd ~/kafl/targets/linux_x86_64
-chmod u+x compile.sh
-./compile.sh
+bash ./compile.sh
 ```
 
-* Retrieve address ranges of loaded drivers:
+* Use the `info` agent to retrieve address ranges of loaded drivers inside the guest:
 
 ```
 cd ~/kafl/
@@ -126,6 +129,7 @@ python3 kAFL-Fuzzer/kafl_info.py \
 ```
 
 ### Start Fuzzing!
+
 
 ```
 cd ~/kafl/
