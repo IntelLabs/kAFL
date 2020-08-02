@@ -1,13 +1,9 @@
 #!/bin/bash
 
-LINUX_VERSION="5.1.21"
-LINUX_VERSION="5.2.21"
-LINUX_VERSION="5.4.47"
-LINUX_VERSION="5.6.19"
-LINUX_VERSION="5.7.3"
+#LINUX_VERSION="5.4.55"
+LINUX_VERSION="5.7.12"
 LINUX_URL="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_VERSION}.tar.xz"
 
-#QEMU_VERSION="3.1.0"
 #QEMU_VERSION="4.2.0"
 QEMU_VERSION="5.0.0"
 QEMU_URL="https://download.qemu.org/qemu-${QEMU_VERSION}.tar.xz"
@@ -15,6 +11,19 @@ QEMU_URL="https://download.qemu.org/qemu-${QEMU_VERSION}.tar.xz"
 echo "================================================="
 echo "           kAFL auto-magic installer             "
 echo "================================================="
+
+checked_download()
+{
+	filename="$1"
+	url="$2"
+
+	if [ ! -f "$filename" ]; then
+		echo "[*] Downloading $filename ..."
+		wget -O "$filename" "$url"
+	fi
+
+	grep $filename sha256sums.lst | sha256sum -c || exit
+}
 
 check_gitconfig()
 {
@@ -93,10 +102,7 @@ build_qemu()
 		echo "[*] Folder exists, skipping download + patching..."
 		pushd "qemu-${QEMU_VERSION}"
 	else
-		if [ ! -f "qemu-${QEMU_VERSION}.tar.xz" ]; then
-			echo "[*] Downloading v${QEMU_VERSION} ..."
-			wget -O "qemu-${QEMU_VERSION}.tar.xz" "${QEMU_URL}"
-		fi
+		checked_download "qemu-${QEMU_VERSION}.tar.xz" "$QEMU_URL"
 		tar xf "qemu-${QEMU_VERSION}.tar.xz" || exit
 		pushd "qemu-${QEMU_VERSION}"
 		git init
@@ -133,10 +139,7 @@ build_linux()
 		echo "[*] Folder exists, assume it is already patched.."
 		pushd "linux-${LINUX_VERSION}"
 	else
-		if [ ! -f "linux-${LINUX_VERSION}.tar.xz" ]; then
-			echo "[*] Downloading v${LINUX_VERSION} ..."
-			wget -O "linux-${LINUX_VERSION}.tar.xz" "$LINUX_URL"
-		fi
+		checked_download "linux-${LINUX_VERSION}.tar.xz" "$LINUX_URL"
 		tar xf "linux-${LINUX_VERSION}.tar.xz" || exit
 		pushd "linux-${LINUX_VERSION}" || exit
 		git init

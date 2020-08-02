@@ -1,0 +1,42 @@
+From 489e1164e46a9023cfd4adab8774b47bda5ad06a Mon Sep 17 00:00:00 2001
+From: Steffen Schulz <steffen.schulz@intel.com>
+Date: Sun, 2 Aug 2020 21:23:44 +0200
+Subject: [PATCH] disable debug and fuzz optimizations
+
+---
+ compile.sh | 4 +++-
+ configure  | 4 ++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/compile.sh b/compile.sh
+index 1ba35365..deb16c93 100644
+--- a/compile.sh
++++ b/compile.sh
+@@ -6,5 +6,7 @@
+ #
+ # SPDX-License-Identifier: GPL-2.0-or-later
+ #
+-./configure --target-list=i386-softmmu,x86_64-softmmu --enable-gtk --enable-vnc --enable-pt --enable-redqueen --disable-werror
++./configure --target-list=i386-softmmu,x86_64-softmmu \
++	--enable-gtk --enable-vnc --enable-pt --enable-redqueen \
++	--disable-werror --disable-debug-info
+ make -j8
+diff --git a/configure b/configure
+index 2ddc696f..eb106528 100755
+--- a/configure
++++ b/configure
+@@ -6266,9 +6266,9 @@ if test "$gcov" = "yes" ; then
+   QEMU_CFLAGS="-fprofile-arcs -ftest-coverage -g $QEMU_CFLAGS"
+   QEMU_LDFLAGS="-fprofile-arcs -ftest-coverage $QEMU_LDFLAGS"
+ elif test "$fortify_source" = "yes" ; then
+-  CFLAGS="-O3 -frename-registers -funroll-loops -frename-registers -mtune=native -g -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 $CFLAGS"
++  CFLAGS="-O3 -mtune=native -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 $CFLAGS"
+ elif test "$debug" = "no"; then
+-  CFLAGS="-O3 -frename-registers -funroll-loops -frename-registers -mtune=native $CFLAGS"
++  CFLAGS="-O3 -mtune=native $CFLAGS"
+ fi
+ 
+ if test "$have_asan" = "yes"; then
+-- 
+2.27.0
+
