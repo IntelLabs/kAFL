@@ -83,6 +83,8 @@ target_cov()
 {
 	echo "[*] Get trace & coverage data on target $TARGET"
 	TMP_WORKDIR="/dev/shm/kafl_tmp_$TARGET/"
+	TARGET_DIR=$1; shift
+	mkdir -p "$TMP_WORKDIR"
 
 	python3 kAFL-Fuzzer/kafl_info.py \
 		-kernel "$LINUX_KERNEL" \
@@ -93,12 +95,14 @@ target_cov()
 
 	IP_RANGE="$(cat $TMP_WORKDIR/info.log|grep target_executable|grep xp\ |cut -d\  -f 1|sed -e 's/^0/0x/' -e 's/\-0/-0x/')"
 
+	echo "[*] Start tracing with range $IP_RANGE, args $KAFL_FUZZ_OPTIONS"
+
 	python3 kAFL-Fuzzer/kafl_cov.py \
 		-kernel "$LINUX_KERNEL" \
 		-initrd "$PACKDIR/${TARGET}_fuzz_initrd.gz" \
 		-mem 512 \
 		-work_dir "$TMP_WORKDIR" \
-		-input $1
+		-input $TARGET_DIR \
 		--purge \
 		-ip0 $IP_RANGE $*
 }
@@ -123,7 +127,7 @@ case $CMD in
 	"cov")
 		shift 2
 		test -d "$1" || exit
-		target_cov $1
+		target_cov $*
 		;;
 	*)
 		echo "$0 <pack|run|cov> <target>"
