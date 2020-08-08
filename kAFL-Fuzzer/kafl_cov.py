@@ -205,12 +205,12 @@ def generate_traces(config, input_list):
 
             if not exec_res:
                 print_note("Failed to execute input %s. Continuing anyway..." % input_path)
-                q.restart()
+                assert(q.restart())
                 continue
 
             # TODO: reboot by default, persistent by option
             if exec_res.is_crash():
-                q.restart()
+                q.reload()
 
             with open(work_dir + "/redqueen_workdir_1337/pt_trace_results.txt", 'rb') as f_in:
                 with lz4.LZ4FrameFile(trace_dir + os.path.basename(input_path) + ".lz4", 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:

@@ -522,16 +522,21 @@ class qemu:
 
         return True
 
-    # Restart Qemu after crash/timeout, unless the target runs its own forkserver
+    # Fully stop/start Qemu instance to store logs + possibly recover
     def restart(self):
-        if self.config.argument_values['forkserver']:
-            return True
 
         self.shutdown()
         # TODO: Need to wait here or else the next instance dies in set_payload()
         # Perhaps Qemu should do proper munmap()/close() on exit?
         time.sleep(0.1)
         return self.start()
+
+    # Reset Qemu after crash/timeout - can skip if target has own forkserver
+    def reload(self):
+        if self.config.argument_values['forkserver']:
+            return True
+        else:
+            return self.restart()
 
     # Reload is not part of released Redqueen backend, it seems we can simply disable it here..
     def soft_reload(self):
@@ -746,6 +751,6 @@ class qemu:
             if self.exiting:
                 sys.exit(0)
             # Qemu crashed. Could be due to prior payload but more likely harness/config is broken..
-            print_fail("Failed to set new payload - Qemu crash?");
+            #print_fail("Failed to set new payload - Qemu crash?");
             log_qemu("Failed to set new payload - Qemu crash?", self.qemu_id);
             raise

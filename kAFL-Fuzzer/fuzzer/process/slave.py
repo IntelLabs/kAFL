@@ -22,7 +22,7 @@ import lz4.frame as lz4
 from common.config import FuzzerConfiguration
 from common.debug import log_slave
 from common.qemu import qemu
-from common.util import read_binary_file, atomic_write, print_warning
+from common.util import read_binary_file, atomic_write, print_warning, print_fail
 from fuzzer.bitmap import BitmapStorage, GlobalBitmap
 from fuzzer.communicator import ClientConnection, MSG_IMPORT, MSG_RUN_NODE, MSG_BUSY
 from fuzzer.node import QueueNode
@@ -222,7 +222,7 @@ class SlaveProcess:
 
             if not exec_res.is_regular():
                 self.statistics.event_reload()
-                self.q.restart()
+                self.q.reload()
         except Exception as e:
             log_slave("Failed to produce trace %s: %s (skipping..)" % (trace_file_out, e), self.slave_id)
             return None
@@ -237,9 +237,11 @@ class SlaveProcess:
         except (ValueError, BrokenPipeError):
             if retry > 2:
                 # TODO if it reliably kills qemu, perhaps log to master for harvesting..
-                log_slave("Fatal: Repeated BrokenPipeError on input: %s" % repr(data), self.slave_id)
+                print_fail("Slave %d aborting due to repeated SHM/socket error. Check logs." % self.slave_id)
+                log_slave("Aborting due to repeated SHM/socket error. Payload: %s" % repr(data), self.slave_id)
                 raise
-            log_slave("SHM/pipe error, trying to restart qemu...", self.slave_id)
+            print_warning("SHM/socket error on Slave %d (retry %d)" % (self.slave_id, retry))
+            log_slave("SHM/socket error, trying to restart qemu...", self.slave_id)
             if not self.q.restart():
                 raise
         return self.__execute(data, retry=retry+1)
@@ -276,6 +278,6 @@ class SlaveProcess:
         # restart Qemu on crash
         if crash:
             self.statistics.event_reload()
-            self.q.restart()
+            self.q.reload()
 
         return exec_res, is_new_input

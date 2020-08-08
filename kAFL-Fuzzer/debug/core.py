@@ -105,7 +105,7 @@ def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
             log_debug("Feedback Hash: " + str(current_hash))
             #log_debug("Full hexdump:\n" + hexdump(result.copy_to_array()))
         if result.is_crash():
-            q.restart()
+            q.reload()
 
     q.shutdown()
     end = time.time()
@@ -169,7 +169,7 @@ def debug_non_det(config, max_execs=0):
 
                 if exec_res.is_crash():
                     print("Crashed - restarting...")
-                    q.restart()
+                    q.reload()
 
                 time.sleep(delay)
                 hash_value = exec_res.hash()
