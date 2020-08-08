@@ -10,98 +10,58 @@ Interface to Radamsa fuzzer (optional havoc stage)
 import glob
 import os
 import random
-import socket
 import subprocess
-import time
 
 from common.config import FuzzerConfiguration
 from common.debug import log_radamsa
-from common.util import print_fail
+from common.util import read_binary_file
 
-
-def execute(cmd):
-    log_radamsa("Radamsa cmd: " + str(cmd))
-    try:
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=None)
-    except:
-        # Radamsa stage is experimental and does not seem very effective.
-        # Need binary in current/same path as this python file.
-        print_fail("Failed to launch radamsa. Do we have the binary in place?")
-        raise
-    return proc
 
 def init_radamsa(config, slave_id):
-    global location_corpus
-    global radamsa_cmd
-    global radamsa_port
+    global corpus_dir
+    global input_dir
+    global radamsa_path
 
-    radamsa_port = 21337 + slave_id
-    radamsa_cmd = [
-            config.config_values["RADAMSA_LOCATION"],
-            "-o", ":%d" % radamsa_port,
-            "-n", "inf"]
-    location_corpus = config.argument_values['work_dir'] + "/corpus/"
+    corpus_dir = config.argument_values['work_dir'] + "/corpus/"
+    radamsa_path = config.config_values["RADAMSA_LOCATION"]
+    input_dir = config.argument_values['work_dir'] + "/radamsa_%d/" % slave_id
+
+    if not os.path.isdir(input_dir):
+        os.makedirs(input_dir)
 
 def mutate_seq_radamsa_array(data, func, max_iterations):
-    global location_corpus
-    global radamsa_cmd
-    global radamsa_port
+    global corpus_dir
+    global input_dir
+    global radamsa_path
 
     log_radamsa("Radamsa amount: %d" % max_iterations)
-    files = sorted(glob.glob(location_corpus + "/*/payload_*"))
+
+    if max_iterations == 0:
+        return
+
     last_n = 5
-    rand_n = 5
+    rand_n = 10
+    files = sorted(glob.glob(corpus_dir + "/*/payload_*"))
     samples = files[-last_n:] + random.sample(files[:-last_n], max(0, min(rand_n, len(files) - last_n)))
 
     if not samples:
         return
 
-    proc = execute(radamsa_cmd + samples)
+    radamsa_cmd = [radamsa_path,
+            "-o", input_dir + "input_%05n",
+            "-n", str(max_iterations)] + samples
+
+    #log_radamsa("Radamsa cmd: " + repr(radamsa_cmd))
+    p = subprocess.Popen(radamsa_cmd, stdin=subprocess.PIPE, shell=False)
 
     try:
-        while True:
-            try:
-                s = socket.create_connection(("127.0.0.1", radamsa_port), timeout=1)
-                s.recv(1)
-                break
-            except Exception as e:
-                log_radamsa("Exception: " + str(e))
-                time.sleep(0.1)
-            finally:
-                try:
-                    s.close()
-                except:
-                    pass
+        p.communicate(timeout=10)
+    except subprocess.SubprocessError as e:
+        log_radamsa("Radamsa exception %s" % str(e))
+        p.kill()
+        p.communicate()
 
-        for i in range(max_iterations):
-            try:
-                s = socket.create_connection(("127.0.0.1", radamsa_port))
-                payload = s.recv(65530)
-                s.close()
-                size = len(payload)
-
-                if size > (64 << 10):
-                    payload = payload[:(2 << 10)]
-                if size == 0:
-                    func(data)
-                else:
-                    func(payload)
-            except Exception as e:
-                log_radamsa("Exception: " + str(e))
-                time.sleep(0.1)
-            finally:
-                try:
-                    s.close()
-                except:
-                    pass
-
-    except Exception as e:
-        log_radamsa("Exception: " + str(e))
-        raise e
-    finally:
-        proc.terminate()
-        if proc.returncode is None:
-            try:
-                proc.kill()
-            except:
-                pass
+    for path in os.listdir(input_dir):
+        #log_radamsa("Radamsa input %s" % path)
+        func(read_binary_file(input_dir+path))
+        os.remove(input_dir+path)
