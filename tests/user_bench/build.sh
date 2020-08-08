@@ -31,7 +31,7 @@ build_confmake()
 
 	pushd $SRC_DIR > /dev/null
 	echo "Performing configure/make for $SRC_DIR. This may take a moment.."
-	./configure > /dev/null
+	./configure --disable-shared > /dev/null
 	make -j $JOBS > /dev/null
 	popd > /dev/null
 		
@@ -52,7 +52,7 @@ build_cmake()
 
 	pushd $SRC_DIR > /dev/null
 	echo "Performing configure/make for $SRC_DIR. This may take a moment.."
-	cmake . > /dev/null
+	cmake . -DENABLE_SHARED=0 > /dev/null
 	make -j $JOBS
 	popd > /dev/null
 }
@@ -91,7 +91,15 @@ case $TARGET in
 		;;
 	"djpeg")
 		build_cmake "https://sourceforge.net/projects/libjpeg-turbo/files/2.0.4/libjpeg-turbo-2.0.4.tar.gz"
-		cp -v $SRC_DIR/djpeg $BIN_DIR
+		cp -v $SRC_DIR/djpeg-static $BIN_DIR/djpeg
+		;;
+	"pngtest")
+		build_confmake "https://download.sourceforge.net/libpng/libpng-1.6.37.tar.xz"
+		cp -v $SRC_DIR/pngtest $BIN_DIR
+		;;
+	"xmllint")
+		build_confmake "http://xmlsoft.org/sources/libxml2-2.9.9.tar.gz"
+		cp -v $SRC_DIR/xmllint $BIN_DIR
 		;;
 	"lava")
 		fetch_lava

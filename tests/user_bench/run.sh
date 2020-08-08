@@ -29,7 +29,10 @@ target_pack()
 
 	bash ./targets/linux_x86_64-userspace/compile.sh
 
-	source "$BIN_DIR/$TARGET.env"
+	# default env - input file as single argument
+	TARGET_ARGS="/input.bin"
+	TARGET_FILE="/input.bin"
+	test -f "$BIN_DIR/$TARGET.env" && source "$BIN_DIR/$TARGET.env"
 
 	readelf -h $BIN_DIR/$TARGET |grep -q ELF64 && TARGET_ARCH=m64
 	readelf -h $BIN_DIR/$TARGET |grep -q ELF32 && TARGET_ARCH=m32
@@ -37,8 +40,8 @@ target_pack()
 	# TODO: shell script would be much easier than python?
 	python3 kAFL-Fuzzer/kafl_user_prepare.py \
 		--recompile \
-		"$TARGET_ARGS" \
-		"$TARGET_FILE" \
+		-args="$TARGET_ARGS" \
+		-file="$TARGET_FILE" \
 		"$BIN_DIR/$TARGET" \
 		"$PACKDIR/" $TARGET_ARCH
 
