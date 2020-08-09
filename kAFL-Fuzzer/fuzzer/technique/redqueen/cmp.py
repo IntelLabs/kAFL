@@ -13,19 +13,30 @@ import struct
 
 from common.debug import log_redq
 from fuzzer.technique import havoc_handler
-from fuzzer.technique import helper as helper
 from .encoding import Encoders
 
 MAX_NUMBER_PERMUTATIONS = 256  # number of trials per address, lhs and encoding
 
-HAMMER_LEA = False
+HAMMER_LEA = None
+SKIP_SIMPLE = None
+AFL_ARITH_MAX = None
 known_lea_offsets = set()
 
+#def enable_hammering():
+#    global HAMMER_LEA
+#    log_redq("Hammering enabled!")
+#    HAMMER_LEA = True
 
-def enable_hammering():
+def redqueen_global_config(redq_hammering, redq_do_simple, afl_arith_max):
     global HAMMER_LEA
-    log_redq("Hammering enabled!")
-    HAMMER_LEA = True
+    global SKIP_SIMPLE
+    global AFL_ARITH_MAX
+
+    HAMMER_LEA = redq_hammering
+    SKIP_SIMPLE = not redq_do_simple
+    AFL_ARITH_MAX = afl_arith_max
+
+    log_redq("Config: hammer=%s, skip_simple=%s, arith_max=%s" % (HAMMER_LEA, SKIP_SIMPLE, AFL_ARITH_MAX))
 
 
 class Cmp:
@@ -65,13 +76,13 @@ class Cmp:
             return True
         if self.type == "STR":
             return False
-        else:
+        elif SKIP_SIMPLE:
             unpack_keys = {1: "B", 2: "H", 4: "L", 8: "Q"}
             num_bytes = int(self.size / 8)
             key = unpack_keys.get(num_bytes, None)
             ilhs = struct.unpack(">" + key, lhs)[0]
             irhs = struct.unpack(">" + key, rhs)[0]
-            if abs(ilhs - irhs) < helper.AFL_ARITH_MAX:
+            if abs(ilhs - irhs) < AFL_ARITH_MAX:
                 return True
             if lhs == bytes(num_bytes):
                 return True

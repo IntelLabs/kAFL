@@ -20,7 +20,7 @@ from common.execution_result import ExecutionResult
 from fuzzer.communicator import ServerConnection, MSG_NODE_DONE, MSG_NEW_INPUT, MSG_READY
 from fuzzer.queue import InputQueue
 from fuzzer.statistics import MasterStatistics
-from fuzzer.technique.redqueen.cmp import enable_hammering
+from fuzzer.technique.redqueen.cmp import redqueen_global_config
 from fuzzer.bitmap import BitmapStorage
 from fuzzer.node import QueueNode
 
@@ -39,8 +39,11 @@ class MasterProcess:
         self.queue = InputQueue(self.config, self.statistics)
         self.bitmap_storage = BitmapStorage(config, config.config_values['BITMAP_SHM_SIZE'], "master", read_only=False)
 
-        if self.config.argument_values['hammer_jmp_tables']:
-            enable_hammering()
+        redqueen_global_config(
+                redq_hammering=self.config.argument_values['hammer_jmp_tables'],
+                redq_do_simple=self.config.argument_values['redq_do_simple'],
+                afl_arith_max=self.config.config_values['ARITHMETIC_MAX']
+                )
 
         log_master("Starting (pid: %d)" % os.getpid())
         log_master("Configuration dump:\n%s" %
