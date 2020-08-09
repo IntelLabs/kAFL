@@ -42,13 +42,12 @@ class ServerConnection:
                     msg = sock_ready.recv_bytes()
                     msg = msgpack.unpackb(msg, raw=False, strict_map_key=False)
                     results.append((sock_ready, msg))
-                    #print("Master received: ", str(msg))
                 except (EOFError, IOError):
-                    # TODO: try to restart or exit when all slaves dead
+                    print_fail("Slave has died - check logs!")
                     sock_ready.close()
                     self.clients.remove(sock_ready)
-                    print_fail("Slave has died - check logs!")
-                    #raise
+                    if len(self.clients) == 1:
+                        raise SystemExit("All slaves have died.")
         return results
 
     def send_import(self, client, task_data):

@@ -17,7 +17,6 @@ import multiprocessing
 import time
 import pgrep
 import sys
-import traceback
 
 from common.debug import enable_logging
 from common.self_check import post_self_check
@@ -84,9 +83,8 @@ def start(config):
         master.loop()
     except KeyboardInterrupt:
         print_note("Received Ctrl-C, killing slaves...")
-    except:
-        print_fail("Exception in Master. Exiting..")
-        print(traceback.format_exc())
+    except SystemExit as e:
+        print_fail("Master exit: " + str(e))
     finally:
         graceful_exit(slaves)
 
