@@ -242,6 +242,7 @@ class SlaveProcess:
                 raise
             print_warning("SHM/socket error on Slave %d (retry %d)" % (self.slave_id, retry))
             log_slave("SHM/socket error, trying to restart qemu...", self.slave_id)
+            self.statistics.event_reload()
             if not self.q.restart():
                 raise
         return self.__execute(data, retry=retry+1)

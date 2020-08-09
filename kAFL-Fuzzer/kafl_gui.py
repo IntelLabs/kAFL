@@ -398,6 +398,9 @@ class GuiData:
         self.cores_virt = psutil.cpu_count(logical=True)
         self.stats = self.read_file("stats")
 
+        if not self.stats:
+            raise FileNotFoundError("$workdir/stats")
+
         num_slaves = self.stats.get("num_slaves",0)
         for slave_id in range(0, num_slaves):
             self.slave_stats.append(self.read_file("slave_stats_%d" % slave_id))
@@ -500,7 +503,8 @@ class GuiData:
         return self.cpu.user + self.cpu.system
 
     def cpu_user(self):
-        return self.cpu.user - self.cpu.guest
+        # ignore occasional negatives..
+        return max(0, self.cpu.user - self.cpu.guest)
 
     def cpu_vm(self):
         return self.cpu.guest
@@ -701,5 +705,10 @@ code = locale.getpreferredencoding()
 
 if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
     print("Usage: " + sys.argv[0] + " <kafl-workdir>")
-else:
+    sys.exit(1)
+
+try:
     curses.wrapper(main)
+except FileNotFoundError as e:
+    # Skip exception - typically just a fuzzer restart or wrong argv[1]
+    print("Error reading from workdir. Exit.")
