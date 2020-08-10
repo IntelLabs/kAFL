@@ -64,7 +64,7 @@ class MasterStatistics:
         self.data["paths_total"] += 1
         self.data["paths_pending"] += 1
 
-        if len(node.get_fav_bits()) > 0:
+        if node.is_favorite():
             self.data["favs_total"] += 1
             self.data["favs_pending"] += 1
 
@@ -77,9 +77,10 @@ class MasterStatistics:
     def event_node_remove_fav_bit(self, node):
         # called when queue manager removed a fav bit from an existing node.
         # check if that was the last fav and maybe update #fav_pending count
-        if node.get_fav_bits() == 0 and node.get_state() != "final":
-            self.data["favs_pending"] -= 1
-            return
+        if not node.is_favorite():
+            self.data["favs_total"] -= 1
+            if node.get_state() != "final":
+                self.data["favs_pending"] -= 1
 
     def event_slave_poll(self):
         # poll slave stats out of band - otherwise #execs are stalled by slow fuzz stages
@@ -98,13 +99,11 @@ class MasterStatistics:
             pass
 
     def event_node_update(self, node, update):
-        is_fav = len(node.get_fav_bits()) > 0
-
         if update.get("state", None):
             if update.get("state", None).get("name", None) == "final":
                 if node.get_state() == "havoc":
                     self.data["paths_pending"] -= 1
-                    if is_fav:
+                    if node.is_favorite():
                         self.data["favs_pending"] -= 1
 
     def update_yield(self, node):

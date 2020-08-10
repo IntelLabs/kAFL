@@ -51,7 +51,7 @@ class Scheduler:
                 return False
 
         if node.get_state() == "final":
-            if not node.get_favorite() and rand.int(100) < SKIP_NONFAV_PROB:
+            if not node.is_favorite() and rand.int(100) < SKIP_NONFAV_PROB:
                 return False
         return True
 
@@ -78,7 +78,7 @@ class Scheduler:
             score += node.get_level()//5
 
         # boost nodes with many fav bits
-        if len(node.get_fav_bits()) > 0:
+        if node.is_favorite():
             score += 2*len(node.get_fav_bits())
 
         # TODO: only actually have to compute all this for new nodes and fav bit changes...

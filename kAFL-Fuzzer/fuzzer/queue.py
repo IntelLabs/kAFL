@@ -84,7 +84,7 @@ class InputQueue:
     def maybe_pushback_to_cycle(self, node):
         # put nodes in early stages directly at head of queue, to reduce global sorting
         if node.get_exit_reason() == "regular" and node.get_state() in ["initial", "redq/grim"]:
-            if len(node.get_fav_bits()) > 0:
+            if node.is_favorite():
                 self.current_cycle.append(node)
 
     def update_node_results(self, nid, results, new_payload):

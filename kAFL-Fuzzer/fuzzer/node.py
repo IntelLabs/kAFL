@@ -165,9 +165,9 @@ class QueueNode:
         self.node_struct["level"] = val
         self.update_file(write)
 
-    def get_favorite(self):
+    def is_favorite(self):
         return len(self.node_struct["fav_bits"]) > 0
-    
+
     def get_parent_id(self):
         return self.node_struct["info"]["parent"]
 
