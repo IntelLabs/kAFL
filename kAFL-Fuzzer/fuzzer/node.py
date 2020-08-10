@@ -97,9 +97,6 @@ class QueueNode:
         self.set_payload_len(len(payload), write=False)
         atomic_write(QueueNode.__get_payload_filename(self.get_exit_reason(), self.get_id()), payload)
 
-    def load_payload(self):
-        QueueNode.get_payload(self.get_exit_reason(), self.get_id())
-
     def get_payload_len(self):
         return self.node_struct["payload_len"]
 
@@ -112,20 +109,6 @@ class QueueNode:
 
     def set_id(self, val, write=True):
         self.node_struct["id"] = val
-        self.update_file(write)
-
-    def get_new_byte_count(self):
-        return self.node_struct["new_byte_count"]
-
-    def set_new_byte_count(self, val, write=True):
-        self.node_struct["new_byte_count"] = val
-        self.update_file(write)
-
-    def get_new_bit_count(self):
-        return self.node_struct["new_bit_count"]
-
-    def set_new_bit_count(self, val, write=True):
-        self.node_struct["new_bit_count"] = val
         self.update_file(write)
 
     def get_new_bytes(self):
