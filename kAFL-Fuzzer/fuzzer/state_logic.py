@@ -160,15 +160,17 @@ class FuzzingStateLogic:
             info.update(extra_info)
         return info
 
-    def handle_import(self, payload, metadata, retry=0):
-        _, is_new = self.execute(payload, label="import")
+    def handle_import(self, payload, metadata):
+        # TODO: We seem to have some corner case where PT feedback does not
+        # work and the seed has to be provided multiple times to actually
+        # (eventually) be recognized correctly..
+        retries = 4
+        for _ in range(retries):
+            _, is_new = self.execute(payload, label="import")
+            if is_new: break
 
         # Inform user if seed yields no new coverage. This may happen if -ip0 is
         # wrong or the harness is buggy.
-        #
-        # TODO: We also seem to have some corner case where PT feedback does not
-        # work and the seed has to be provided multiple times to actually
-        # (eventually) be recognized correctly..
         if not is_new:
             print("Imported payload produced no new coverage, skipping..")
             log_slave("`Imported payload produced no new coverage, skipping..", self.slave.slave_id)
