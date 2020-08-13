@@ -39,6 +39,6 @@ done
 echo -n "Sorting final output..."
 sort -u $TMPFILE |sed -e 's/.*\[//' -e 's/\].*//' > $OUTFILE
 rm $TMPFILE
-echo -e "done!\nResults stored in $OUTFILE"
+echo -e "done!\nGot $(wc -l $OUTFILE) edges in $OUTFILE"
 
 popd

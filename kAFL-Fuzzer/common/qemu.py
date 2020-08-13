@@ -716,6 +716,8 @@ class qemu:
             self.send_enable_redqueen()
             self.set_payload(payload)
             self.send_payload(timeout_detection=False)
+            if self.exit_reason() != "regular":
+                print_warning("RQ execution returned %s", self.exit_reason())
         except Exception as e:
             log_qemu("%s" % traceback.format_exc(), self.qemu_id)
             return False
@@ -726,6 +728,8 @@ class qemu:
             self.set_payload(payload)
             self.send_payload(timeout_detection=False)
             self.soft_reload()
+            if self.exit_reason() != "regular":
+                print_warning("RQ execution returned %s", self.exit_reason())
         except Exception as e:
             log_qemu("%s" % traceback.format_exc(), self.qemu_id)
             return False

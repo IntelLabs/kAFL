@@ -93,7 +93,7 @@ class Graph:
         sample = strdump(payload)
 
         plen = node.get("payload_len",1)
-        perf = node["info"].get("performance",0.1)
+        perf = node.get("performance", node["info"]['performance'])
         favs = node.get("fav_bits", "")
         level = node.get("level")
         exit = node["info"]["exit_reason"]
@@ -120,7 +120,7 @@ class Graph:
         elif exit == "kasan": color = "orange"
         elif exit == "timeout": color = "grey"
 
-        print("%s: Found %3d from %3d using %s [%s] (favs=%d, stage=%s, exit=%s, lvl=%d, perf=%.2f, score=%.2f, t=%.2f)" %
+        print("%s: Found %3d from %3d using %s [%s] (favs=%d, stage=%s, exit=%s, lvl=%d, perf=%.3f, score=%.2f, t=%.2f)" %
                 (t_str, node_id, parent, method[:12].ljust(12), sample[:42].ljust(42),
                     len(favs), stage[:8], exit[:1].title(), level, perf, score, node.get("state_time_havoc",0)))
 
