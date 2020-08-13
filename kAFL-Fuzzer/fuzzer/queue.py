@@ -104,8 +104,11 @@ class InputQueue:
         node.set_fav_factor(self.scheduler.score_speed(node), write=True)
 
         self.id_to_node[node.get_id()] = node
-        self.update_best_input_for_bitmap_entry(node, bitmap)  # TODO improve performance!
-        self.maybe_pushback_to_cycle(node)
+
+        # only nodes with new bytes have a chance to become a favorite
+        if len(node.get_new_bytes()) > 0:
+            self.update_best_input_for_bitmap_entry(node, bitmap)  # TODO improve performance!
+            self.maybe_pushback_to_cycle(node)
 
         self.statistics.event_node_new(node)
 
