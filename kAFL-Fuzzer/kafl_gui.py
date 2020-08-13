@@ -50,9 +50,9 @@ class Interface:
         for info in pairs:
             infolen = len(info[1]) + len(info[2])
             if infolen == 0:
-                infos.append(" ".ljust(info[0]+2))
+                infos.append(" ".ljust(info[0]+1))
             else:
-                infos.append("%s:%s %s" % (
+                infos.append("%s:%s%s" % (
                     info[1], " ".ljust(info[0]-infolen), info[2]))
 
         self.stdscr.addstr(self.y, 0, '┃' + prefix + sep.join(infos) + " " + end)
@@ -200,67 +200,67 @@ class GuiDrawer:
         self.gui.print_sep_line()
         #self.gui.print_info_line([(37, "Target", d.target()), (38, "Config", d.config())])
         self.gui.print_info_line([
-            (15, "Runtime", ptime(d.runtime())),
-            (15, "#Execs", pnum(d.total_execs())),
-            (15, "Exec/s", pnum(d.execs_p_sec_avg())),
-            (15, "Slaves", "%d/%d" %
+            (16, "Runtime", ptime(d.runtime())),
+            (16, "#Execs", pnum(d.total_execs())),
+            (16, "Exec/s", pnum(d.execs_p_sec_avg())),
+            (16, "Slaves", "%d/%d" %
                 (d.num_slaves(), d.cpu_cores()))])
         self.gui.print_info_line([
-            (11, "Used", pnum(d.cpu_used()) + "%"),
-            (15, "User", pfloat(d.cpu_user()) + "%"),
-            (15, "Guest",  pfloat(d.cpu_vm()) + "%"),
-            (15, "Stability",  "%3d%%" % d.stability())], prefix="CPU ")
+            (12, "Used", pnum(d.cpu_used()) + "%"),
+            (16, "User", pfloat(d.cpu_user()) + "%"),
+            (16, "Guest",  pfloat(d.cpu_vm()) + "%"),
+            (16, "Stability",  "%3d%%" % d.stability())], prefix="CPU ")
         self.gui.print_info_line([
-            (11, "Used", pfloat(d.ram_used()) + "%"),
-            (15, "Avail", pbyte(d.ram_avail())),
-            (15, "Total", pbyte(d.ram_total()) + "%"),
-            (15, "Reset/s", pnum(d.reload_p_sec()))], prefix="Mem ")
+            (12, "Used", pfloat(d.ram_used()) + "%"),
+            (16, "Avail", pbyte(d.ram_avail())),
+            (16, "Total", pbyte(d.ram_total()) + "%"),
+            (16, "Reset/s", pnum(d.reload_p_sec()))], prefix="Mem ")
+
         self.gui.print_thin_line()
         self.gui.print_info_line([
-            (15, "Path Info", ""),
-            (15, "Bitmap Stats", ""),
-            (35, "Findings", "")])
+            (16, "Path Info", ""),
+            (16, "Bitmap Stats", ""),
+            (36, "Findings", "")])
         self.gui.print_info_line([
-            (15, " Total", pnum(d.paths_total())),
-            (15, "", ""),
-            (35, " Crash", "%6s (N/A) %10s" % (pnum((d.num_found("crash"))),
+            (16, " Total", pnum(d.paths_total())),
+            (16, "", ""),
+            (36, " Crash", "%6s (N/A) %10s" % (pnum((d.num_found("crash"))),
                                                  ptime(d.time_since("crash"))))])
         self.gui.print_info_line([
-            (15, " Seeds", pnum(d.yield_imported())),
-            (15, " Edges", pnum(d.bitmap_used())),
-            (35, " AddSan", "%6s (N/A) %10s" % (pnum((d.num_found("kasan"))),
+            (16, " Seeds", pnum(d.yield_imported())),
+            (16, " Edges", pnum(d.bitmap_used())),
+            (36, " AddSan", "%6s (N/A) %10s" % (pnum((d.num_found("kasan"))),
                                                  ptime(d.time_since("kasan"))))])
         self.gui.print_info_line([
-            (15, " Favs", pnum(d.fav_total())),
-            (15, " p(col)", pfloat(d.p_coll()) + "%"),
-            (35, " Timeout", "%6s (N/A) %10s" % (pnum((d.num_found("timeout"))),
+            (16, " Favs", pnum(d.fav_total())),
+            (16, " p(col)", pfloat(d.p_coll()) + "%"),
+            (36, " Timeout", "%6s (N/A) %10s" % (pnum((d.num_found("timeout"))),
                                                  ptime(d.time_since("timeout"))))])
         self.gui.print_info_line([
-            (15, " Norm", pnum(d.normal_total())),
-            #(15, " Stable",  pfloat(d.stability()) + "%"),
-            (15, " Pending", pfloat(d.pending_fav()) + "%"),
-            (35, " Regular", "%6s (N/A) %10s" % (pnum((d.num_found("regular"))),
+            (16, " Norm", pnum(d.normal_total())),
+            (16, " Pending", pfloat(d.pending_fav()) + "%"),
+            (36, " Regular", "%6s (N/A) %10s" % (pnum((d.num_found("regular"))),
                                                  ptime(d.time_since("regular"))))])
         self.gui.print_thin_line()
         self.gui.print_info_line([
-            (10, "Init", pnum(d.yield_init())),
-            (10, "Grim", pnum(d.yield_grim())),
-            (10, "Redq", pnum(d.yield_redq()+d.yield_color())),
-            (10, "Det", pnum(d.yield_det())),
-            (10, "Hvc", pnum(d.yield_havoc()))
+            (11, "Init", pnum(d.yield_init())),
+            (11, "Grim", pnum(d.yield_grim())),
+            (11, "Redq", pnum(d.yield_redq()+d.yield_color())),
+            (11, "Det", pnum(d.yield_det())),
+            (11, "Hvc", pnum(d.yield_havoc()))
             ], prefix="Yld: ")
         self.gui.print_info_line([
-            (10, "Init", pnum(d.fav_init())),
-            (10, "Rq/Gr", pnum(d.fav_redq())),
-            (10, "Det", pnum(d.fav_deter())),
-            (10, "Hvc", pnum(d.fav_havoc())),
-            (10, "Fin", pnum(d.fav_fin()))], prefix="Fav: ")
+            (11, "Init", pnum(d.fav_init())),
+            (11, "Rq/Gr", pnum(d.fav_redq())),
+            (11, "Det", pnum(d.fav_deter())),
+            (11, "Hvc", pnum(d.fav_havoc())),
+            (11, "Fin", pnum(d.fav_fin()))], prefix="Fav: ")
         self.gui.print_info_line([
-            (10, "Init", pnum(d.normal_init())),
-            (10, "Rq/Gr", pnum(d.normal_redq())),
-            (10, "Det", pnum(d.normal_deter())),
-            (10, "Hvc", pnum(d.normal_havoc())),
-            (10, "Fin", pnum(d.normal_fin()))], prefix="Nrm: ")
+            (11, "Init", pnum(d.normal_init())),
+            (11, "Rq/Gr", pnum(d.normal_redq())),
+            (11, "Det", pnum(d.normal_deter())),
+            (11, "Hvc", pnum(d.normal_havoc())),
+            (11, "Fin", pnum(d.normal_fin()))], prefix="Nrm: ")
         #self.gui.print_sep_line()
         self.gui.print_thin_line()
         for i in range(0, d.num_slaves()):
@@ -270,16 +270,16 @@ class GuiDrawer:
             nid = d.slave_input_id(i)
             if nid not in [None, 0] and d.nodes.get(nid, None):
                 self.gui.print_info_line([(15, "", d.slave_stage(i)),
-                                          (10, "node", "%d" % d.slave_input_id(i)),
-                                          (14,  "fav/lvl",  "%d/%d" % (d.node_fav_bits(nid),
-                                                                      d.node_level(nid))),
-                                          (12, "exec/s", pnum(d.slave_execs_p_sec(i)))],
-                                          prefix="%c Slave %d" % (hl, i))
+                                          (10, "node", "%5d" % d.slave_input_id(i)),
+                                          (15, "fav/lvl",  "%4d/%3d" % (d.node_fav_bits(nid),
+                                                                        d.node_level(nid))),
+                                          (13, "exec/s", pnum(d.slave_execs_p_sec(i)))],
+                                          prefix="%c Slave %2d" % (hl, i))
             else:
                 self.gui.print_info_line([(15, "", d.slave_stage(i)),
-                                          (10, "node", "  N/A"),
-                                          (14,  "fav/lvl",  " N/A"),
-                                          (12, "exec/s",  "  N/A")],
+                                          (10, "node",       " N/A "),
+                                          (15, "fav/lvl", "    N/A "),
+                                          (13, "exec/s",    "  N/A ")],
                                           prefix="%c Slave %d" % (hl, i))
 
         i = self.current_slave_id
@@ -289,18 +289,18 @@ class GuiDrawer:
         nid = d.slave_input_id(i)
         if nid not in [None, 0] and d.nodes.get(nid, None):
             self.gui.print_info_line([
-                (10, "Parent", "%8d" % d.node_parent_id(nid)),
-                (10, "Size",   pbyte(d.node_size(nid)) + "B"),
-                (10, "Bytes",  pnum(d.node_new_bytes(nid))),
-                (10, "Bits",   pnum(d.node_new_bits(nid))),
-                (10, "Exit",   d.node_exit_reason(nid))])
+                (12, "Parent", "%5d" % d.node_parent_id(nid)),
+                (12, "Size",   pbyte(d.node_size(nid)) + "B"),
+                (12, "Bytes",  pnum(d.node_new_bytes(nid))),
+                (12, "Bits",   pnum(d.node_new_bits(nid))),
+                (12, "Exit",   d.node_exit_reason(nid))])
             self.gui.print_thin_line()
             self.gui.print_hexdump(d.node_payload(nid), max_rows=12)
             self.gui.print_thin_line()
         else:
             self.gui.print_info_line([
-                (16, "Parent", "    N/A"),
-                (14, "Size",   "    N/A"),
+                (12, "Parent", "  N/A"),
+                (12, "Size",   "  N/A"),
                 (12, "Bytes",  "  N/A"),
                 (12, "Bits",   "  N/A"),
                 (12, "Exit",   " ")])
@@ -527,6 +527,8 @@ class GuiData:
     def yield_init(self):
         return (self.stats["yield"].get("trim", 0) +
                 self.stats["yield"].get("trim_funky", 0) +
+                self.stats["yield"].get("center_trim", 0) +
+                self.stats["yield"].get("center_trim_funky", 0) +
                 self.stats["yield"].get("calibrate", 0))
 
     def yield_grim(self):
@@ -545,7 +547,8 @@ class GuiData:
 
     def yield_havoc(self):
         return (self.stats["yield"].get("afl_havoc", 0) +
-                self.stats["yield"].get("afl_splice", 0))
+                self.stats["yield"].get("afl_splice", 0) +
+                self.stats["yield"].get("radamsa", 0))
 
     def yield_det(self):
         return (self.stats["yield"].get("afl_arith_1", 0) +
