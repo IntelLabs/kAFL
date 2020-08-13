@@ -95,7 +95,22 @@ class MasterProcess:
                     raise ValueError("unknown message type {}".format(msg))
             self.statistics.event_slave_poll()
             self.statistics.maybe_write_stats()
+            self.check_abort_condition()
 
+
+    def check_abort_condition(self):
+        import time
+        import datetime
+
+        t_limit = self.config.argument_values['abort_time']
+        n_limit = self.config.argument_values['abort_exec']
+        
+        if t_limit:
+            if t_limit*3600 < time.time() - self.statistics.data['start_time']:
+                raise SystemExit("Exit on timeout.")
+        if n_limit:
+            if n_limit < self.statistics.data['total_execs']:
+                raise SystemExit("Exit on max execs.")
 
     def maybe_insert_node(self, payload, bitmap_array, node_struct):
         bitmap = ExecutionResult.bitmap_from_bytearray(bitmap_array, node_struct["info"]["exit_reason"],

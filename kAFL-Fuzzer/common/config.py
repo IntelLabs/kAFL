@@ -11,8 +11,10 @@ import sys
 
 import six.moves.configparser
 
+from dateutil.parser import parse as dateparser
 from common.util import print_fail, is_float, is_int, Singleton
 import six
+
 
 default_section = "Fuzzer"
 default_config = {"PAYLOAD_SHM_SIZE": 131072,
@@ -132,6 +134,10 @@ def add_args_fuzzer(parser):
                         action='store_true', default=False)
     parser.add_argument('-cpu_affinity', metavar='<n>', help="limit processes to first n cores.",
                         type=int, required=False)
+    parser.add_argument('-abort_time', metavar='<n>', help="exit after n hours",
+                        type=int, required=False, default=None)
+    parser.add_argument('-abort_exec', metavar='<n>', help="exit after max executions",
+                        type=int, required=False, default=None)
 
 # Qemu/Slave-specific launch options
 def add_args_qemu(parser):
