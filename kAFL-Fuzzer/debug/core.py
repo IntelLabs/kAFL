@@ -86,7 +86,7 @@ def execute_once(config, qemu_verbose=False, notifiers=True):
     log_debug("Execute payload %s.. " % payload_file)
     zero_hash = mmh3.hash(("\x00" * config.config_values['BITMAP_SHM_SIZE']), signed=False)
 
-    q = qemu(42, config, debug_mode=True, notifiers=notifiers)
+    q = qemu(1337, config, debug_mode=False, notifiers=notifiers)
     assert q.start(), "Failed to start Qemu?"
 
     q.set_payload(read_binary_file(payload_file))
