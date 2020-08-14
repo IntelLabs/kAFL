@@ -337,7 +337,7 @@ class DebugConfiguration(six.with_metaclass(Singleton)):
 
     def __load_arguments(self):
 
-        debug_modes = ["benchmark", "gdb", "trace", "trace-qemu", "noise", "printk", "redqueen",
+        debug_modes = ["benchmark", "gdb", "trace", "single", "trace-qemu", "noise", "printk", "redqueen",
                        "redqueen-qemu", "verify"]
 
         debug_modes_help = '<benchmark>\tperform performance benchmark\n' \

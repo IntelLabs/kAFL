@@ -80,6 +80,27 @@ def gdb_session(config, qemu_verbose=True, notifiers=True):
         print("Payload result: %s. Thank you for playing.." % qemu_protocol.CMDS[result])
     q.shutdown()
 
+def execute_once(config, qemu_verbose=False, notifiers=True):
+
+    payload_file = config.argument_values["input"]
+    log_debug("Execute payload %s.. " % payload_file)
+    zero_hash = mmh3.hash(("\x00" * config.config_values['BITMAP_SHM_SIZE']), signed=False)
+
+    q = qemu(42, config, debug_mode=True, notifiers=notifiers)
+    assert q.start(), "Failed to start Qemu?"
+
+    q.set_payload(read_binary_file(payload_file))
+    result = q.send_payload()
+    current_hash = result.hash()
+    if zero_hash == current_hash:
+        log_debug("Feedback Hash: " + str(
+            current_hash) + common.color.WARNING + " (WARNING: Zero hash found!)" + common.color.ENDC)
+    else:
+        log_debug("Feedback Hash: " + str(current_hash))
+
+    q.shutdown()
+    return 0
+
 def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
     log_debug("Starting debug execution...(%d rounds)" % execs)
 
@@ -383,6 +404,7 @@ def start(config):
                                         debug_non_det(config, max_execs)
         elif (mode == "benchmark"):     benchmark(config)
         elif (mode == "gdb"):           gdb_session(config, qemu_verbose=True)
+        elif (mode == "single"):        execute_once(config, max_execs)
         elif (mode == "trace"):         debug_execution(config, max_execs)
         elif (mode == "trace-qemu"):    debug_execution(config, max_execs, qemu_verbose=True)
         elif (mode == "printk"):        debug_execution(config, 1, qemu_verbose=True, notifiers=False)
