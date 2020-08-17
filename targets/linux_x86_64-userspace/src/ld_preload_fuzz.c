@@ -175,7 +175,7 @@ int __libc_start_main(int (*main) (int,char **,char **),
             }
             else {
                 timer.it_value.tv_sec = 0;
-                timer.it_value.tv_usec = 5;
+                timer.it_value.tv_usec = 200;
             }
             timer.it_interval.tv_sec  = 0;
             timer.it_interval.tv_usec = 0;

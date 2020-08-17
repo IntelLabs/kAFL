@@ -559,7 +559,7 @@ class qemu:
     # TODO: can directly return result for handling by caller?
     # TODO: document protocol and meaning/effect of each message
     def check_recv(self, timeout_detection=True):
-        if timeout_detection:
+        if timeout_detection and not self.config.argument_values['forkserver']:
             ready = select.select([self.control], [], [], 0.25)
             if not ready[0]:
                 return 2
