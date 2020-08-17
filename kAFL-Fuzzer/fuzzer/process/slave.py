@@ -71,7 +71,8 @@ class SlaveProcess:
     def __init__(self, slave_id, config, connection, auto_reload=False):
         self.config = config
         self.slave_id = slave_id
-        self.q = qemu(self.slave_id, self.config)
+        self.q = qemu(self.slave_id, self.config,
+                      debug_mode=config.argument_values['debug'])
         self.statistics = SlaveStatistics(self.slave_id, self.config)
         self.logic = FuzzingStateLogic(self, self.config)
         self.conn = connection
@@ -166,7 +167,8 @@ class SlaveProcess:
             return True
 
         log_slave("Funky input received %d/%d confirmations. Rejecting.." % (confirmations, validations), self.slave_id)
-        self.store_funky(data)
+        if self.config.argument_values['v']:
+            self.store_funky(data)
         return False
 
     def store_funky(self, data):

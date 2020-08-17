@@ -100,6 +100,8 @@ def add_args_general(parser):
                         help='number of parallel Qemu instances.')
     parser.add_argument('-v', help='enable verbose logging to $work_dir/debug.log.',
                         action='store_true', default=False)
+    parser.add_argument('-vv', '--debug', help='enable extra debug logging + qeme trace logs in $workdir/.',
+                        action='store_true', default=False)
     parser.add_argument('-h', '--help', action='help',
                         help='show this help message and exit'
 )

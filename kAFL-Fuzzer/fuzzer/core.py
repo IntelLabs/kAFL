@@ -57,7 +57,7 @@ def start(config):
     seed_dir   = config.argument_values["seed_dir"]
     num_slaves = config.argument_values['p']
 
-    if config.argument_values['v']:
+    if config.argument_values['v'] or config.argument_values['debug']:
         enable_logging(work_dir)
 
     if not prepare_working_dir(config):
