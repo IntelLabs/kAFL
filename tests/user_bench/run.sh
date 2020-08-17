@@ -18,7 +18,7 @@ TARGET_ROOT="$(dirname ${PWD}/${0})"
 # Grab a Linux kernel to boot... current running image will do..
 LINUX_KERNEL="/boot/vmlinuz-5.6.0-1-amd64"
 LINUX_KERNEL="/boot/vmlinuz-$(uname -r)"
-KAFL_FUZZ_OPTIONS="-redqueen -grimoire -p $(nproc) -forkserver -radamsa"
+KAFL_FUZZ_OPTIONS="-p $(nproc) -forkserver"
 
 target_pack()
 {
@@ -70,7 +70,7 @@ target_run()
 
 	IP_RANGE="$(cat $WORKDIR/info.log|grep target_executable|grep -- r-xp |head -1|cut -d\  -f 1|sed -e 's/^0/0x/' -e 's/\-0/-0x/')"
 
-	echo "[*] Start fuzzing with range $IP_RANGE, args $KAFL_FUZZ_OPTIONS"
+	echo "[*] Start fuzzing with range $IP_RANGE, args $KAFL_FUZZ_OPTIONS $*"
 
 	python3 kAFL-Fuzzer/kafl_fuzz.py \
 		-kernel "$LINUX_KERNEL" \

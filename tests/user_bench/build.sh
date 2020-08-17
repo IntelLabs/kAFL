@@ -31,7 +31,7 @@ build_confmake()
 
 	pushd $SRC_DIR > /dev/null
 	echo "Performing configure/make for $SRC_DIR. This may take a moment.."
-	./configure --disable-shared > /dev/null
+	./configure --without-threads --disable-shared > /dev/null
 	make -j $JOBS > /dev/null
 	popd > /dev/null
 		
