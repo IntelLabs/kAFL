@@ -341,10 +341,11 @@ class qemu:
                 assert False
             else:
                 # Reaching this part typically means there is a bug in the agent or target setup which
-                # messes up the expected interaction. Throw an error and exit.
-                log_qemu("Fatal error in debug_recv(): Got " + str(res) + ", Expected: " + str(cmd) + ")", self.qemu_id)
-                print_fail("Slave %s: Error in debug_recv(): Got %s, Expected: %s" % (self.qemu_id, str(res), str(cmd)))
-                self.async_exit()
+                # messes up the expected interaction. Throw an error and kill Qemu. Slave may retry.
+                log_qemu("Error in debug_recv(): Got " + str(res) + ", Expected: " + str(cmd) + ")", self.qemu_id)
+                print_warning("Slave %s: Error in debug_recv(): Got %s, Expected: %s" % (self.qemu_id, str(res), str(cmd)))
+                self.shutdown()
+                raise ConnectionResetError("Killed Qemu due to protocol error.")
         if res == qemu_protocol.PT_TRASHED:
             log_qemu("PT_TRASHED", self.qemu_id)
             return False
