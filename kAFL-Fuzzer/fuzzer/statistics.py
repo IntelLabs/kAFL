@@ -61,6 +61,12 @@ class MasterStatistics:
     def event_node_new(self, node):
         self.update_yield(node)
 
+        exit = node.get_exit_reason()
+        self.data["findings"][exit] += 1
+
+        if exit != "regular":
+            return
+
         self.data["paths_total"] += 1
         self.data["paths_pending"] += 1
 
@@ -70,9 +76,6 @@ class MasterStatistics:
 
         self.data["bytes_in_bitmap"] += len(node.get_new_bytes())
         self.data["max_level"] = max(node.get_level(), self.data["max_level"])
-
-        exit = node.get_exit_reason()
-        self.data["findings"][exit] += 1
 
     def event_node_remove_fav_bit(self, node):
         # called when queue manager removed a fav bit from an existing node.
