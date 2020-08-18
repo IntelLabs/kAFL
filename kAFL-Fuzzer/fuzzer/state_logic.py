@@ -72,6 +72,8 @@ class FuzzingStateLogic:
         ret["attention_secs"] = time.time() - self.stage_info_start_time
         ret["state_time_initial"] = self.initial_time
         ret["state_time_havoc"] = self.havoc_time
+        ret["state_time_splice"] = self.splice_time
+        ret["state_time_radamsa"] = self.radamsa_time
         ret["state_time_grimoire"] = self.grimoire_time
         ret["state_time_grimoire_inference"] = self.grimoire_inference_time
         ret["state_time_redqueen"] = self.redqueen_time
@@ -125,6 +127,8 @@ class FuzzingStateLogic:
 
         self.initial_time = 0
         self.havoc_time = 0
+        self.splice_time = 0
+        self.radamsa_time = 0
         self.grimoire_time = 0
         self.grimoire_inference_time = 0
         self.redqueen_time = 0
@@ -278,32 +282,25 @@ class FuzzingStateLogic:
             if havoc_grimoire:
                 grimoire_start_time = time.time()
                 self.__perform_grimoire(payload, metadata)
-                grimoire_time += time.time() - grimoire_start_time
+                self.grimoire_time += time.time() - grimoire_start_time
 
             if havoc_radamsa:
                 radamsa_start_time = time.time()
                 self.__perform_radamsa(payload, metadata)
-                radamsa_time += time.time() - radamsa_start_time
+                self.radamsa_time += time.time() - radamsa_start_time
 
             if havoc_afl:
                 havoc_start_time = time.time()
                 self.__perform_havoc(payload, metadata, use_splicing=False)
-                havoc_time += time.time() - havoc_start_time
+                self.havoc_time += time.time() - havoc_start_time
 
             if havoc_splice:
                 splice_start_time = time.time()
                 self.__perform_havoc(payload, metadata, use_splicing=True)
-                splice_time += time.time() - splice_start_time
+                self.splice_time += time.time() - splice_start_time
 
-        # TODO: keep time/exec stats for each stage/method
-        #       - update slave_stats on stage/method done
-        #       - send timing/exec diff to Master for central node update
-        self.havoc_time += havoc_time
-        #self.splice_time += splice_time
-        self.grimoire_time += grimoire_time
-        #self.radamsa_time += radamsa_time
-        log_slave("HAVOC times: afl: %d, splice: %d, grim: %d, rdmsa: %d"
-                  % (havoc_time, splice_time, grimoire_time, radamsa_time),
+        log_slave("HAVOC times: afl: %.1f, splice: %.1f, grim: %.1f, rdmsa: %.1f"
+                  % (self.havoc_time, self.splice_time, self.grimoire_time, self.radamsa_time),
                   self.slave.slave_id)
 
 
