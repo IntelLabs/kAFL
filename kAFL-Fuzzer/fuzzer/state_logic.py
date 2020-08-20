@@ -197,12 +197,13 @@ class FuzzingStateLogic:
             log_slave("Validate: Skip trimming..", self.slave.slave_id)
             return None
 
-        center_trim = False
+        center_trim = True
 
         new_payload = perform_trim(payload, metadata, self.execute)
 
         if center_trim:
-            new_payload = perform_center_trim(new_payload, metadata, self.execute, trimming_bytes=2)
+            new_payload = perform_center_trim(new_payload, metadata, self.execute)
+
         self.initial_time += time.time() - time_initial_start
         if new_payload == payload:
             return None

@@ -26,6 +26,7 @@ def mutate_seq_8_bit_interesting(data, func, skip_null=False, effector_map=None,
 
         for j in range(len(interesting_8_Bit)):
             value = in_range_8(interesting_8_Bit[j])
+            # TODO: should check with arith_max value here?
             if (is_not_bitflip(orig ^ value) and
                 is_not_arithmetic(orig, value, 1)):
                     data[i] = value

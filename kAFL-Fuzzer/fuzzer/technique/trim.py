@@ -42,8 +42,13 @@ def check_trim_still_valid(old_node, old_res, new_res):
         return GlobalBitmap.all_new_bits_still_set(old_bits, new_res)
 
 
-def perform_center_trim(payload, old_node, send_handler, trimming_bytes):
+def perform_center_trim(payload, old_node, send_handler, trimming_bytes=2):
     index = 0
+
+    if len(payload) > 2048:
+        return payload
+    if len(payload) > 1024:
+        index = len(payload)//3
 
     old_res, _ = send_handler(payload, label="center_trim_funky")
     if old_res.is_crash():
