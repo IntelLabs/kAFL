@@ -53,26 +53,25 @@ def mutate_seq_havoc_array(data, func, max_iterations, resize=False):
     else:
         data = data
 
-    for i in range(max_iterations):
-        stacking = rand.int(AFL_HAVOC_STACK_POW2)
-
-        for j in range(1 << (1 + stacking)):
+    stacking = rand.int(AFL_HAVOC_STACK_POW2)
+    stacking = 1 << (stacking)
+    for _ in range(1+max_iterations//stacking):
+        for _ in range(stacking):
             handler = rand.select(havoc_handler)
-            data = handler(data)
-            if len(data) >= KAFL_MAX_FILE:
-                data = data[:KAFL_MAX_FILE]
-        func(data)
-
+            data = handler(data)[:KAFL_MAX_FILE]
+            func(data)
 
 def mutate_seq_splice_array(data, func, max_iterations, resize=False):
     global location_corpus
-    splice_rounds = 16
+    havoc_rounds = 4
+    splice_rounds = max_iterations//havoc_rounds
     files = glob.glob(location_corpus + "/regular/payload_*")
     for _ in range(splice_rounds):
         spliced_data = havoc_splicing(data, files)
         if spliced_data is None:
             return # could not find any suitable splice pair for this file
+        func(spliced_data)
         mutate_seq_havoc_array(spliced_data,
                                func,
-                               int(2*max_iterations/splice_rounds),
+                               havoc_rounds,
                                resize=resize)

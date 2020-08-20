@@ -43,16 +43,15 @@ class Scheduler:
 
     # TODO: node skipping by p(x) conflicts with queue sorting..
     def should_be_scheduled(self, queue, node):
-        SKIP_CRASHING_PROB = 80
-        SKIP_NONFAV_PROB = 50
+        SKIP_CRASHING_PROB = 95
+        SKIP_NONFAV_PROB = 70
 
         if node.get_exit_reason() != "regular":
             if rand.int(100) < SKIP_CRASHING_PROB:
                 return False
 
-        if node.get_state() == "final":
-            if not node.is_favorite() and rand.int(100) < SKIP_NONFAV_PROB:
-                return False
+        if not node.is_favorite() and rand.int(100) < SKIP_NONFAV_PROB:
+            return False
         return True
 
     def score_impact(self, node):
@@ -74,22 +73,22 @@ class Scheduler:
             return (1, score)
 
         # boost nodes deeper in the tree
-        if node.get_level() > 0:
-            score += node.get_level()//5
+        #if node.get_level() > 0:
+        #    score += node.get_level()//5
 
         # boost nodes with many fav bits
         if node.is_favorite():
-            score += 2*len(node.get_fav_bits())
+            score *= 2*len(node.get_fav_bits())
 
         # TODO: only actually have to compute all this for new nodes and fav bit changes...
         node.set_score(score)
 
         if node.get_state() in ["initial", "redq/grim"]:
-            phase = 256
+            phase = 64
         elif node.get_state() in ["deterministic"]:
-            phase = 8
+            phase = 4
         elif node.get_state() in ["havoc"]:
-            phase = 1
+            phase = 2
         elif node.get_state() in ["final"]:
             # promote later discovered nodes by compensating for total time spend in havoc.
             # TODO some nodes are buffed on purpose - should only promote based on relative

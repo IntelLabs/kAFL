@@ -28,8 +28,8 @@ from fuzzer.technique.helper import rand
 
 
 class FuzzingStateLogic:
-    HAVOC_MULTIPLIER = 2
-    RADAMSA_DIV = 20
+    HAVOC_MULTIPLIER = 4
+    RADAMSA_DIV = 3
     COLORIZATION_COUNT = 1
     COLORIZATION_STEPS = 1500
     COLORIZATION_TIMEOUT = 5
