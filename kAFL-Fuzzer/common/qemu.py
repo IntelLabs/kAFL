@@ -25,7 +25,7 @@ import common.qemu_protocol as qemu_protocol
 from common.debug import log_qemu
 from common.execution_result import ExecutionResult
 from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
-from common.util import read_binary_file, atomic_write, print_fail, strdump
+from common.util import read_binary_file, atomic_write, print_fail, print_warning, strdump
 
 
 def to_string_32(value):
