@@ -27,6 +27,7 @@ from common.execution_result import ExecutionResult
 from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
 from common.util import read_binary_file, atomic_write, print_fail, print_warning, strdump
 
+from common.qemu_aux_buffer import qemu_aux_buffer
 
 def to_string_32(value):
     return [(value >> 24) & 0xff,
@@ -63,6 +64,9 @@ class qemu:
         self.persistent_runs = 0
 
         project_name = self.config.argument_values['work_dir'].split("/")[-1]
+
+        self.qemu_aux_buffer_filename = self.config.argument_values['work_dir'] + "/aux_buffer_" + self.qemu_id
+
         self.payload_filename = "/dev/shm/kafl_%s_qemu_payload_%s" % (project_name, self.qemu_id)
         self.tracedump_filename = "/dev/shm/kafl_%s_pt_trace_dump_%s" % (project_name, self.qemu_id)
         self.binary_filename = self.config.argument_values['work_dir'] + "/program"
@@ -225,6 +229,7 @@ class qemu:
         self.__debug_recv_expect(qemu_protocol.DISABLE_RQI_MODE)
 
     def send_enable_patches(self):
+        return
         if not self.patches_enabled:
             assert (not self.needs_execution_for_patches)
             self.needs_execution_for_patches = True
@@ -233,6 +238,7 @@ class qemu:
             self.__debug_recv_expect(qemu_protocol.ENABLE_PATCHES)
 
     def send_disable_patches(self):
+        return
         if self.patches_enabled:
             assert (not self.needs_execution_for_patches)
             self.needs_execution_for_patches = True
@@ -466,7 +472,7 @@ class qemu:
         atomic_write(self.binary_filename, bin)
 
     def start(self):
-
+        print("START!")
         if self.exiting:
             return False
 
@@ -498,14 +504,59 @@ class qemu:
                 log_qemu("Fatal error: Failed to launch Qemu: " + str(e), self.qemu_id)
                 self.shutdown()
             return False
+        print("DONE START!")
 
         return True
 
-    def __qemu_handshake(self):
+    def unlock_qemu(self):
+        self.control.send('x')
 
+    def lock_qemu(self):
+        self.control.recv(1)
+
+    def __qemu_handshake(self):
+        print("qemu_handshake...")
         if self.config.argument_values['agent']:
             self.__set_agent()
 
+        print("Try...!")
+        self.unlock_qemu()
+        self.lock_qemu()
+
+        if payload:
+            self.set_payload(payload) # write payload once payload buffer is remapped -> STATE BYTE
+
+        self.qemu_aux_buffer = qemu_aux_buffer(self.qemu_aux_buffer_filename)
+        if self.qemu_aux_buffer.validate_header():
+            log_qemu("HEADER OKAY!", self.qemu_id)
+            print("HEADER OKAY!")
+        else:
+            log_qemu("HEADER CORRUPTED?!!", self.qemu_id)
+            print("HEADER CORRUPTED?!!")
+            self.async_exit(0)
+
+        while True:
+            if self.qemu_aux_buffer.get_state() == 3:
+                break
+
+            self.unlock_qemu()
+            self.lock_qemu()
+
+
+        log_qemu("QEMU IS READY\n", self.qemu_id)
+        print("QEMU IS READY\n")
+
+        self.qemu_aux_buffer.set_timeout(0, 500000)
+
+
+        self.unlock_qemu()
+        self.lock_qemu()
+
+        self.unlock_qemu()
+        self.lock_qemu()
+        return
+
+        """
         self.__debug_recv_expect(qemu_protocol.RELEASE + qemu_protocol.PT_TRASHED)
         self.__debug_send(qemu_protocol.RELEASE)
         log_qemu("Stage 1 handshake done [INIT]", self.qemu_id)
@@ -520,6 +571,10 @@ class qemu:
         self.__debug_recv_expect(qemu_protocol.ACQUIRE + qemu_protocol.PT_TRASHED)
         log_qemu("Stage 2 handshake done [READY]", self.qemu_id)
         self.handshake_stage_2 = False
+        """
+
+        # extra handshake stuff for fast_reload follows here..
+        # ...
 
     def __qemu_connect(self):
         # Note: setblocking() disables the timeout! settimeout() will automatically set blocking!
@@ -589,6 +644,7 @@ class qemu:
     # TODO: can directly return result for handling by caller?
     # TODO: document protocol and meaning/effect of each message
     def check_recv(self, timeout_detection=True):
+        """
         if timeout_detection and not self.config.argument_values['forkserver']:
             ready = select.select([self.control], [], [], 0.25)
             if not ready[0]:
@@ -597,11 +653,14 @@ class qemu:
             ready = select.select([self.control], [], [], 5.0)
             if not ready[0]:
                 return 2
+        """
 
         result = self.__debug_recv()
 
         if result == qemu_protocol.CRASH:
             return 1
+        elif result == qemu_protocol.RELOAD:
+            return 2
         elif result == qemu_protocol.KASAN:
             return 3
         elif result == qemu_protocol.TIMEOUT:
@@ -613,17 +672,17 @@ class qemu:
             return 0
         elif result == qemu_protocol.PT_TRASHED:
             self.internal_buffer_overflow_counter += 1
+            print("PT_TRASHED, retry %d" % self.internal_buffer_overflow_counter)
             return 4
         elif result == qemu_protocol.PT_TRASHED_CRASH:
             self.internal_buffer_overflow_counter += 1
+            print("PT_TRASHED, retry %d" % self.internal_buffer_overflow_counter)
             return 5
         elif result == qemu_protocol.PT_TRASHED_KASAN:
             self.internal_buffer_overflow_counter += 1
+            print("PT_TRASHED, retry %d" % self.internal_buffer_overflow_counter)
             return 6
-        else:
-            # TODO: detect+log errors without affecting fuzz campaigns
-            #raise ValueError("Unhandled Qemu message %s" % repr(result))
-            return 0
+        return 0
 
     # Wait forever on Qemu to execute the payload - useful for interactive debug
     def debug_payload(self, apply_patches=True):
@@ -654,6 +713,19 @@ class qemu:
 
         self.persistent_runs += 1
         start_time = time.time()
+
+        self.unlock_qemu()
+        self.lock_qemu()
+
+        result = self.qemu_aux_buffer.get_result()
+        self.crashed = result["crash_found"]
+        self.kasan = result["asan_found"]
+        self.timeout = result["timeout_found"]
+
+        self.last_bitmap_wrapper = ExecutionResult(self.c_bitmap, self.bitmap_size, self.exit_reason(), time.time() - start_time)
+        return self.last_bitmap_wrapper
+        ### EXIT
+
         # TODO: added in redqueen - verify what this is doing
         if apply_patches:
             self.send_enable_patches()
@@ -745,6 +817,26 @@ class qemu:
         return exec_res
 
     def execute_in_redqueen_mode(self, payload):
+
+        self.unlock_qemu()
+        self.lock_qemu()
+
+        result = self.qemu_aux_buffer.get_result()
+
+        self.qemu_aux_buffer.enable_redqueen()
+
+        self.unlock_qemu()
+        self.lock_qemu()
+
+        result = self.qemu_aux_buffer.get_result()
+
+        self.qemu_aux_buffer.disable_redqueen()
+        return True
+
+
+        self.last_bitmap_wrapper = ExecutionResult(self.c_bitmap, self.bitmap_size, self.exit_reason(), time.time() - start_time)
+        return self.last_bitmap_wrapper
+
         log_qemu("Performing redqueen iteration...", self.qemu_id)
         try:
             self.soft_reload()
