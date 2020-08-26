@@ -87,7 +87,7 @@ class qemu:
         self.cmd += " -serial file:" + self.qemu_serial_log + \
                     " -enable-kvm" \
                     " -m " + str(config.argument_values['mem']) + \
-                    " -nographic -net none" \
+                    " -net none" \
                     " -chardev socket,server,nowait,path=" + self.control_filename + \
                     ",id=kafl_interface" \
                     " -device kafl,chardev=kafl_interface,bitmap_size=" + str(self.bitmap_size) + ",shm0=" + self.binary_filename + \
@@ -95,7 +95,7 @@ class qemu:
                     ",bitmap=" + self.bitmap_filename + \
                     ",redqueen_workdir=" + self.redqueen_workdir.base_path
 
-        if False:  # do not emit tracefiles on every execution
+        if self.config.argument_values['dump_pt']:
             self.cmd += ",dump_pt_trace"
 
         if self.debug_mode:
@@ -104,13 +104,12 @@ class qemu:
         if not notifiers:
             self.cmd += ",crash_notifier=False"
 
-        # fast reload is not part of redqueen release
-        # if not self.config.argument_values.has_key('R') or not self.config.argument_values['R']:
-        self.cmd += ",reload_mode=False"
+        if self.config.argument_values['R']:
+            self.cmd += ",reload_mode=False"
 
         # qemu snapshots only work in VM mode (disk+ram image)
-        if self.config.argument_values['kernel'] or self.config.argument_values['bios']:
-            self.cmd += ",disable_snapshot=True"
+        #if self.config.argument_values['kernel'] or self.config.argument_values['bios']:
+        #    self.cmd += ",disable_snapshot=True"
 
         for i in range(1):
             key = "ip" + str(i)
@@ -129,13 +128,15 @@ class qemu:
         if self.config.argument_values['gdbserver']:
             self.cmd += " -s -S"
 
+        if not self.config.argument_values['X']:
+            self.cmd += "-display none "
+
         if self.config.argument_values['extra']:
             self.cmd += " " + self.config.argument_values['extra']
 
         # Lauch either as VM snapshot, direct kernel/initrd boot, or -bios boot
-        if self.config.argument_values['vm_dir']:
-            self.cmd += " -hda " + self.config.argument_values['vm_dir'] + "/overlay_" + self.qemu_id + ".qcow2"
-            self.cmd += " -loadvm " + self.config.argument_values["S"]
+        if self.config.argument_values['vm_image']:
+            self.cmd += " -drive " + self.config.argument_values['vm_image']
         elif self.config.argument_values['kernel']:
             self.cmd += " -kernel " + self.config.argument_values['kernel']
             if self.config.argument_values['initrd']:
@@ -153,6 +154,36 @@ class qemu:
         else:
             self.cmd += " -machine q35 "
 
+         self.fast_vm_reload = qid != 1337 or self.config.argument_values.has_key("pre_snapshot_dir")
+
+	 #self.fast_vm_reload = True # qid != 1337 or self.config.argument_values.has_key("pre_snapshot_dir")
+
+
+	#if qid == 0 or qid == 1337:
+
+	if qid == 1337:
+	    #pass
+	    self.cmd = self.cmd.replace("-display none ", "-vnc :0 ")
+	else:
+	    self.cmd = self.cmd.replace("-display none ", "-vnc :" + str(qid) + " ")
+
+	if self.fast_vm_reload:
+	    if qid == 0 or qid == 1337:
+		#self.cmd = self.cmd.replace("-display none ", "-vnc :0 ")
+		#self.fast_vm_reload = False
+		if self.config.argument_values.has_key("pre_snapshot_dir"):
+		    self.cmd += "-fast_vm_reload path=%s,load=off,pre_path=%s " % (
+                                self.config.argument_values['work_dir'] + "/snapshot/",
+                                self.config.argument_values['pre_snapshot_dir'])
+		else:
+		    self.cmd += "-fast_vm_reload path=%s,load=off " % (
+                                self.config.argument_values['work_dir'] + "/snapshot/")
+		#self.handshake_stage_1 = False
+		#self.handshake_stage_2 = False
+	    else:
+                self.cmd += "-fast_vm_reload path=%s,load=on " % (
+                             self.config.argument_values['work_dir'] + "/snapshot/")
+                time.sleep(1) # fixes some page_cache race bugs?!
 
         self.crashed = False
         self.timeout = False
@@ -165,7 +196,7 @@ class qemu:
         c = 0
         for i in self.cmd:
             if i == "BOOTPARAM":
-                self.cmd[c] = "\"nokaslr oops=panic nopti mitigations=off\""
+                self.cmd[c] = "nokaslr oops=panic nopti mitigations=off"
                 break
             c += 1
 

@@ -80,7 +80,37 @@ def check_packages():
             FAIL + ERROR_PREFIX + "Package 'fastrand' is missing!" + ENDC)
         return False
 
+    try:
+        import inotify
+    except ImportError:
+        print(
+            FAIL + ERROR_PREFIX + "Package 'inotify' is missing!" + ENDC)
+        return False
+
     return True
+
+def vmx_pt_check_addrn(config):
+    if config.argument_values.has_key("ip3") and config.argument_values["ip3"]:
+	ip_ranges = 4
+    elif config.argument_values.has_key("ip2") and config.argument_values["ip2"]:
+	ip_ranges = 3
+    elif config.argument_values.has_key("ip1") and config.argument_values["ip1"]:
+	ip_ranges = 2
+    elif config.argument_values.has_key("ip0") and config.argument_values["ip0"]:
+	ip_ranges = 1
+    else:
+	ip_ranges = 0
+
+      ret = vmx_pt_get_addrn()
+
+      if(ip_ranges > ret):
+	  if ret > 1:
+	      print(FAIL + ERROR_PREFIX + "CPU supports only " + str(ret) + " hardware ip trace filters!" + ENDC)
+	  else:
+	      print(FAIL + ERROR_PREFIX + "CPU supports only " + str(ret) + " hardware ip trace filter!" + ENDC)
+	  return False
+      return True
+
 
 
 def check_vmx_pt():
@@ -90,9 +120,9 @@ def check_vmx_pt():
     KVM_VMX_PT_SUPPORTED = KVMIO << (8) | 0xe4
 
     try:
-        fd = open("/dev/kvm", "wb")
+        fd = open("/dev/dell", "wb")
     except:
-        print(FAIL + ERROR_PREFIX + "Unable to access /dev/kvm. Check permissions and ensure kvm_intel is loaded." + ENDC)
+        print(FAIL + ERROR_PREFIX + "Unable to access /dev/dell. Check permissions and ensure dell.ko is loaded." + ENDC)
         return False
 
     try:
@@ -120,10 +150,10 @@ def check_apple_osk(config):
 def check_apple_ignore_msrs(config):
     if config.argument_values["macOS"]:
         try:
-            f = open("/sys/module/kvm/parameters/ignore_msrs")
+            f = open("/sys/module/dell/parameters/ignore_msrs")
             if not 'Y' in f.read(1):
                 print(
-                    FAIL + ERROR_PREFIX + "KVM is not properly configured! Please execute the following command:" \
+                    FAIL + ERROR_PREFIX + "KVM-PT is not properly configured! Please execute the following command:" \
                          + ENDC + "\n\n\tsudo su\n\techo 1 > /sys/module/kvm/parameters/ignore_msrs\n")
                 return False
             else:
@@ -132,7 +162,7 @@ def check_apple_ignore_msrs(config):
             pass
         finally:
             f.close()
-        print(FAIL + ERROR_PREFIX + "KVM is not ready?!" + ENDC)
+        print(FAIL + ERROR_PREFIX + "KVM-PT is not ready?!" + ENDC)
         return False
     return True
 
@@ -185,6 +215,17 @@ def check_radamsa_location(config):
 
     return True
 
+def check_cpu_num(config):
+    import multiprocessing
+
+    if 'p' not in config.argument_values:
+        return True
+
+    if int(config.argument_values["p"]) > int(multiprocessing.cpu_count()):
+        print(FAIL + ERROR_PREFIX +
+              "Only %d fuzzing processes are supported..." % (int(multiprocessing.cpu_count())) + ENDC)
+       return False
+
 def self_check(rootdir):
     if not check_if_nativ_lib_compiled(rootdir):
         return False
@@ -207,5 +248,9 @@ def post_self_check(config):
     if not check_qemu_version(config):
         return False
     if not check_radamsa_location(config):
+        return False
+    if not vmx_pt_check_addrn(config):
+        return False
+    if not check_cpu_num(config):
         return False
     return True
