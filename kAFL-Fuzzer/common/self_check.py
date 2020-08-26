@@ -89,29 +89,48 @@ def check_packages():
 
     return True
 
+def vmx_pt_get_addrn(verbose=True):
+    from fcntl import ioctl
+
+    KVMIO = 0xAE
+    KVM_VMX_PT_GET_ADDRN = KVMIO << (8) | 0xe9
+
+    try:
+        fd = open("/dev/dell", "wb")
+    except:
+        if verbose:
+            print(FAIL + ERROR_PREFIX + "KVM-PT is not loaded!" + ENDC)
+        return 0
+
+    try:
+        ret = ioctl(fd, KVM_VMX_PT_GET_ADDRN, 0)
+    except IOError:
+        if verbose:
+            print(WARNING + WARNING_PREFIX + "Multi range tracing is not supported! Please upgrade to kernel 4.20-rc4!" + ENDC)
+        ret = 1
+    finally:
+        fd.close()
+    return ret
+
 def vmx_pt_check_addrn(config):
-    if config.argument_values.has_key("ip3") and config.argument_values["ip3"]:
-	ip_ranges = 4
-    elif config.argument_values.has_key("ip2") and config.argument_values["ip2"]:
-	ip_ranges = 3
-    elif config.argument_values.has_key("ip1") and config.argument_values["ip1"]:
-	ip_ranges = 2
-    elif config.argument_values.has_key("ip0") and config.argument_values["ip0"]:
-	ip_ranges = 1
+
+    if config.argument_values["ip3"]:
+        ip_ranges = 4
+    elif config.argument_values["ip2"]:
+        ip_ranges = 3
+    elif config.argument_values["ip1"]:
+        ip_ranges = 2
+    elif config.argument_values["ip0"]:
+        ip_ranges = 1
     else:
-	ip_ranges = 0
+        ip_ranges = 0
 
-      ret = vmx_pt_get_addrn()
+    ret = vmx_pt_get_addrn()
 
-      if(ip_ranges > ret):
-	  if ret > 1:
-	      print(FAIL + ERROR_PREFIX + "CPU supports only " + str(ret) + " hardware ip trace filters!" + ENDC)
-	  else:
-	      print(FAIL + ERROR_PREFIX + "CPU supports only " + str(ret) + " hardware ip trace filter!" + ENDC)
-	  return False
-      return True
-
-
+    if ip_ranges > ret:
+        print(FAIL + ERROR_PREFIX + "CPU supports only " + str(ret) + " hardware ip trace filters!" + ENDC)
+        return False
+    return True
 
 def check_vmx_pt():
     from fcntl import ioctl
@@ -223,8 +242,9 @@ def check_cpu_num(config):
 
     if int(config.argument_values["p"]) > int(multiprocessing.cpu_count()):
         print(FAIL + ERROR_PREFIX +
-              "Only %d fuzzing processes are supported..." % (int(multiprocessing.cpu_count())) + ENDC)
-       return False
+                "Only %d fuzzing processes are supported..." % (int(multiprocessing.cpu_count())) + ENDC)
+        return False
+    return True
 
 def self_check(rootdir):
     if not check_if_nativ_lib_compiled(rootdir):

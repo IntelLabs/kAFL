@@ -136,8 +136,6 @@ def add_args_fuzzer(parser):
                         action='store_true', default=False)
     parser.add_argument('-redq_do_simple', required=False, help='do not ignore simple arith. matches in Redqueen',
                         action='store_true', default=False)
-    parser.add_argument("-dump_pt", required=False, help='dump Intel PT traces to /dev/shm/', 
-                        action='store_true', default=False)
 
     parser.add_argument('-cpu_affinity', metavar='<n>', help="limit processes to first n cores.",
                         type=int, required=False)
@@ -154,6 +152,10 @@ def add_args_qemu(parser):
 
     xorarg.add_argument('-vm_image', metavar='<QCow2 File>', required=False, action=FullPath, 
                         type=parse_is_file, help='path to the VM\'s disk image.')
+    parser.add_argument('-sharedir', metavar='<dir>', required=False, action=FullPath,
+                        type=parse_is_dir, help='path to the page buffer share directory.')
+    xorarg.add_argument('-vm_snapshot', metavar='<dir>', required=False, action=FullPath,
+                        type=parse_is_dir, help='path to the VM\'s pre-snapshot directory.')
 
     xorarg.add_argument('-kernel', metavar='<file>', required=False, action=FullPath, type=parse_is_file,
                         help='path to the Kernel image.')
@@ -168,25 +170,27 @@ def add_args_qemu(parser):
     parser.add_argument('-mem', metavar='<num>', help='size of virtual memory in MB (default: 256).',
                         default=256, type=int)
 
-    parser.add_argument('-ip0', required=False, metavar='<start-end>', type=parse_range_ip_filter,
+    parser.add_argument('-ip0', required=False, default=None, metavar='<start-end>', type=parse_range_ip_filter,
                         help='set IP trace filter range')
-    parser.add_argument('-ip1', required=False, metavar='<start-end>', type=parse_range_ip_filter,
+    parser.add_argument('-ip1', required=False, default=None, metavar='<start-end>', type=parse_range_ip_filter,
                         help='Set IP trace filter range 1 (not supported in this version)')
-    parser.add_argument('-ip2', required=False, metavar='<start-end>', type=parse_range_ip_filter,
+    parser.add_argument('-ip2', required=False, default=None, metavar='<start-end>', type=parse_range_ip_filter,
                         help='Set IP trace filter range 2 (not supported in this version)')
-    parser.add_argument('-ip3', required=False, metavar='<start-end>', type=parse_range_ip_filter,
+    parser.add_argument('-ip3', required=False, default=None, metavar='<start-end>', type=parse_range_ip_filter,
                         help='Set IP trace filter range 3 (not supported in this version)')
 
     parser.add_argument('-macOS', required=False, help='enable macOS mode (requires Apple OSK)',
                         action='store_true', default=False)
     parser.add_argument('-extra', metavar='<args>', required=False, help='extra arguments to add to qemu cmdline',
-    parser.add_argument('-X', required=False, help='enable QEMU graphical mode (for debugging)',
+                        default="", type=str)
+    parser.add_argument('-X', metavar='<type>', required=False, help='launch Qemu with -display <type>, e.g. vnc',
+                        type=str, default=False)
+    parser.add_argument("-dump_pt", required=False, help='dump Intel PT traces to /dev/shm/', 
                         action='store_true', default=False)
 
-                        default="", type=str)
     parser.add_argument('-forkserver', required=False, help='target has forkserver (skip Qemu resets)',
                         action='store_true', default=False)
-    parser.add_argument('-R', required=False, help='disable fast reload mode',
+    parser.add_argument('-R', required=False, help='enable fast reload mode',
                         action='store_true', default=False)
     parser.add_argument('-catch_resets', required=False, help='interpret silent VM reboot as KASAN events',
                         action='store_true', default=False)

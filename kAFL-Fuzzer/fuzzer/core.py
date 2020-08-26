@@ -51,6 +51,7 @@ def graceful_exit(slaves):
 def start(config):
 
     if not post_self_check(config):
+        print_fail("Startup checks failed. Abort.")
         return -1
     
     work_dir   = config.argument_values["work_dir"]

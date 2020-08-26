@@ -97,7 +97,7 @@ def mutate_input_extension(generalized_input, func, grimoire_inference):
 
 
 def mutate_replace_strings(generalized_input, func, grimoire_inference, string_matches):
-    if len(string_matches) == 0:
+    if len(string_matches) == 0 or len(grimoire_inference.strings) == 0:
         return
 
     payload = grimoire_inference.generalized_to_string(generalized_input)

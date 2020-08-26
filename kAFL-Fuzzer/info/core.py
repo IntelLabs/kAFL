@@ -9,11 +9,16 @@ import time
 from common.debug import log_info, enable_logging
 from common.qemu import qemu
 from common.self_check import post_self_check
+from common.util import prepare_working_dir, print_fail
 
 def start(config):
 
     if not post_self_check(config):
         return -1
+
+    if not prepare_working_dir(config):
+        print_fail("Refuse to operate on existing work directory. Use --purge to override.")
+        return 1
 
     if config.argument_values['v']:
         enable_logging(config.argument_values["work_dir"])
@@ -31,7 +36,7 @@ def start(config):
     try:
         with open("/tmp/kAFL_info.txt", 'r') as f:
             print(f.read())
-        os.remove("/tmp/kAFL_info.txt")
+        #os.remove("/tmp/kAFL_info.txt")
     except:
         pass
 
