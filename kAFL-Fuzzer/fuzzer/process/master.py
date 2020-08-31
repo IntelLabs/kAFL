@@ -30,7 +30,7 @@ class MasterProcess:
     def __init__(self, config):
         self.config = config
         self.comm = ServerConnection(self.config)
-        self.debug_mode = config.argument_values['debug'],
+        self.debug_mode = config.argument_values['debug']
 
         self.busy_events = 0
         self.empty_hash = mmh3.hash(("\x00" * self.config.config_values['BITMAP_SHM_SIZE']), signed=False)
