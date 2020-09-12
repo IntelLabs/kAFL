@@ -215,7 +215,10 @@ def main():
     edges = read_edges("/tmp/edges_uniq.lst")
 
     model = BasicBlockModel(getCurrentProgram())
-    print "Block Model: %s" % model.getName()
+    print "Block model: %s" % model.getName()
+    print "Ignore threshold: %d" % ignore_threshold
+    print "Print missing: %s" % print_missing
+    print "Verbose=%s" % verbose
 
     ##
     # Scan program and mark any blocks we reached
@@ -251,11 +254,13 @@ def main():
     ## Summarize blocks reached/missed by function
     ##
     print
+    total_blocks_reachable=0
     for func, blocks in sorted(reached_map.items(), key=lambda x: str(x[0]).lower):
         total = blocks_map[func]
         percent = blocks * 100 / total
+        total_blocks_reachable += total
         if total > ignore_threshold:
-            print "Reached: %3d blocks (%3d%%) in %s" % (blocks, percent, func)
+            print "Reached: %3d from %3d blocks (%3d%%) in %s" % (blocks, total, percent, func)
 
     print
     if print_missing:
@@ -276,6 +281,7 @@ def main():
     print
     print "Total reached funcs:  %5d / %5d (%d%%)" % (len(reached_map), len(blocks_map), func_cov)
     print "Total reached blocks: %5d / %5d (%d%%)" % (len(blocklist), total_blocks, block_cov)
+    print " ..in reached funcs:  %5d / %5d (%d%%)" % (len(blocklist), total_blocks_reachable, 100*len(blocklist)/total_blocks_reachable)
     print
 
 main()
