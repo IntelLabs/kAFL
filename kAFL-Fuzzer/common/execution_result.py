@@ -17,6 +17,10 @@ class ExecutionResult:
         c_bitmap = (ctypes.c_uint8 * bitmap_size).from_buffer_copy(bitmap)
         return ExecutionResult(c_bitmap, bitmap_size, exitreason, performance)
 
+    @staticmethod
+    def get_null_hash(bitmap_size):
+        return mmh3.hash(("\x00" * bitmap_size), signed=False)
+
     def __init__(self, cbuffer, bitmap_size, exit_reason, performance):
         self.bitmap_size = bitmap_size
         self.cbuffer = cbuffer

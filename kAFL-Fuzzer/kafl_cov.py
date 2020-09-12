@@ -21,26 +21,38 @@ import shutil
 import msgpack
 import lz4.frame as lz4
 import re
+import signal
+import multiprocessing as mp
+
+from tqdm import trange, tqdm
+from operator import itemgetter
+from math import ceil
 
 from common.config import DebugConfiguration
 from common.self_check import self_check, post_self_check
 import common.color
-from operator import itemgetter
-
 from common.debug import log_debug, enable_logging
 from common.util import prepare_working_dir, read_binary_file, print_note, print_fail, print_warning
 from common.qemu import qemu
+from common.execution_result import ExecutionResult
+from fuzzer.technique.helper import rand
 
 import json
 import csv
 
+null_hash = None
 
 class TraceParser:
-    def __init__(self):
+
+    def __init__(self, trace_dir):
+        self.trace_dir = trace_dir
         self.known_bbs = set()
         self.known_edges = set()
+        self.trace_results = list()
 
-    def parse_trace_file(self, trace_file, trace_id):
+
+    @staticmethod
+    def parse_trace_file(trace_file):
         if not os.path.isfile(trace_file):
             print_note("Could not find trace file %s, skipping.." % trace_file)
             return None
@@ -49,37 +61,84 @@ class TraceParser:
         bbs = set()
         edges = set()
         with lz4.LZ4FrameFile(trace_file, 'rb') as f:
-            #for line in f.readlines():
-            #    info = (json.loads(line.decode()))
-            #    if 'trace_enable' in info:
-            #        gaps.add(info['trace_enable'])
-            #    if 'edge' in info:
-            #        edges.add("%s_%s" % (info['edge'][0], info['edge'][1]))
-            #        bbs.add(info['edge'][0])
-            #        bbs.add(info['edge'][1])
-            # slightly faster than above line-wise json parsing
             for m in re.finditer("\{.(\w+).: \[?(\d+),?(\d+)?\]? \}", f.read().decode()):
                 if m.group(1) == "trace_enable": 
                     gaps.add(m.group(2))
                 if m.group(1) == "edge": 
-                    edges.add("%s_%s" % (m.group(2), m.group(3)))
+                    edges.add("%s,%s" % (m.group(2), m.group(3)))
                     bbs.add(m.group(2))
                     bbs.add(m.group(3))
+
         return {'bbs': bbs, 'edges': edges, 'gaps': gaps}
 
-    def get_cov_by_trace(self, trace_file, trace_id):
-        # note the return new BB count depends on the order in which traces are parsed
-        findings = self.parse_trace_file(trace_file, trace_id)
-        if not findings: 
-            return 0, 0
-        if len(findings['gaps']) > 1:
-            print_note("Got multiple gaps in trace %s" % trace_file)
+    def parse_trace_list(self, input_list):
+        trace_files = list()
+        timestamps = list()
 
-        num_new_bbs = len(findings['bbs'] - self.known_bbs)
-        num_new_edges = len(findings['edges'] - self.known_edges)
-        self.known_bbs.update(findings['bbs'])
-        self.known_edges.update(findings['edges'])
-        return num_new_bbs, num_new_edges
+        for input_file, nid, timestamp in input_list:
+            trace_file = self.trace_dir + os.path.basename(input_file) + ".lz4"
+            if os.path.exists(trace_file):
+                trace_files.append(trace_file)
+                timestamps.append(timestamp)
+
+        with mp.Pool() as pool:
+            self.trace_results = zip(timestamps,
+                                     pool.map(TraceParser.parse_trace_file, trace_files))
+
+    def coverage_totals(self):
+        unique_bbs = set()
+        unique_edges = set()
+        unique_gaps = set()
+        unique_traces = 0
+
+        for _, finding in self.trace_results:
+            if finding:
+                unique_traces += 1
+                unique_edges.update(finding['edges'])
+                unique_bbs.update(finding['bbs'])
+                unique_gaps.update(finding['gaps'])
+
+        print(" Processed %d traces with a total of %d BBs (%d edges, %d gaps)." \
+                % (unique_traces, len(unique_bbs), len(unique_edges), len(unique_gaps)))
+
+        return unique_edges, unique_bbs
+
+    def gen_reports(self):
+        unique_bbs = set()
+        unique_edges = set()
+        input_to_new_bbs = list()
+
+        plot_file = self.trace_dir + "/coverage.csv"
+        edges_file = self.trace_dir + "/edges_uniq.lst"
+
+        with open(plot_file, 'w') as f:
+            num_bbs = 0
+            num_edges = 0
+            num_traces = 0
+            for timestamp, finding in self.trace_results:
+                if not finding: continue
+
+                new_bbs = len(finding['bbs'] - unique_bbs)
+                new_edges = len(finding['edges'] - unique_edges)
+                unique_bbs.update(finding['bbs'])
+                unique_edges.update(finding['edges'])
+
+                num_traces += 1
+                num_bbs += new_bbs
+                num_edges += new_edges
+                f.write("%d;%d;%d\n" % (timestamp, num_bbs, num_edges))
+        
+        with open(edges_file, 'w') as f:
+            for edge in unique_edges:
+                f.write("%s\n" % edge)
+
+        print(" Processed %d traces with a total of %d BBs (%d edges)." \
+                % (num_traces, num_bbs, num_edges))
+
+        print(" Plot data written to %s" % plot_file)
+        print(" Unique edges written to %s" % edges_file)
+
+        return unique_edges, unique_bbs
 
 
 def afl_workdir_iterator(work_dir):
@@ -109,7 +168,6 @@ def afl_workdir_iterator(work_dir):
         input_id = int(match.groups()[1])
         seconds = id_to_time[input_id] - start_time
 
-        #print("%d: %s - %d" % (input_id, input_file, seconds))
         input_id_time.append([input_file, input_id, seconds])
         #yield (input_file, input_id, int(timestamp))
     return input_id_time
@@ -123,24 +181,24 @@ def kafl_workdir_iterator(work_dir):
             return None
         slave_stats = msgpack.unpackb(read_binary_file(stats_file), raw=False, strict_map_key=False)
         start_time = min(start_time, slave_stats['start_time'])
-    
+
     # enumerate inputs from corpus/ and match against metainfo in metadata/
-    for input_file in glob.glob(work_dir + "/corpus/*/*"):
+    # TODO: Tracing crashes/timeouts has minimal overall improvement ~1-2%
+    # Probably want to make this optional, and only trace a small sample
+    # of non-regular payloads by default?
+    for input_file in glob.glob(work_dir + "/corpus/[rckt]*/*"):
         if not input_file:
             return None
         input_id = os.path.basename(input_file).replace("payload_", "")
         meta_file = work_dir + "/metadata/node_{}".format(input_id)
         metadata = msgpack.unpackb(read_binary_file(meta_file), raw=False, strict_map_key=False)
-    
+
         seconds = metadata["info"]["time"] - start_time
         nid = metadata["id"]
-    
-        #print("%s;%d" % (input_file, timestamp))
+
         input_id_time.append([input_file, nid, seconds])
-        #yield (input_file, nid, timestamp)
 
     return input_id_time
-
 
 def get_inputs_by_time(data_dir):
     # check if data_dir is kAFL or AFL type, then assemble sorted list of inputs/input IDs over time
@@ -150,113 +208,192 @@ def get_inputs_by_time(data_dir):
         os.path.isdir(data_dir + "/queue")):
             input_data = afl_workdir_iterator(data_dir)
 
-    elif (os.path.isdir(data_dir + "/corpus/regular") and
-        os.path.isdir(data_dir + "/metadata")):
+    elif (os.path.exists(data_dir + "/stats") and
+          os.path.isdir(data_dir + "/corpus/regular") and
+          os.path.isdir(data_dir + "/metadata")):
             input_data = kafl_workdir_iterator(data_dir)
     else:
         print_note("Unrecognized target directory type «%s». Exit." % data_dir)
         sys.exit()
-    
+
+    # timestamps may be off slightly but payload IDs are strictly ordered by kAFL master
     input_data.sort(key=itemgetter(2))
     return input_data
 
+def graceful_exit(workers):
+    for w in workers:
+        w.terminate()
+
+    print("Waiting for Worker to shutdown...")
+    time.sleep(1)
+
+    while len(workers) > 0:
+        for w in workers:
+            if w and w.exitcode is None:
+                print("Still waiting on %s (pid=%d)..  [hit Ctrl-c to abort..]" % (w.name, w.pid))
+                w.join(timeout=1)
+            else:
+                workers.remove(w)
 
 def generate_traces(config, input_list):
 
-    work_dir = config.argument_values['work_dir']
-    data_dir = config.argument_values["input"]
-    trace_dir = data_dir + "/traces/"
-
-    if data_dir == work_dir:
-        print_note("Workdir must be separate from input/data dir. Aborting.")
-        return None
-
-    prepare_working_dir(config)
-
-    if os.path.exists(trace_dir):
-        print_note("Input data_dir already has a traces/ subdir. Skipping trace generation..\n")
-        return trace_dir
-
-    # real deal. delete trace dir if it exists and (re-)create traces
-    shutil.rmtree(trace_dir, ignore_errors=True)
-    os.makedirs(trace_dir)
+    trace_dir = config.argument_values["input"] + "/traces/"
 
     # TODO What is the effect of not defining a trace region? will it trace?
     if not config.argument_values['ip0']:
         print_warning("No trace region configured!")
-
-    if os.path.exists(work_dir + "redqueen_workdir_1337"):
-        print_fail("Leftover files from 1337 instance. This should not happen.")
-        return None
-
-    q = qemu(1337, config, debug_mode=False)
-    if not q.start():
-        print_fail("Could not start Qemu. Exit.")
         return None
 
     start = time.time()
 
+    if not os.path.exists(trace_dir):
+        os.makedirs(trace_dir)
+
+    input_files = list()
+    for input_path, _, _ in input_list:
+        trace_file = trace_dir + os.path.basename(input_path) + ".lz4"
+        if os.path.exists(trace_file):
+            print("Skip input with existing trace: %s" % input_path)
+        else:
+            input_files.append(input_path)
+
+    nproc = os.cpu_count()
+    chunksize=ceil(len(input_files)/nproc)
+    offset = 0
+    workers = list()
+
     try:
-        for input_path, nid, timestamp in input_list:
-            print("Processing: %s" % input_path)
+        for pid in range(nproc):
+            sublist = input_files[offset:offset+chunksize]
+            offset += chunksize
+            if len(sublist) > 0:
+                worker = mp.Process(target=generate_traces_worker, args=(config, pid, sublist))
+                worker.start()
+                workers.append(worker)
 
-            q.set_payload(read_binary_file(input_path))
-            exec_res = q.execute_in_trace_mode(timeout_detection=False)
+        for worker in workers:
+            while worker.is_alive():
+                time.sleep(2)
+            if worker.exitcode != 0:
+                return None
 
-            if not exec_res:
-                print_note("Failed to execute input %s. Continuing anyway..." % input_path)
-                assert(q.restart())
-                continue
-
-            # TODO: reboot by default, persistent by option
-            if exec_res.is_crash():
-                q.reload()
-
-            with open(work_dir + "/redqueen_workdir_1337/pt_trace_results.txt", 'rb') as f_in:
-                with lz4.LZ4FrameFile(trace_dir + os.path.basename(input_path) + ".lz4", 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
-                        shutil.copyfileobj(f_in, f_out)
-
-    except:
-        raise
+    except KeyboardInterrupt:
+        print_note("Received Ctrl-C, killing slaves...")
+        return None
+    except Exception:
+        return None
     finally:
-        q.async_exit()
+        graceful_exit(workers)
 
     end = time.time()
-    print("Time taken: %.2fs" % (end - start))
+    print("\n\nDone. Time taken: %.2fs\n" % (end - start))
     return trace_dir
 
+def generate_traces_worker(config, pid, input_list):
 
-def plot_bbs_from_traces(trace_dir, input_list):
+    def sigterm_handler(signal, frame):
+        if q:
+            q.async_exit()
+        sys.exit(0)
 
-    input_to_new_bbs = list()
-    trace_parser = TraceParser()
+    # override config - workdir root should be tempdir!
+    pname = mp.current_process().name
+    config.argument_values['work_dir'] += "_%s" % pname
+    config.argument_values['purge'] = True
+    prepare_working_dir(config)
 
-    for input_path, nid, timestamp in input_list:
-        filename = os.path.basename(input_path) + ".lz4"
-        new_bbs, new_edges = trace_parser.get_cov_by_trace(trace_dir + filename, nid)
-        input_to_new_bbs.append([timestamp, new_bbs, new_edges])
+    work_dir = config.argument_values['work_dir']
+    trace_dir = config.argument_values["input"] + "/traces/"
 
-    total_bbs = 0
-    total_edges = 0
+    signal.signal(signal.SIGTERM, sigterm_handler)
+    os.setpgrp()
 
-    # should be already sorted b/c get_cov_by_trace() expects sorted inputs
-    input_to_new_bbs.sort(key=itemgetter(0))
+    q = qemu(1337, config, debug_mode=False)
+    if not q.start():
+        print_fail("%s: Could not start Qemu. Exit." % pname)
+        return None
 
-    # write output to .csv
-    plot_file = trace_dir + "coverage.csv"
-    print(" Writing coverage data to %s..." % plot_file)
-    with open(plot_file, 'w') as f:
-        for item in input_to_new_bbs:
-            total_bbs += item[1]
-            total_edges += item[2]
-            plot_data = "%d;%d;%d\n" % (item[0], total_bbs, total_edges)
-            f.write(plot_data)
+    pbar = tqdm(total=len(input_list), desc=pname, dynamic_ncols=True, smoothing=0.1, position=pid+1)
 
-    print(" Processed %d traces with a total of %d BBs (%d edges)." % (len(input_to_new_bbs), total_bbs, total_edges))
+    try:
+        for input_path in input_list:
+            trace_file = trace_dir + os.path.basename(input_path) + ".lz4"
+            if os.path.exists(trace_file):
+                #printf("Skipping %s.." % os.path.basename(input_path))
+                pbar.update()
+                continue
+            #print("Processing %s.." % os.path.basename(input_path))
+            if funky_trace_run(q, input_path):
+                with open(work_dir + "/redqueen_workdir_1337/pt_trace_results.txt", 'rb') as f_in:
+                    with lz4.LZ4FrameFile(trace_file, 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+            pbar.update()
+    except:
+        q.async_exit()
+        raise
+    q.shutdown()
 
+
+def simple_trace_run(q, payload):
+    global null_hash
+    q.set_payload(payload)
+    exec_res = q.execute_in_trace_mode(timeout_detection=False)
+
+    if not exec_res:
+        #print("Failed to execute. Continuing anyway...\n")
+        assert(q.restart())
+        return None
+
+    if exec_res.is_crash():
+        q.reload()
+
+    if exec_res.hash() == null_hash:
+        q.restart()
+        exec_res = q.execute_in_trace_mode(timeout_detection=False)
+
+    return exec_res
+
+def funky_trace_run(q, input_path, retry=1):
+    validations = 12
+    confirmations = 0
+
+    payload = read_binary_file(input_path)
+
+    hashes = dict()
+    for _ in range(validations):
+        res = simple_trace_run(q, payload)
+        if not res:
+            return None
+
+        # skip crahses and timeouts as they tend to be slow
+        if res.is_crash():
+            return res
+
+        h = res.hash()
+        if h == null_hash:
+            continue
+
+        if  h in hashes:
+            hashes[h] += 1
+        else:
+            hashes[h] = 1
+
+        # break early if we have a winner, with trace stored to temp file
+        if hashes[h] >= 0.5*validations:
+            return res
+
+    #print("Failed to get majority trace (retry=%d)\nHashes: %s\n" % (retry, str(hashes)))
+
+    if retry > 0:
+        q.restart()
+        time.sleep(1)
+        return funky_trace_run(q, input_path, retry=retry-1)
+
+    return None
 
 
 def main():
+    global null_hash
 
     KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/"
     KAFL_CONFIG = KAFL_ROOT + "kafl.ini"
@@ -277,15 +414,18 @@ def main():
 
     data_dir = config.argument_values["input"]
 
+    null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
+
     print(" Scanning target data_dir »%s«..." % data_dir )
     input_list = get_inputs_by_time(data_dir)
     trace_dir = generate_traces(config, input_list)
-    
+
     if not trace_dir:
         return -1
-    
-    plot_bbs_from_traces(trace_dir, input_list)
 
+    trace_parser = TraceParser(trace_dir)
+    trace_parser.parse_trace_list(input_list)
+    trace_parser.gen_reports()
 
 if __name__ == "__main__":
     main()

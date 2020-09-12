@@ -21,6 +21,7 @@ from fuzzer.technique.redqueen import parser
 from fuzzer.technique.redqueen.hash_fix import HashFixer
 from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
 from fuzzer.technique.helper import rand
+from common.execution_result import ExecutionResult
 
 REFRESH = 0.25
 
@@ -105,7 +106,7 @@ def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
     log_debug("Starting debug execution...(%d rounds)" % execs)
 
     payload_file = config.argument_values["input"]
-    zero_hash = mmh3.hash(("\x00" * config.config_values['BITMAP_SHM_SIZE']), signed=False)
+    null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
     q = qemu(1337, config, debug_mode=True, notifiers=notifiers)
     assert q.start(), "Failed to start Qemu?"
 
@@ -119,7 +120,7 @@ def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
         # hexdump(a)
         result = q.send_payload()
         current_hash = result.hash()
-        if zero_hash == current_hash:
+        if null_hash == current_hash:
             log_debug("Feedback Hash: " + str(
                 current_hash) + common.color.WARNING + " (WARNING: Zero hash found!)" + common.color.ENDC)
         else:
@@ -417,7 +418,7 @@ def start(config):
         raise
     finally:
         # cleanup
-        os.system("stty sane")
+        #os.system("stty sane")
         for i in range(512):
             if os.path.exists("/tmp/kAFL_printf.txt." + str(i)):
                 os.remove("/tmp/kAFL_printf.txt." + str(i))
