@@ -280,7 +280,7 @@ class GuiDrawer:
                                           (10, "node",       " N/A "),
                                           (15, "fav/lvl", "    N/A "),
                                           (13, "exec/s",    "  N/A ")],
-                                          prefix="%c Slave %d" % (hl, i))
+                                          prefix="%c Slave %2d" % (hl, i))
 
         i = self.current_slave_id
         self.gui.print_thin_line()

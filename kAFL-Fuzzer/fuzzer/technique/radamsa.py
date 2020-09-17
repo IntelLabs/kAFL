@@ -22,7 +22,7 @@ def init_radamsa(config, slave_id):
     global input_dir
     global radamsa_path
 
-    corpus_dir = config.argument_values['work_dir'] + "/corpus/"
+    corpus_dir = config.argument_values['work_dir'] + "/corpus/regular/"
     radamsa_path = config.config_values["RADAMSA_LOCATION"]
     input_dir = config.argument_values['work_dir'] + "/radamsa_%d/" % slave_id
 
