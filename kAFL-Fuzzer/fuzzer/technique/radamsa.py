@@ -22,7 +22,7 @@ def init_radamsa(config, slave_id):
     global input_dir
     global radamsa_path
 
-    corpus_dir = config.argument_values['work_dir'] + "/corpus/regular/"
+    corpus_dir = config.argument_values['work_dir'] + "/corpus/"
     radamsa_path = config.config_values["RADAMSA_LOCATION"]
     input_dir = config.argument_values['work_dir'] + "/radamsa_%d/" % slave_id
 
@@ -41,7 +41,7 @@ def mutate_seq_radamsa_array(data, func, max_iterations):
 
     last_n = 5
     rand_n = 10
-    files = sorted(glob.glob(corpus_dir + "/*/payload_*"))
+    files = sorted(glob.glob(corpus_dir + "/regular/payload_*"))
     samples = files[-last_n:] + random.sample(files[:-last_n], max(0, min(rand_n, len(files) - last_n)))
 
     if not samples:
