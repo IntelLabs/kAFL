@@ -1,0 +1,39 @@
+From 6a93040cfeacfab537c3bae6ee69a13d076e9c2b Mon Sep 17 00:00:00 2001
+From: Roman Lozko <lozko.roma@gmail.com>
+Date: Thu, 30 Jul 2020 00:00:00 +0000
+Subject: [PATCH 2/2] Set kAFL hypercall longmode properly; fix printk build
+ warning
+
+---
+ arch/x86/kvm/vmx/vmx_pt.c | 2 +-
+ arch/x86/kvm/x86.c        | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/x86/kvm/vmx/vmx_pt.c b/arch/x86/kvm/vmx/vmx_pt.c
+index 1ed2e8fd2..a19f2b76a 100644
+--- a/arch/x86/kvm/vmx/vmx_pt.c
++++ b/arch/x86/kvm/vmx/vmx_pt.c
+@@ -179,7 +179,7 @@ static void topa_reset(struct vcpu_vmx_pt *vmx_pt)
+ {
+ #ifdef DEBUG
+ 	if (vmx_pt_get_data_size(vmx_pt) >= TOPA_MAIN_SIZE)
+-		printk(KERN_WARNING "Main TOPA buffer exhausted! %x >= %x?\n",
++		printk(KERN_WARNING "Main TOPA buffer exhausted! %lx >= %x?\n",
+ 			   vmx_pt_get_data_size(vmx_pt), TOPA_MAIN_SIZE+TOPA_FALLBACK_SIZE);
+ #endif
+ 
+diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
+index 44f470118..b05187674 100644
+--- a/arch/x86/kvm/x86.c
++++ b/arch/x86/kvm/x86.c
+@@ -7695,6 +7695,7 @@ int kvm_emulate_hypercall(struct kvm_vcpu *vcpu)
+ 	/* kAFL Hypercall interface */
+ 	if (nr == HYPERCALL_KAFL_RAX_ID) {
+ 		int r = 0;
++		vcpu->run->hypercall.longmode = op_64_bit;
+ 		switch(a0){
+ 			case (KVM_EXIT_KAFL_ACQUIRE-KAFL_EXIT_OFFSET):
+ 				vcpu->run->exit_reason = KVM_EXIT_KAFL_ACQUIRE;
+-- 
+2.25.1
+
