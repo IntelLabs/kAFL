@@ -667,7 +667,6 @@ class qemu:
         if repeat:
             log_qemu("Repeating iteration...", self.qemu_id)
             if max_iterations != 0:
-                self.send_payload(apply_patches=apply_patches, timeout_detection=timeout_detection, max_iterations=0)
                 res = self.send_payload(apply_patches=apply_patches, timeout_detection=timeout_detection,
                                         max_iterations=max_iterations - 1)
                 res.performance = time.time() - start_time
