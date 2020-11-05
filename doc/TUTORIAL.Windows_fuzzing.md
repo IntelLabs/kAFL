@@ -6,7 +6,7 @@ Based on README.kAFL.md. Tested on Ubuntu 20.04.
 
 ### Preparing base image
 
-1. (Download)[https://www.microsoft.com/evalcenter/evaluate-windows] Windows installer ISO - `windows.iso`. I'll be using Windows Server 2019 Evaluation ISO (`17763.737.190906-2324.rs5_release_svc_refresh_SERVER_EVAL_x64FRE_en-us_1.iso`) from now on.
+1. [Download](https://www.microsoft.com/evalcenter/evaluate-windows) Windows installer ISO - `windows.iso`. I'll be using Windows Server 2019 Evaluation ISO (`17763.737.190906-2324.rs5_release_svc_refresh_SERVER_EVAL_x64FRE_en-us_1.iso`) from now on.
 2. `qemu-img create -f qcow2 windows.qcow2 50G` - create QEMU hard drive image for Windows.
 3. `./kAFL/qemu-5.0.0/x86_64-softmmu/qemu-system-x86_64 -machine q35 -enable-kvm -m 1024 -hda ./windows.qcow2 -cdrom ./windows.iso` - install Windows.
 4. Install everything you need to the VM. It seems that currently QEMU creates NAT network for VM by default which gives you network access to the host as well as to the Internet which may be useful.
@@ -14,7 +14,7 @@ Based on README.kAFL.md. Tested on Ubuntu 20.04.
 
 ### Preparing fuzzing snapshot
 
-1. `qemu-img create -f qcow2 -b ./windows.qcow2 overlay_0.qcow2` - create overlay hard drive image which is based on `windows.qcow2` hard drive. Note that `windows.qcow2` can not be moved anywhere from this point or you will need to manually correct `snapshot.qcow2` file using `qemu-img`.
+1. `qemu-img create -f qcow2 -b ./windows.qcow2 overlay_0.qcow2` - create overlay hard drive image which is based on `windows.qcow2` hard drive. Note that `windows.qcow2` can not be moved anywhere from this point, else you will need to manually correct `snapshot.qcow2` file using `qemu-img`.
 2. Prepare loader binary. Generally you only need to do `./install.sh targets` in kAFL directory and use `targets/windows_x86_64/bin/loader/loader.exe`. Note that it may not build Windows targets by default, you need to install Mingw libraries first, as `install.sh` will suggest.
 3. Copy loader binary to the VM. You can mount snapshot disk for that purpose: `mkdir mnt && sudo modprobe nbd && sudo qemu-nbd --connect=/dev/nbd0 ./overlay_0.qcow2 && sleep 1 && sudo mount /dev/nbd0p2 ./mnt && cp ./loader.exe ./mnt && umount ./mnt && sudo qemu-nbd --disconnect /dev/nbd0 && rmdir ./mnt`
 4. Launch snapshot VM without network (`./kAFL/qemu-5.0.0/x86_64-softmmu/qemu-system-x86_64 -machine q35 -enable-kvm -m 1024 -hda ./overlay_0.qcow2 -net none`)
@@ -61,6 +61,6 @@ This is the first point where you pass VM to kAFL instead of working with it dir
 
 #### Troubleshooting
 
-Got `[WARNING] Slave 0: Error in debug_recv(): Got b'R', Expected: b'DZ'` right after starting `kafl_fuzz.py`? No worries! This is a (known problem)[https://github.com/IntelLabs/kAFL/issues/10#issuecomment-662632491]. The fix is described a (little bit further)[https://github.com/IntelLabs/kAFL/issues/10#issuecomment-663480222].
+Got `[WARNING] Slave 0: Error in debug_recv(): Got b'R', Expected: b'DZ'` right after starting `kafl_fuzz.py`? No worries! This is a [known problem](https://github.com/IntelLabs/kAFL/issues/10#issuecomment-662632491). The fix is described a [little bit further](https://github.com/IntelLabs/kAFL/issues/10#issuecomment-663480222).
 
 For other problems, run `kafl_fuzz.py` with `-v --debug` arguments and observer `./work/debug.log`.
