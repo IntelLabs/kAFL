@@ -150,9 +150,7 @@ def add_args_qemu(parser):
     xorarg = parser.add_mutually_exclusive_group(required=True)
 
     xorarg.add_argument('-vm_dir', metavar='<dir>', required=False, action=FullPath,
-                        type=parse_is_dir, help='path to a VM\'s overlay directory. Also needs -vm_ram')
-    parser.add_argument('-vm_ram', metavar='<file>', required=False, action=FullPath, type=parse_is_file,
-                        help='path to a VM\'s RAM snapshot file. Use together with -vm_dir.')
+                        type=parse_is_dir, help='path to a VM\'s overlay directory.')
     parser.add_argument('-S', required=False, metavar='<name>', help='name of VM snapshot to save/load (default: kafl).',
                         default="kafl", type=str)
 
@@ -351,7 +349,7 @@ class DebugConfiguration(six.with_metaclass(Singleton)):
                            '<verify>\t\trun verifcation steps\n'
 
         parser = ArgsParser(formatter_class=argparse.RawTextHelpFormatter, add_help=False)
-        
+
         general = parser.add_argument_group('General options')
         add_args_general(general)
 
@@ -361,7 +359,7 @@ class DebugConfiguration(six.with_metaclass(Singleton)):
                             default=5, type=int)
         parser.add_argument('-trace', required=False, help='capture full PT traces (for some actions)',
                         action='store_true', default=False)
-        general.add_argument('-action', required=False, metavar='<cmd>', choices=debug_modes, 
+        general.add_argument('-action', required=False, metavar='<cmd>', choices=debug_modes,
                             help=debug_modes_help)
 
         qemu = parser.add_argument_group('Qemu options')
