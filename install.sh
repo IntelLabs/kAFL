@@ -37,7 +37,7 @@ check_gitconfig()
 	 $ git config user.name Joe User
 	 $ git config user.email <joe.user@invalid.local>
 	"
-	exit
+	exit 1
 }
 
 system_check()
@@ -56,11 +56,17 @@ system_check()
 		exit 1
 	fi
 
-	if ! [ -f /etc/lsb-release ]; then
-		echo "[-] Note: This was tested using Ubuntu (19.04)."
-		echo "Similar distributions will probably mostly work."
+	dist_id="$(lsb_release -si)"
+	if [ "$dist_id" != "aDebian" -a "$dist_id" != "Ubuntu" ]; then
+		echo "[-] Error: This installer was tested using recent Debian and Ubuntu."
 		echo
-		echo "Press [Ctrl-c] to exit or [Return] to continue.."
+		echo "Other recent Linux distributions will generally work as well but"
+		echo "the installer will not be able to resolve the required dependencies."
+		echo
+		echo "It is recommended to abort the installer and instead follow this"
+		echo "script by hand, resolving any build/runtime errors as they come up."
+		echo
+		echo "Press [Ctrl-c] to abort or [Return] to continue.."
 		read
 	fi
 
@@ -89,7 +95,7 @@ system_deps()
 	sudo apt-get install libcapstone-dev libcapstone3
 
 	echo "[*] Installing kAFL python dependencies ..."
-	pip3 install --user mmh3 lz4 psutil fastrand ipdb inotify msgpack toposort pygraphviz pgrep
+	pip3 install --user mmh3 lz4 psutil fastrand ipdb inotify msgpack toposort pygraphviz pgrep tqdm
 }
 
 build_qemu()
@@ -221,11 +227,12 @@ print_help()
 	echo
 	echo "Perform complete installation or limit to individual action:"
 	echo
-	echo " check  - check for basic requirements"
+	echo " check   - check for basic requirements"
 	echo " deps    - install dependencies"
 	echo " qemu    - download and build modified qemu"
 	echo " linux   - download and build modified linux kernel"
 	echo " perms   - create kvm group and add user <$USER> for /dev/kvm access"
+	echo " radamsa - download and build radamsa plugin"
 	echo
 	echo " all     - perform all of the above."
 	echo
@@ -278,6 +285,7 @@ case $1 in
 		system_deps
 		build_qemu
 		build_linux
+		build_radamsa
 		system_perms
 		build_targets
 		;;
