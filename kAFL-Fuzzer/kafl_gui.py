@@ -333,7 +333,7 @@ class GuiDrawer:
                     self.draw()
             except:
                 self.gui.clear()
-                min_rows = 42
+                min_rows = 34 + self.data.num_slaves()
                 min_cols = 82
                 rows, cols = self.stdscr.getmaxyx()
                 if rows < min_rows or cols < min_cols:
