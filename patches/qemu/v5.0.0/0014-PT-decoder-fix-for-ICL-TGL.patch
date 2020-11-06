@@ -1,0 +1,142 @@
+From 5cfbc06a99ad833abc961a9187b8153aa3b8d4ca Mon Sep 17 00:00:00 2001
+From: Steffen Schulz <steffen.schulz@intel.com>
+Date: Wed, 4 Nov 2020 20:58:27 +0000
+Subject: [PATCH] adopt PT decoder fix to enable ICL/TGL
+
+Kudos to Tamas Lengyel  https://github.com/nyx-fuzz/libxdc/pull/8
+---
+ pt/decoder.c | 80 ++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 47 insertions(+), 33 deletions(-)
+
+diff --git a/pt/decoder.c b/pt/decoder.c
+index 03d3b687..f03e06aa 100644
+--- a/pt/decoder.c
++++ b/pt/decoder.c
+@@ -101,7 +101,7 @@
+ 
+ #define PT_PKT_TIP_LEN			8
+ #define PT_PKT_TIP_SHIFT		5
+-#define PT_PKT_TIP_MASK			0b00011111
++#define PT_PKT_TIP_MASK			0b00000111
+ #define PT_PKT_TIP_BYTE0		0b00001101
+ #define PT_PKT_TIP_PGE_BYTE0	0b00010001
+ #define PT_PKT_TIP_PGD_BYTE0	0b00000001
+@@ -300,37 +300,51 @@ static inline void decoder_handle_fup(decoder_state_machine_t *self, uint64_t ad
+ 	}
+ }
+ 
+-static inline uint64_t get_ip_val(uint8_t **pp, uint8_t *end, uint8_t len, uint64_t *last_ip){
++static const int ipp_len[] = {
++	[0] = 0, //suppressed
++	[1] = 2, //update_16
++	[2] = 4, //update_32
++	[3] = 6, //sext_48 (sign extend)
++	[4] = 6, //update_48
++	[6] = 8  //full
++};
++
++static inline uint64_t get_ip_val(uint8_t **pp, uint64_t *last_ip){
+ 	uint8_t *p = *pp;
+-	uint64_t v = *last_ip;
+-	uint8_t i;
+-	uint8_t shift = 0;
++	uint8_t ipc = (*p++ >> PT_PKT_TIP_SHIFT) & PT_PKT_TIP_MASK; // ip compression mode
+ 
+-	switch(len){
+-		case 0:
+-			v = 0;
+-			break;
+-		case 1:
+-		case 2:
+-		case 3:
+-			if (unlikely(!LEFT(len))) {
+-				*last_ip = 0;
+-				v = 0;
+-				break;
+-			}
+-			for (i = 0; i < len; i++, shift += 16, p += 2) {
+-				uint64_t b = *(uint16_t *)p;
+-				v = (v & ~(0xffffULL << shift)) | (b << shift);
+-			}
+-			v = ((int64_t)(v << (64 - 48))) >> (64 - 48); /* sign extension */
+-			*pp = p;
+-			*last_ip = v;
+-			break;
+-		default:
+-			v = 0;
+-			break;
++	if ( ipc == 5 || ipc > 6 )
++		return 0;
++
++	uint8_t len = ipp_len[ipc]; // ip packet length
++
++	if ( !len )
++	{
++		*pp = p;
++		return *last_ip;
+ 	}
+-	return v;
++
++	uint64_t val;
++	uint8_t idx;
++
++	for (val = 0, idx = 0; idx < len; ++idx) {
++		uint64_t byte = *p++;
++
++		byte <<= (idx * 8);
++		val |= byte;
++	}
++
++	// extend mask from last ip if this is short here
++	if ( ipc < 3 )
++		val |= *last_ip & (0xFFFFFFFFFFFFFFFF << (ipc*16));
++
++	// sign extend
++	if (val & (1ull << 47))
++		val = ((int64_t)(val << (64-48))) >> (64-48);
++
++	*last_ip = val;
++	*pp = p;
++	return *last_ip;
+ }
+ 
+ static inline uint64_t get_val(uint8_t **pp, uint8_t len){
+@@ -360,7 +374,7 @@ static void tip_handler(decoder_t* self, uint8_t** p, uint8_t** end){
+ 		disasm(self);
+ 	}
+ 
+-	self->last_tip = get_ip_val(p, *end, (*(*p)++ >> PT_PKT_TIP_SHIFT), &self->last_tip_tmp);
++	self->last_tip = get_ip_val(p, &self->last_tip_tmp);
+ 	WRITE_SAMPLE_DECODED_DETAILED("TIP    \t%lx\n", self->last_tip);
+ 	decoder_handle_tip(self->decoder_state, self->last_tip, self->decoder_state_result);
+ 	disasm(self);
+@@ -376,7 +390,7 @@ static void tip_pge_handler(decoder_t* self, uint8_t** p, uint8_t** end){
+ 		disasm(self);
+ 	}
+ 
+-	self->last_tip = get_ip_val(p, *end, (*(*p)++ >> PT_PKT_TIP_SHIFT), &self->last_tip_tmp);
++	self->last_tip = get_ip_val(p, &self->last_tip_tmp);
+ 	WRITE_SAMPLE_DECODED_DETAILED("PGE    \t%lx\n", self->last_tip);
+ 	decoder_handle_pge(self->decoder_state, self->last_tip, self->decoder_state_result);
+ 	disasm(self);
+@@ -398,7 +412,7 @@ static void tip_pgd_handler(decoder_t* self, uint8_t** p, uint8_t** end){
+ 		disasm(self);
+ 	}
+ 
+-	self->last_tip = get_ip_val(p, *end, (*(*p)++ >> PT_PKT_TIP_SHIFT), &self->last_tip_tmp);
++	self->last_tip = get_ip_val(p, &self->last_tip_tmp);
+ 	WRITE_SAMPLE_DECODED_DETAILED("PGD    \t%lx\n", self->last_tip);
+ 	decoder_handle_pgd(self->decoder_state, self->last_tip, self->decoder_state_result);
+ 	disasm(self);
+@@ -415,7 +429,7 @@ static void tip_pgd_handler(decoder_t* self, uint8_t** p, uint8_t** end){
+ }
+ 
+ static void tip_fup_handler(decoder_t* self, uint8_t** p, uint8_t** end){
+-	self->last_tip = get_ip_val(p, *end, (*(*p)++ >> PT_PKT_TIP_SHIFT), &self->last_tip_tmp);
++	self->last_tip = get_ip_val(p, &self->last_tip_tmp);
+ 	self->fup_bind_pending = true;
+ #ifdef DECODER_LOG
+ 	self->log.tip_fup++;
+-- 
+2.25.1
+
