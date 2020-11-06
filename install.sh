@@ -57,7 +57,7 @@ system_check()
 	fi
 
 	dist_id="$(lsb_release -si)"
-	if [ "$dist_id" != "aDebian" -a "$dist_id" != "Ubuntu" ]; then
+	if [ "$dist_id" != "Debian" -a "$dist_id" != "Ubuntu" ]; then
 		echo "[-] Error: This installer was tested using recent Debian and Ubuntu."
 		echo
 		echo "Other recent Linux distributions will generally work as well but"
