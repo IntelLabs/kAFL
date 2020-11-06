@@ -7,13 +7,15 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
-
-# Launch as:
+# Usage:
 # $ gnuplot -c $tools/stats.plot $workdir/stats.csv
 
 indata1=ARG1
 
+#set terminal png size 900,800 enhanced
+#set output stats.png
 set terminal wxt size 900,800 enhanced persist
+
 set multiplot
 
 set grid xtics linetype 0 linecolor rgb '#d0d0d0'
