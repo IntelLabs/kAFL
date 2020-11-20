@@ -14,6 +14,10 @@ SDK_URL="https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.11.3/
 
 KAFL_OPTS="-p $(nproc) -grimoire -redqueen -hammer_jmp_tables -catch_reset"
 
+# recent Zephyr uses qemu -icount and fails to boot with -enable-kvm
+#ZEPHYR_VERSION="v2.4.0"
+ZEPHYR_VERSION="v2.3.0"
+
 function fail {
 	echo
 	echo -e "$1"
@@ -42,7 +46,7 @@ function fetch_zephyr() {
 
 	echo "[-] Fetching Zephyr components.."
 	pushd $KAFL_ROOT
-	west init zephyrproject
+	west init --mr $ZEPHYR_VERSION zephyrproject
 	cd zephyrproject
 	west update
 	pip3 install --user -r zephyr/scripts/requirements.txt

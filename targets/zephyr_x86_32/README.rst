@@ -1,54 +1,39 @@
 .. _zephyr_agent:
 
-kAFL Hello 
-###########
+Zephyr Fuzzing
+##############
 
-This is a hello world/sample app for fuzzing Zephyr with kAFL.
+This folder contains example agents and helper scripts to get started with
+fuzzing Zephyr with kAFL.
 
-Building and Running
-********************
+All of the below steps are captured in the `compile.sh` helper script, so the
+below notes are only relevant for context, in case the script does not work or
+if you want to run your own RTOS/FW image in kAFL.
 
-See quick howto below for how to build this using Zephyr RTOS+SDK.
-
-To compile the fuzzing hello world sample, compile with "KAFL_TEST=y":
-
-.. code-block:: console
-
-   mkdir build; cd build
-   cmake ../ -D KAFL_TEST=y''
-   make
-
-Test using patched Qemu+KVM to observe hypercalls in Qemu log. Take care that
-the handshake and fuzzing loop works, otherwise the fuzzer will misbehave.
+All scripts are meant to be called from the kAFL root:
 
 .. code-block:: console
 
-   qemu-system-x86_64 -serial mon:stdio -enable-kvm -m 16 -nographic -no-reboot -no-acpi \
-                      -kernel build/zephyr/zephyr.elf -no-reboot -no-acpi -D qemu_logfile.log
+    ./targets/zephyr_x86_32/compile.sh zephyr
+    ./targets/zephyr_x86_32/compile.sh build TEST
+    ./targets/zephyr_x86_32/compile.sh run -v -redqueen -p 2
 
-
-Start the fuzzer in -kernel mode, using the compiled Zephyr kernel with
-integrated fuzzing agent as the payload (will be the argment to 'qemu -kernel').
-Currently need to provide fake VM snapshot files to make the parser happy.
-
-The IP range can be determined from zephyr.map and should include the subsystem
-you are trying to fuzz. Validate in debug.log that Qemu can successfully extract
-the target code range from the VM (first couple lines).
+All status and output is written to a temporary work dir in /dev/shm/kafl_zephyr by default.
+Follow the main kAFL Readme to view the status in a separate terminal:
 
 .. code-block:: console
-
-   python kafl_fuzz.py -ip0 0x0000000000102af1-0x000000000010ad52 \
-        -mem 16 -extra ' -no-reboot -no-acpi' \
-        -kernel targets/zephyr_x86_32/build/zephyr/zephyr.elf \
-        -seed_dir seed/kafl_vulntest/ \
-        -work_dir /dev/shm/kafl_zephyr \
-        --purge -v
+    
+   python3 kAFL-Fuzzer/kafl_gui.py /dev/shm/kafl_zephyr
+   python3 kAFL-Fuzzer/kafl_plot.py /dev/shm/kafl_zephyr
+   gnuplot -c ~/kafl/tools/stats.plot $workdir/stats.csv
 
 
-Zephyr Quick Setup
-##################
 
-Please check the latest online guides for detailed information.
+Zephyr RTOS + SDK Install
+#########################
+
+Quick steps captured below, check the latest Zephyr guides for detailed
+information.
 
 Environment/Dependencies Setup
 ******************************
@@ -100,8 +85,20 @@ If you have trouble building the hello world sample, try using the Zephyr SDK:
    source zephyr-env.sh
 
 
+Launching Zephyr RTOS
+######################
+
+To launch Zephyr you need to build a particular application which will be run as
+the main thread. Zephyr will not do anything useful if that application is
+missing.
+
 # Build and run application in Qemu
 ***********************************
+
+Start building the Zephyr hello world. We need to have this running in a qemu
+environment that is compatible with the later kAFL Qemu setup. In particular,
+this means our target app should work with -enable-kvm. Also note the required
+RAM and any other dependencies at this point.
 
 .. code-block:: console
 
@@ -110,9 +107,59 @@ If you have trouble building the hello world sample, try using the Zephyr SDK:
    cd build
    ninja run
 
-   # build kAFL hello world using cmake
+   ps aux|grep qemu # note commandline
+
+   # confirm it running with KVM and minimum other parameters
+   qemu -kernel zephyr.elf -enable-kvm -m 16 [...]
+
+
+# Build and run Zephyr-based kAFL Agent
+***************************************
+
+To fuzz Zephyr or one of its components, we need to integrate a kAFL agent into
+the guest VM. The agent communicates with kAFL to receive a fuzz input and
+deliver it to the desired test target.
+
+We provide two examples: The `TEST` application implements its own target_test()
+function which contains known bugs. The fuzzer will quickly find the inputs that
+cause this function to crash. The `JSON` application calls the json parser of
+Zephyr to process the fuzzer input, thus fuzzing the json parser.
+
+.. code-block:: console
+
    cd path/to/zephyr/agent
    mkdir build; cd build
-   cmake ../ -D KAFL_TEST=y
+   cmake ../ -D KAFL_TEST=y''
    make
+
+Test the build using the patched Qemu+KVM. We expect it to fail on the
+hypercalls since the kAFL frontend is missing. However, we can confirm at this
+point that the agent actually starts and attempts to connect to kAFL as
+expected. We can also identify the minimum qemu commandline required to boot
+Zephyr and potentially adjust the configuration used by kAFL.
+
+.. code-block:: console
+
+   qemu-system-x86_64 -serial mon:stdio -enable-kvm -m 16 -nographic -no-reboot -no-acpi \
+                      -kernel build/zephyr/zephyr.elf -no-reboot -no-acpi -D qemu_logfile.log
+
+
+Start the fuzzer in -kernel mode, using the compiled Zephyr kernel with
+integrated fuzzing agent as the payload (will be the argment to 'qemu -kernel').
+Currently need to provide fake VM snapshot files to make the parser happy.
+
+The IP range can be determined from `build/zephyr.map` and should include the subsystem
+you are trying to fuzz. Typically we can just use the entire `.text` segment here
+since Zephyr strips any unnecessary functionality at build time and will not
+have any undesired background activity outside our fuzzing loop.
+
+.. code-block:: console
+
+   python kafl_fuzz.py -ip0 0x0000000000102af1-0x000000000010ad52 \
+        -mem 16 -extra ' -no-reboot -no-acpi' \
+        -kernel targets/zephyr_x86_32/build/zephyr/zephyr.elf \
+        -seed_dir seed/kafl_vulntest/ \
+        -work_dir /dev/shm/kafl_zephyr \
+        --purge -v
+
 
