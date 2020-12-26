@@ -20,7 +20,7 @@ class MasterStatistics:
         self.plot_last = 0
         self.plot_thres = 5
         self.write_last = 0
-        self.write_thres = 0.5
+        self.write_thres = 0.3
         self.num_slaves = self.config.argument_values['p']
         self.work_dir = self.config.argument_values['work_dir']
         self.data = {
@@ -28,6 +28,7 @@ class MasterStatistics:
                 "total_execs": 0,
                 "num_funky": 0,
                 "num_reload": 0,
+                "num_timeout": 0,
                 "paths_total": 0,
                 "paths_pending": 0,
                 "favs_pending": 0,
@@ -48,7 +49,7 @@ class MasterStatistics:
         self.stats_file = self.work_dir + "/stats"
         self.plot_file  = self.work_dir + "/stats.csv"
         # write once so that we have a valid stats file
-        self.write_statistics()
+        self.maybe_write_stats()
 
     def read_slave_stats(self, slave_id):
         # one-shot attempt to read + parse file - this can fail!
@@ -86,20 +87,23 @@ class MasterStatistics:
                 self.data["favs_pending"] -= 1
 
     def event_slave_poll(self):
-        # poll slave stats out of band - otherwise #execs are stalled by slow fuzz stages
-        cur_execs = 0
-        cur_funky = 0
-        cur_reload = 0
+        # collect some global stats - not pretty but simplifies write_plot and kafl_gui
+        sum_execs = 0
+        sum_funky = 0
+        sum_reload = 0
+        sum_timeout = 0
         try:
             for slave_id in range(0, self.num_slaves):
-                cur_execs  += self.read_slave_stats(slave_id).get("total_execs", 0)
-                cur_funky  += self.read_slave_stats(slave_id).get("num_funky", 0)
-                cur_reload += self.read_slave_stats(slave_id).get("num_reload", 0)
-            self.data["total_execs"] = cur_execs
-            self.data["num_funky"]   = cur_funky
-            self.data["num_reload"] = cur_reload
+                sum_execs  += self.read_slave_stats(slave_id).get("total_execs", 0)
+                sum_funky  += self.read_slave_stats(slave_id).get("num_funky", 0)
+                sum_reload += self.read_slave_stats(slave_id).get("num_reload", 0)
+                sum_timeout += self.read_slave_stats(slave_id).get("num_timeout", 0)
         except:
-            pass
+            return # don't update on read failure
+        self.data["total_execs"] = sum_execs
+        self.data["num_funky"]   = sum_funky
+        self.data["num_reload"]  = sum_reload
+        self.data["num_timeout"] = sum_timeout
 
     def event_node_update(self, node, update):
         if update.get("state", None):
@@ -120,14 +124,16 @@ class MasterStatistics:
 
         if cur_time - self.write_last > self.write_thres:
             self.write_last = cur_time
+            self.event_slave_poll()
             self.write_statistics()
 
-        if cur_time - self.plot_last > self.plot_thres:
-            self.plot_last = cur_time
-            self.write_plot()
+            if cur_time - self.plot_last > self.plot_thres:
+                self.plot_last = cur_time
+                self.write_plot()
 
     def write_statistics(self):
         atomic_write(self.stats_file, msgpack.packb(self.data, use_bin_type=True))
+        #print "execs/sec: %d" % ((self.data["executions"] + self.data["executions_redqueen"]) / self.data["duration"])
 
     def write_plot(self):
         cur_time = time.time()
@@ -158,10 +164,8 @@ class SlaveStatistics:
         self.config = config
         self.filename = self.config.argument_values['work_dir'] + "/slave_stats_%d" % (slave_id)
         self.write_last = 0
-        self.write_thres = 0.5
-        self.execs_recent = 0
-        self.execs_last_time = 0
-        self.execs_thres = 2
+        self.write_thres = 0.3
+        self.execs_new = 0
         self.data = {
             "start_time": time.time(),
             "run_time": 0,
@@ -169,6 +173,7 @@ class SlaveStatistics:
             "execs/sec": 0,
             "num_reload": 0,
             "num_funky": 0,
+            "num_timeout": 0,
             "executions_redqueen": 0,
             "node_id": 0,
         }
@@ -179,17 +184,18 @@ class SlaveStatistics:
         self.data["stage"] = stage
         self.data["node_id"] = nid
         self.maybe_write_stats()
-        #self.write_statistics()
 
     def event_method(self, method):
         self.data["method"] = method
 
     def event_exec(self):
-        self.data["total_execs"] += 1
+        self.execs_new += 1
         self.maybe_write_stats()
 
-    def event_reload(self):
+    def event_reload(self, reason):
         self.data["num_reload"] += 1
+        if reason == "timeout":
+            self.data["num_timeout"] += 1
         self.maybe_write_stats()
 
     def event_funky(self):
@@ -208,8 +214,11 @@ class SlaveStatistics:
         if cur_time - self.write_last < self.write_thres:
             return
 
-        self.write_last = cur_time
         self.data["run_time"] = cur_time - self.data["start_time"]
-        self.data["execs/sec"] = self.data["total_execs"] / self.data["run_time"]
+        self.data["execs/sec"] = self.execs_new // (cur_time - self.write_last)
+        self.data["total_execs"] += self.execs_new
+        self.execs_new = 0
+
         atomic_write(self.filename, msgpack.packb(self.data, use_bin_type=True))
         #print "execs/sec: %d" % ((self.data["executions"] + self.data["executions_redqueen"]) / self.data["duration"])
+        self.write_last = cur_time

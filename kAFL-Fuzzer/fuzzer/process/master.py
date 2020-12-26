@@ -99,7 +99,6 @@ class MasterProcess:
                     self.send_next_task(conn)
                 else:
                     raise ValueError("unknown message type {}".format(msg))
-            self.statistics.event_slave_poll()
             self.statistics.maybe_write_stats()
             self.check_abort_condition()
 

@@ -198,7 +198,11 @@ class SlaveProcess:
 
     def execute_redqueen(self, data):
         self.statistics.event_exec_redqueen()
-        return self.q.execute_in_redqueen_mode(data)
+        exec_res = self.q.execute_in_redqueen_mode(data)
+        if not exec_res.is_regular():
+            self.statistics.event_reload(exec_res.exit_reason)
+            self.q.reload()
+        return True
 
     def __send_to_master(self, data, exec_res, info):
         info["time"] = time.time()
@@ -224,7 +228,7 @@ class SlaveProcess:
                     shutil.copyfileobj(f_in, f_out)
 
             if not exec_res.is_regular():
-                self.statistics.event_reload()
+                self.statistics.event_reload(exec_res.exit_reason)
                 self.q.reload()
         except Exception as e:
             log_slave("Failed to produce trace %s: %s (skipping..)" % (trace_file_out, e), self.slave_id)
@@ -245,16 +249,15 @@ class SlaveProcess:
                 raise
             print_warning("SHM/socket error on Slave %d (retry %d)" % (self.slave_id, retry))
             log_slave("SHM/socket error, trying to restart qemu...", self.slave_id)
-            self.statistics.event_reload()
+            self.statistics.event_reload("shm/socket error")
             if not self.q.restart():
                 raise
         return self.__execute(data, retry=retry+1)
 
 
     def execute(self, data, info):
-        self.statistics.event_exec()
-
         exec_res = self.__execute(data)
+        self.statistics.event_exec()
 
         is_new_input = self.bitmap_storage.should_send_to_master(exec_res)
         crash = exec_res.is_crash()
@@ -281,7 +284,7 @@ class SlaveProcess:
 
         # restart Qemu on crash
         if crash:
-            self.statistics.event_reload()
+            self.statistics.event_reload(exec_res.exit_reason)
             self.q.reload()
 
         return exec_res, is_new_input

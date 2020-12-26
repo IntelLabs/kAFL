@@ -202,7 +202,7 @@ class GuiDrawer:
         self.gui.print_info_line([
             (16, "Runtime", ptime(d.runtime())),
             (16, "#Execs", pnum(d.total_execs())),
-            (16, "Exec/s", pnum(d.execs_p_sec_avg())),
+            (16, "Exec/s", pnum(d.execs_p_sec_cur())),
             (16, "Slaves", "%d/%d" %
                 (d.num_slaves(), d.cpu_cores()))])
         self.gui.print_info_line([
@@ -449,11 +449,11 @@ class GuiData:
     def runtime(self):
         return max([x["run_time"] for x in self.slave_stats])
 
+    def execs_p_sec_cur(self):
+        return sum([x.get("execs/sec",0) for x in self.slave_stats])
+
     def execs_p_sec_avg(self):
         return self.total_execs()/self.runtime()
-
-    def slave_execs_p_sec(self, sid):
-        return self.slave_stats[i].get(["execs/sec"],0)
 
     def total_execs(self):
         return self.stats.get("total_execs", 0)
