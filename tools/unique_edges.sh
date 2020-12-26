@@ -33,7 +33,7 @@ pushd "$WORKDIR/traces/"
 # can be LOTS of traces, so do sort/uniq on individual files first..
 for trace in ./payload_*.lz4; do
 	echo "lz4cat $trace |grep edge|sort -u >> $TMPFILE"
-	lz4cat $trace|grep edge|sort -u >> $TMPFILE
+	lz4cat $trace|grep -v ffffffff|sed 's/,/\ /'g|awk '{print $1,$2}'|sed "s/ /,/" >> $TMPFILE
 done
 
 echo -n "Sorting final output..."

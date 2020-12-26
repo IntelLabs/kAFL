@@ -61,13 +61,10 @@ class TraceParser:
         bbs = set()
         edges = set()
         with lz4.LZ4FrameFile(trace_file, 'rb') as f:
-            for m in re.finditer("\{.(\w+).: \[?(\d+),?(\d+)?\]? \}", f.read().decode()):
-                if m.group(1) == "trace_enable": 
-                    gaps.add(m.group(2))
-                if m.group(1) == "edge": 
-                    edges.add("%s,%s" % (m.group(2), m.group(3)))
-                    bbs.add(m.group(2))
-                    bbs.add(m.group(3))
+            for m in re.finditer("([\da-f]+),([\da-f]+),([\da-f]+)", f.read().decode()):
+                edges.add("%s,%s" % (m.group(1), m.group(2)))
+                bbs.add(m.group(1))
+                bbs.add(m.group(2))
 
         return {'bbs': bbs, 'edges': edges, 'gaps': gaps}
 
@@ -316,6 +313,7 @@ def generate_traces_worker(config, pid, input_list):
     pbar = tqdm(total=len(input_list), desc=pname, dynamic_ncols=True, smoothing=0.1, position=pid+1)
 
     try:
+        q.set_timeout(4)
         for input_path in input_list:
             trace_file = trace_dir + os.path.basename(input_path) + ".lz4"
             if os.path.exists(trace_file):
@@ -323,7 +321,7 @@ def generate_traces_worker(config, pid, input_list):
                 pbar.update()
                 continue
             #print("Processing %s.." % os.path.basename(input_path))
-            if funky_trace_run(q, input_path):
+            if simple_trace_run(q, read_binary_file(input_path)):
                 with open(work_dir + "/redqueen_workdir_1337/pt_trace_results.txt", 'rb') as f_in:
                     with lz4.LZ4FrameFile(trace_file, 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
                         shutil.copyfileobj(f_in, f_out)
@@ -337,7 +335,7 @@ def generate_traces_worker(config, pid, input_list):
 def simple_trace_run(q, payload):
     global null_hash
     q.set_payload(payload)
-    exec_res = q.execute_in_trace_mode(timeout_detection=False)
+    exec_res = q.execute_in_trace_mode()
 
     if not exec_res:
         #print("Failed to execute. Continuing anyway...\n")
@@ -349,7 +347,7 @@ def simple_trace_run(q, payload):
 
     if exec_res.hash() == null_hash:
         q.restart()
-        exec_res = q.execute_in_trace_mode(timeout_detection=False)
+        exec_res = q.execute_in_trace_mode()
 
     return exec_res
 

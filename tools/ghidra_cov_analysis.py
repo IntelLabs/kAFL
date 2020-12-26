@@ -69,10 +69,11 @@ def read_edges(tracefile):
     unique_edges = list()
     with open(tracefile) as trace:
         for line in trace.readlines():
-            src,dst = line.rstrip().split(",")
+            src,sep,rest = line.rstrip().partition(",")
+            dst,sep,rest = line.rstrip().partition(",")
             #print "edge: < 0x%08x, 0x%08x >" % (src,dst)
-            addr_src = addr.getAddress("0x%x" % int(src))
-            addr_dst = addr.getAddress("0x%x" % int(dst))
+            addr_src = addr.getAddress("0x%s" % src)
+            addr_dst = addr.getAddress("0x%s" % dst)
             unique_edges.append([addr_src, addr_dst])
 
     return unique_edges
