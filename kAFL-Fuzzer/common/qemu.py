@@ -10,45 +10,32 @@ Launch Qemu VMs and execute test inputs produced by kAFL-Fuzzer.
 import ctypes
 import mmap
 import os
-import resource
 import socket
 import struct
 import subprocess
 import time
-from socket import error as socket_error
 import sys
 
-import common.color
 from common.debug import log_qemu
 from common.execution_result import ExecutionResult
 from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
-from common.util import read_binary_file, atomic_write, print_fail, print_warning, strdump
+from common.util import read_binary_file, atomic_write, print_fail, print_warning, strdump, print_note, print_hprintf
 from common.qemu_aux_buffer import qemu_aux_buffer
-
-def to_string_32(value):
-    return [(value >> 24) & 0xff,
-            (value >> 16) & 0xff,
-            (value >> 8) & 0xff,
-            value & 0xff]
 
 
 class qemu:
 
     def __init__(self, qid, config, debug_mode=False, notifiers=True):
 
-        self.hprintf_print_mode = True
-        self.internal_buffer_overflow_counter = 0
-
         self.debug_mode = debug_mode
-        self.patches_enabled = False
-        self.needs_execution_for_patches = False
-        self.debug_counter = 0
-
         self.agent_size = config.config_values['AGENT_MAX_SIZE']
         self.bitmap_size = config.config_values['BITMAP_SHM_SIZE']
         self.payload_size = config.config_values['PAYLOAD_SHM_SIZE']
         self.config = config
         self.qemu_id = str(qid)
+        self.alt_bitmap = bytearray(self.bitmap_size)
+        self.alt_edges = 0
+        self.bb_seen = 0
 
         self.process = None
         self.control = None
@@ -72,11 +59,8 @@ class qemu:
 
         self.starved = False
         self.exiting = False
-        self.tick_timeout_treshold = self.config.config_values["TIMEOUT_TICK_FACTOR"]
 
         self.cmd = self.config.config_values['QEMU_KAFL_LOCATION']
-
-        self.catch_vm_reboots = self.config.argument_values['catch_resets']
 
         # TODO: list append should work better than string concatenation, especially for str.replace() and later popen()
         self.cmd += " -serial file:" + self.qemu_serial_log + \
@@ -121,15 +105,14 @@ class qemu:
         if self.debug_mode:
             self.cmd += " -d kafl -D " + self.qemu_trace_log
 
-        if self.catch_vm_reboots:
-            self.cmd += " -no-reboot"
+        self.cmd += " -no-reboot"
 
         if self.config.argument_values['gdbserver']:
             self.cmd += " -s -S"
 
         if self.config.argument_values['X']:
             if qid == 0 or qid == 1337:
-                self.cmd += "-display %s " % self.config.argument_values['X']
+                self.cmd += " -display %s" % self.config.argument_values['X']
         else:
             self.cmd += " -display none"
 
@@ -174,12 +157,6 @@ class qemu:
                 self.cmd += " -fast_vm_reload path=%s,load=on " % (
                              self.config.argument_values['work_dir'] + "/snapshot/")
                 time.sleep(1) # fixes some page_cache race bugs?!
-
-        self.crashed = False
-        self.timeout = False
-        self.kasan = False
-
-        #self.virgin_bitmap = bytes(self.bitmap_size)
 
         # split cmd into list of arguments for Popen(), replace BOOTPARAM as single element
         self.cmd = [_f for _f in self.cmd.split(" ") if _f]
@@ -293,6 +270,7 @@ class qemu:
         # organized shutdown via async_exit()
         self.process = subprocess.Popen(self.cmd,
                 preexec_fn=os.setpgrp)
+                # TODO: shutdown() fails to capture libxdc fprintf() - why?
                 #stdin=subprocess.PIPE,
                 #stdout=subprocess.PIPE,
                 #stderr=subprocess.STDOUT)
@@ -312,45 +290,37 @@ class qemu:
 
         return True
 
-    def unlock_qemu(self):
-        self.control.send(b'x')
-
-    def lock_qemu(self):
-        self.control.recv(1)
-
-    def dry_run_qemu(self):
-        while True:
-            self.unlock_qemu()
-            break
-        self.lock_qemu()
-
+    # release Qemu and wait for it to return
     def run_qemu(self):
-        self.unlock_qemu()
-        self.lock_qemu()
-
+        self.control.send(b'x')
+        self.control.recv(1)
+    
     def __qemu_handshake(self):
 
         if self.config.argument_values['agent']:
             self.__set_agent()
 
-        self.dry_run_qemu()
+        self.run_qemu()
 
         self.qemu_aux_buffer = qemu_aux_buffer(self.qemu_aux_buffer_filename)
         if not self.qemu_aux_buffer.validate_header():
             log_qemu("Invalid header in qemu_aux_buffer.py. Abort.", self.qemu_id)
-            print_fatal("Invalid header in qemnu_aux_buffer. Abort.")
+            print_fatal("Invalid header in qemu_aux_buffer. Abort.")
             self.async_exit()
 
         while self.qemu_aux_buffer.get_state() != 3:
             print("[Qemu %s] Waiting for target to enter fuzz mode.." % self.qemu_id)
             self.run_qemu()
 
-        log_qemu("Qemu is ready.\n", self.qemu_id)
-        print("[Qemu %s] Qemu is ready.\n" % self.qemu_id)
+        log_qemu("Qemu is ready.", self.qemu_id)
+        print("[Qemu %02d] Qemu is ready." % int(self.qemu_id))
 
         self.qemu_aux_buffer.set_reload_mode(True)
-        self.qemu_aux_buffer.set_timeout(3)
-        self.run_qemu()
+        #self.qemu_aux_buffer.set_trace_mode(True)
+        if not self.get_timeout():
+            self.set_timeout(4.5)
+
+        #self.run_qemu()
 
         return
 
@@ -365,7 +335,7 @@ class qemu:
             try:
                 self.control.connect(self.control_filename)
                 break
-            except socket_error:
+            except socket.error:
                 if self.process.returncode is not None:
                     raise
 
@@ -389,7 +359,7 @@ class qemu:
     # Fully stop/start Qemu instance to store logs + possibly recover
     def restart(self):
 
-        return 
+        return True
         self.shutdown()
         # TODO: Need to wait here or else the next instance dies in set_payload()
         # Perhaps Qemu should do proper munmap()/close() on exit?
@@ -406,36 +376,40 @@ class qemu:
             return self.restart()
 
     # Wait forever on Qemu to execute the payload - useful for interactive debug
-    def debug_payload(self, apply_patches=True):
+    def debug_payload(self):
 
-        self.qemu_aux_buffer.set_timeout(0)
-        self.run_qemu()
+        self.set_timeout(0)
+
+        self.send_payload()
+        #self.run_qemu()
 
         result = self.qemu_aux_buffer.get_result()
-        print("Result: %s\n" % self.exit_result(result))
+        print("Result: %s\n" % self.exit_reason(result))
+        #self.audit(result)
         return result
 
-    def send_payload(self, apply_patches=True, timeout_detection=True):
-
-        if (self.debug_mode):
-            log_qemu("Send payload..", self.qemu_id)
+    def send_payload(self):
 
         if self.exiting:
             sys.exit(0)
 
         result = None
         old_address = 0
+        self.persistent_runs += 1
+        #start_time = time.time()
 
         while True:
-            self.persistent_runs += 1
-            start_time = time.time()
-
             self.run_qemu()
 
             result = self.qemu_aux_buffer.get_result()
 
-            #if(old_address != 0):
-            #    print(result._asdict())
+            if result.pt_overflow:
+                print_warning("pt trashed")
+
+            if result.hprintf:
+                msg = strdump(self.qemu_aux_buffer.get_misc_buf()[:-1], verbatim=True)
+                print_hprintf(msg)
+                continue
 
             if result.success or result.crash_found or result.asan_found or result.timeout_found:
                 break
@@ -447,12 +421,46 @@ class qemu:
                     break
                 old_address = result.page_fault_addr
                 self.qemu_aux_buffer.dump_page(result.page_fault_addr)
-        
-        #print("perf: %02.2f" % (result.runtime_sec + result.runtime_usec/1000000))
 
-        return ExecutionResult(
+        runtime = result.runtime_sec + result.runtime_usec/1000000
+        #print("perf: %.3fms" % (result.runtime_sec*1000 + result.runtime_usec/1000))
+
+        # record highest seen BBs
+        self.bb_seen = max(self.bb_seen, result.bb_cov)
+
+        res = ExecutionResult(
                 self.c_bitmap, self.bitmap_size,
-                self.exit_reason(result), time.time() - start_time)
+                self.exit_reason(result), runtime)
+        #res = ExecutionResult.bitmap_from_bytearray(
+        #        bytearray(self.c_bitmap), self.exit_reason(result), time.time() - start_time)
+
+        if result.success > 1:
+            res.starved = True
+
+        #self.audit(res.copy_to_array())
+        #self.audit(bytearray(self.c_bitmap))
+
+        return res
+
+    def audit(self, bitmap):
+
+        if len(bitmap) != self.bitmap_size:
+            print("bitmap size: %d" % len(bitmap))
+
+        new_bytes = 0
+        new_bits = 0
+        for idx in range(self.bitmap_size):
+            if bitmap[idx] != 0x00:
+                if self.alt_bitmap[idx] == 0x00:
+                    self.alt_bitmap[idx] = bitmap[idx]
+                    new_bytes += 1
+                else:
+                    new_bits += 1
+        if new_bytes > 0:
+            self.alt_edges += new_bytes;
+            print("[Slave %02d] New bytes: %03d, bits: %03d, total edges seen: %03d" % (
+                int(self.qemu_id), new_bytes, new_bits, self.alt_edges))
+
 
     def exit_reason(self, result):
         if result.crash_found:
@@ -464,25 +472,31 @@ class qemu:
         else:
             return "regular"
 
-    def execute_in_trace_mode(self, timeout_detection):
+    def execute_in_trace_mode(self, trace_timeout=None):
         log_qemu("Performing trace iteration...", self.qemu_id)
         exec_res = None
         try:
-            self.soft_reload()
             self.qemu_aux_buffer.set_trace_mode(True)
-            exec_res = self.send_payload(timeout_detection=timeout_detection)
-            self.soft_reload()
+            exec_res = self.send_payload()
             self.qemu_aux_buffer.set_trace_mode(False)
         except Exception as e:
             log_qemu("Error during trace: %s" % str(e), self.qemu_id)
+            print("Error during trace: %s" % str(e))
             return None
 
         return exec_res
 
-    def execute_in_redqueen_mode(self, payload):
+    def set_timeout(self, timeout):
+        assert(self.qemu_aux_buffer)
+        self.qemu_aux_buffer.set_timeout(timeout)
 
+    def get_timeout(self):
+        return self.qemu_aux_buffer.get_timeout()
+
+    def execute_in_redqueen_mode(self, payload):
         # execute once to ensure we have all pages
-        self.qemu_aux_buffer.set_timeout(8)
+        old_timeout = self.qemu_aux_buffer.get_timeout()
+        self.qemu_aux_buffer.set_timeout(old_timeout*5)
         self.set_payload(payload)
         self.send_payload()
 
@@ -493,24 +507,19 @@ class qemu:
 
         result = self.qemu_aux_buffer.get_result()
         self.qemu_aux_buffer.set_redqueen_mode(False)
-        self.qemu_aux_buffer.set_timeout(3)
+        self.qemu_aux_buffer.set_timeout(old_timeout)
 
-        return True
+        return ExecutionResult(
+                self.c_bitmap, self.bitmap_size,
+                self.exit_reason(result), 0)
 
     def set_payload(self, payload):
-        if self.exiting:
-            sys.exit(0)
-
         # actual payload is limited to payload_size - sizeof(uint32) - sizeof(uint8)
         if len(payload) > self.payload_size-5:
             payload = payload[:self.payload_size-5]
         try:
-            self.fs_shm.seek(0)
-            input_len = to_string_32(len(payload))
-            self.fs_shm.write_byte(input_len[3])
-            self.fs_shm.write_byte(input_len[2])
-            self.fs_shm.write_byte(input_len[1])
-            self.fs_shm.write_byte(input_len[0])
+            struct.pack_into("=I", self.fs_shm, 0, len(payload))
+            self.fs_shm.seek(4)
             self.fs_shm.write(payload)
             #self.fs_shm.flush()
         except ValueError:

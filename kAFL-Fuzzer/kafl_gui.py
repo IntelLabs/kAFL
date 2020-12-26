@@ -223,12 +223,12 @@ class GuiDrawer:
             (36, "Findings", "")])
         self.gui.print_info_line([
             (16, " Total", pnum(d.paths_total())),
-            (16, "", ""),
+            (16, " Edges", pnum(d.bitmap_used())),
             (36, " Crash", "%6s (N/A) %10s" % (pnum((d.num_found("crash"))),
                                                  ptime(d.time_since("crash"))))])
         self.gui.print_info_line([
             (16, " Seeds", pnum(d.yield_imported())),
-            (16, " Edges", pnum(d.bitmap_used())),
+            (16, " Blocks", pnum(d.bb_covered())),
             (36, " AddSan", "%6s (N/A) %10s" % (pnum((d.num_found("kasan"))),
                                                  ptime(d.time_since("kasan"))))])
         self.gui.print_info_line([
@@ -605,10 +605,13 @@ class GuiData:
         return self.aggregated["fav_states"].get("final", 0)
 
     def bitmap_size(self):
-        return 64 * 1024
+        return 64 * 1024 # Fixme
 
     def bitmap_used(self):
         return self.stats["bytes_in_bitmap"]
+
+    def bb_covered(self):
+        return self.stats["max_bb_cov"]
 
     def paths_total(self):
         return self.stats["paths_total"]

@@ -6,7 +6,7 @@
 import mmap
 import os
 import struct
-from common.util import strdump, print_hprintf
+from common.util import strdump, print_warning
 from collections import namedtuple
 
 result_tuple = namedtuple('result_tuple', [
@@ -62,11 +62,10 @@ MISC_OFFSET = STATUS_OFFSET + STATUS_SIZE
 
 class qemu_aux_buffer:
 
-    result = {}
-
     def __init__(self, file):
         self.aux_buffer_fd = os.open(file, os.O_RDWR | os.O_SYNC)
         self.aux_buffer = mmap.mmap(self.aux_buffer_fd, 0x1000, mmap.MAP_SHARED, mmap.PROT_WRITE | mmap.PROT_READ) # fix this later
+        self.current_timeout = None
 
     def validate_header(self):
         magic = (struct.unpack('L', self.aux_buffer[0:8])[0])
@@ -74,15 +73,15 @@ class qemu_aux_buffer:
         hash = (struct.unpack('H', self.aux_buffer[10:12])[0])
 
         if magic != my_magic:
-            print("MAGIC MISMATCH: %x != %x\n" % (magic, my_magic))
+            print_warning("MAGIC MISMATCH: %x != %x\n" % (magic, my_magic))
             return False
 
         if version != my_version:
-            print("VERSION MISMATCH: %x != %x\n" % (version, my_version))
+            print_warning("VERSION MISMATCH: %x != %x\n" % (version, my_version))
             return False 
 
         if hash != my_hash:
-            print("HASH MISMATCH: %x != %x\n" % (hash, my_hash))
+            print_warning("HASH MISMATCH: %x != %x\n" % (hash, my_hash))
             return False
 
         return True
@@ -91,38 +90,28 @@ class qemu_aux_buffer:
         mlen = struct.unpack('H', self.aux_buffer[MISC_OFFSET+0:MISC_OFFSET+2])[0]
         return self.aux_buffer[MISC_OFFSET+2:MISC_OFFSET+2+mlen]
 
-    def print_hprintf_buffer(self):
-        buf = self.get_misc_buf()
-        print_hprintf(strdump(buf[:-1], verbatim=True))
-
     def get_state(self):
         return struct.unpack_from('B', self.aux_buffer, offset=STATUS_OFFSET)[0]
 
     def get_result(self):
-
-        status = result_tuple._make(
-                struct.unpack_from('B?BBIBB ?? ?? ?? ?B ?? IQII?', self.aux_buffer, offset=STATUS_OFFSET))
-
-        #from pprint import pprint
-        #pprint(status._asdict())
-        #print("bb_cov: %d" % status.bb_cov)
-
-        if status.hprintf:
-            self.print_hprintf_buffer()
-        
-        return status
+        return result_tuple._make(
+                struct.unpack_from('B?BBIBB ?? ?? ?? ?B ?B IQII?',
+                                   self.aux_buffer,
+                                   offset=STATUS_OFFSET))
 
     def set_config_buffer_changed(self):
         self.aux_buffer[CONFIG_OFFSET+0] = 1
 
     def set_timeout(self, timeout):
+        assert(isinstance(timeout, (int, float)))
+        self.current_timeout = timeout
         secs = int(timeout)
         usec = int(1000*(timeout - secs))
-        data = struct.pack("=BI", secs, usec)
-        self.aux_buffer.seek(CONFIG_OFFSET+1)
-        self.aux_buffer.write(data)
-        self.aux_buffer.seek(0)
+        struct.pack_into("=BI", self.aux_buffer, CONFIG_OFFSET+1, secs, usec)
         self.set_config_buffer_changed()
+
+    def get_timeout(self):
+        return self.current_timeout
 
     def set_redqueen_mode(self, enable):
         self.aux_buffer[CONFIG_OFFSET+6] = int(enable)
@@ -138,9 +127,4 @@ class qemu_aux_buffer:
 
     def dump_page(self, addr):
         struct.pack_into("BQ", self.aux_buffer, CONFIG_OFFSET+10, 1, addr)
-        #self.aux_buffer[CONFIG_OFFSET+10] = 1
-        #data = struct.pack("Q", addr)
-        #self.aux_buffer.seek(CONFIG_OFFSET+11)
-        #self.aux_buffer.write(data)
-        #self.aux_buffer.seek(0)
         self.set_config_buffer_changed()

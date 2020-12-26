@@ -257,7 +257,7 @@ class SlaveProcess:
 
     def execute(self, data, info):
         exec_res = self.__execute(data)
-        self.statistics.event_exec()
+        self.statistics.event_exec(bb_cov=self.q.bb_seen)
 
         is_new_input = self.bitmap_storage.should_send_to_master(exec_res)
         crash = exec_res.is_crash()

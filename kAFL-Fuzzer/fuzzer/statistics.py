@@ -29,6 +29,7 @@ class MasterStatistics:
                 "num_funky": 0,
                 "num_reload": 0,
                 "num_timeout": 0,
+                "max_bb_cov" : 0,
                 "paths_total": 0,
                 "paths_pending": 0,
                 "favs_pending": 0,
@@ -92,18 +93,22 @@ class MasterStatistics:
         sum_funky = 0
         sum_reload = 0
         sum_timeout = 0
+        max_bb_cov = 0
         try:
             for slave_id in range(0, self.num_slaves):
                 sum_execs  += self.read_slave_stats(slave_id).get("total_execs", 0)
                 sum_funky  += self.read_slave_stats(slave_id).get("num_funky", 0)
                 sum_reload += self.read_slave_stats(slave_id).get("num_reload", 0)
                 sum_timeout += self.read_slave_stats(slave_id).get("num_timeout", 0)
+                max_bb_cov = max(max_bb_cov,
+                                 self.read_slave_stats(slave_id).get("bb_seen", 0))
         except:
             return # don't update on read failure
         self.data["total_execs"] = sum_execs
         self.data["num_funky"]   = sum_funky
         self.data["num_reload"]  = sum_reload
         self.data["num_timeout"] = sum_timeout
+        self.data["max_bb_cov"]  = max_bb_cov
 
     def event_node_update(self, node, update):
         if update.get("state", None):
@@ -171,6 +176,7 @@ class SlaveStatistics:
             "run_time": 0,
             "total_execs": 0,
             "execs/sec": 0,
+            "bb_seen" : 0,
             "num_reload": 0,
             "num_funky": 0,
             "num_timeout": 0,
@@ -188,7 +194,9 @@ class SlaveStatistics:
     def event_method(self, method):
         self.data["method"] = method
 
-    def event_exec(self):
+    def event_exec(self, bb_cov=0):
+        if self.data["bb_seen"] < bb_cov:
+            self.data["bb_seen"] = bb_cov
         self.execs_new += 1
         self.maybe_write_stats()
 
