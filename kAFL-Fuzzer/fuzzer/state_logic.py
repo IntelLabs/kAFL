@@ -29,7 +29,7 @@ from fuzzer.technique.helper import rand
 
 class FuzzingStateLogic:
     HAVOC_MULTIPLIER = 4
-    RADAMSA_DIV = 3
+    RADAMSA_DIV = 5
     COLORIZATION_COUNT = 1
     COLORIZATION_STEPS = 1500
     COLORIZATION_TIMEOUT = 5
@@ -164,7 +164,10 @@ class FuzzingStateLogic:
         # TODO: We seem to have some corner case where PT feedback does not
         # work and the seed has to be provided multiple times to actually
         # (eventually) be recognized correctly..
-        retries = 4
+        retries = 1
+        if self.config.argument_values["funky"]:
+            retries = 8
+
         for _ in range(retries):
             _, is_new = self.execute(payload, label="import")
             if is_new: break

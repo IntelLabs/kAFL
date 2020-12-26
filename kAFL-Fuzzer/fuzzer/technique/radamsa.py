@@ -10,6 +10,7 @@ Interface to Radamsa fuzzer (optional havoc stage)
 import glob
 import os
 import random
+import math
 import subprocess
 
 from common.config import FuzzerConfiguration
@@ -29,15 +30,10 @@ def init_radamsa(config, slave_id):
     if not os.path.isdir(input_dir):
         os.makedirs(input_dir)
 
-def mutate_seq_radamsa_array(data, func, max_iterations):
+def perform_radamsa_round(data, func, num_inputs):
     global corpus_dir
     global input_dir
     global radamsa_path
-
-    log_radamsa("Radamsa amount: %d" % max_iterations)
-
-    if max_iterations == 0:
-        return
 
     last_n = 5
     rand_n = 10
@@ -49,7 +45,7 @@ def mutate_seq_radamsa_array(data, func, max_iterations):
 
     radamsa_cmd = [radamsa_path,
             "-o", input_dir + "input_%05n",
-            "-n", str(max_iterations)] + samples
+            "-n", str(num_inputs)] + samples
 
     #log_radamsa("Radamsa cmd: " + repr(radamsa_cmd))
     p = subprocess.Popen(radamsa_cmd, stdin=subprocess.PIPE, shell=False)
@@ -65,3 +61,14 @@ def mutate_seq_radamsa_array(data, func, max_iterations):
         #log_radamsa("Radamsa input %s" % path)
         func(read_binary_file(input_dir+path))
         os.remove(input_dir+path)
+
+def mutate_seq_radamsa_array(data, func, num_inputs):
+    # avoid large amounts of temp files in radamsa (use socket I/O option?)
+    max_round_inputs = 512
+    rounds = math.ceil(num_inputs / max_round_inputs)
+
+    log_radamsa("Radamsa: %d inputs in %d rounds.." % (num_inputs, rounds))
+
+    for _ in range(rounds):
+        perform_radamsa_round(data, func, min(max_round_inputs, num_inputs))
+        num_inputs -= max_round_inputs
