@@ -122,7 +122,7 @@ class Graph:
 
         print("%s: Found %3d from %3d using %s [%s] (favs=%d, stage=%s, exit=%s, lvl=%d, perf=%.3f, score=%.2f, t=%.2f)" %
                 (t_str, node_id, parent, method[:12].ljust(12), sample[:42].ljust(42),
-                    len(favs), stage[:8], exit[:1].title(), level, perf, score, node.get("state_time_havoc",0)))
+                    len(favs), stage[:8], exit[:1].title(), level, perf*1000, score, node.get("state_time_havoc",0)))
 
         self.dot.add_node(node["id"], label="%s\n[id=%02d, score=%2.2f]\n%s" % (sample[:12], node_id, score, exit), color=color)
         self.dot.add_edge(parent, node["id"], headlabel=method, arrowhead='open')

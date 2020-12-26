@@ -87,7 +87,6 @@ def prepare_working_dir(config):
     for folder in folders:
         os.makedirs(work_dir + folder)
 
-    #open(work_dir + "/filter", "wb").close()
     open(work_dir + "/page_cache.lock", "wb").close()
     open(work_dir + "/page_cache.dump", "wb").close()
     open(work_dir + "/page_cache.addr", "wb").close()
@@ -129,6 +128,10 @@ def print_warning(msg):
 
 def print_fail(msg):
     sys.stdout.write(color.FAIL + color.BOLD + "[FATAL] " + msg + color.ENDC + "\n")
+    sys.stdout.flush()
+
+def print_hprintf(msg):
+    sys.stdout.write(color.HPRINTF + msg + color.ENDC)
     sys.stdout.flush()
 
 def is_float(value):

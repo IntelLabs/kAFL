@@ -106,7 +106,7 @@ def vmx_pt_get_addrn(verbose=True):
         ret = ioctl(fd, KVM_VMX_PT_GET_ADDRN, 0)
     except IOError:
         if verbose:
-            print(WARNING + WARNING_PREFIX + "Multi range tracing is not supported! Please upgrade to kernel 4.20-rc4!" + ENDC)
+            print(WARNING + WARNING_PREFIX + "Kernel does not support multi-range tracing!" + ENDC)
         ret = 1
     finally:
         fd.close()

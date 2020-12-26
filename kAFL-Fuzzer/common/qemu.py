@@ -11,22 +11,18 @@ import ctypes
 import mmap
 import os
 import resource
-import select
 import socket
 import struct
 import subprocess
 import time
-import traceback
 from socket import error as socket_error
 import sys
 
 import common.color
-import common.qemu_protocol as qemu_protocol
 from common.debug import log_qemu
 from common.execution_result import ExecutionResult
 from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
 from common.util import read_binary_file, atomic_write, print_fail, print_warning, strdump
-
 from common.qemu_aux_buffer import qemu_aux_buffer
 
 def to_string_32(value):
@@ -37,16 +33,11 @@ def to_string_32(value):
 
 
 class qemu:
-    CMDS = qemu_protocol.CMDS
 
     def __init__(self, qid, config, debug_mode=False, notifiers=True):
 
         self.hprintf_print_mode = True
         self.internal_buffer_overflow_counter = 0
-
-        # True => handshake *not yet done*
-        self.handshake_stage_1 = True
-        self.handshake_stage_2 = True
 
         self.debug_mode = debug_mode
         self.patches_enabled = False
@@ -155,7 +146,7 @@ class qemu:
         elif self.config.argument_values['bios']:
             self.cmd += " -bios " + self.config.argument_values['bios']
         else:
-            assert(False), "Must supply either -bios or -kernel or -vm_dir option"
+            assert(False), "Must supply either -bios or -kernel or -vm_image option"
 
         if self.config.argument_values["macOS"]:
             self.cmd = self.cmd.replace("-nographic -net none",
@@ -188,7 +179,7 @@ class qemu:
         self.timeout = False
         self.kasan = False
 
-        self.virgin_bitmap = bytes(self.bitmap_size)
+        #self.virgin_bitmap = bytes(self.bitmap_size)
 
         # split cmd into list of arguments for Popen(), replace BOOTPARAM as single element
         self.cmd = [_f for _f in self.cmd.split(" ") if _f]
@@ -285,12 +276,11 @@ class qemu:
         atomic_write(self.binary_filename, bin)
 
     def start(self):
+
         if self.exiting:
             return False
 
         self.persistent_runs = 0
-        self.handshake_stage_1 = True
-        self.handshake_stage_2 = True
 
         if self.qemu_id == "0" or self.qemu_id == "1337": ## 1337 is debug instance!
             log_qemu("Launching virtual machine...CMD:\n" + ' '.join(self.cmd), self.qemu_id)
@@ -303,6 +293,9 @@ class qemu:
         # organized shutdown via async_exit()
         self.process = subprocess.Popen(self.cmd,
                 preexec_fn=os.setpgrp)
+                #stdin=subprocess.PIPE,
+                #stdout=subprocess.PIPE,
+                #stderr=subprocess.STDOUT)
                 #stdin=subprocess.DEVNULL,
                 #stdout=subprocess.DEVNULL,
                 #stderr=subprocess.DEVNULL)
@@ -332,7 +325,6 @@ class qemu:
         self.lock_qemu()
 
     def run_qemu(self):
-        #print("Kick Qemu..")
         self.unlock_qemu()
         self.lock_qemu()
 
@@ -344,29 +336,25 @@ class qemu:
         self.dry_run_qemu()
 
         self.qemu_aux_buffer = qemu_aux_buffer(self.qemu_aux_buffer_filename)
-        if self.qemu_aux_buffer.validate_header():
-            log_qemu("HEADER OKAY!", self.qemu_id)
-            print_warning("HEADER OKAY!")
-        else:
-            log_qemu("INVALID HEADER!", self.qemu_id)
-            print_fatal("INVALID HEADER!")
+        if not self.qemu_aux_buffer.validate_header():
+            log_qemu("Invalid header in qemu_aux_buffer.py. Abort.", self.qemu_id)
+            print_fatal("Invalid header in qemnu_aux_buffer. Abort.")
             self.async_exit()
 
         while self.qemu_aux_buffer.get_state() != 3:
-            print_warning("Waiting to enter fuzz mode..")
+            print("[Qemu %s] Waiting for target to enter fuzz mode.." % self.qemu_id)
             self.run_qemu()
 
-        log_qemu("QEMU IS READY\n", self.qemu_id)
-        print("QEMU IS READY\n")
+        log_qemu("Qemu is ready.\n", self.qemu_id)
+        print("[Qemu %s] Qemu is ready.\n" % self.qemu_id)
 
         self.qemu_aux_buffer.set_reload_mode(True)
-        self.qemu_aux_buffer.set_timeout(1, 6000)
+        self.qemu_aux_buffer.set_timeout(3)
         self.run_qemu()
 
         return
 
     def __qemu_connect(self):
-        print("__qemu_connect()")
         # Note: setblocking() disables the timeout! settimeout() will automatically set blocking!
         self.control = socket.socket(socket.AF_UNIX)
         self.control.settimeout(None)
@@ -401,6 +389,7 @@ class qemu:
     # Fully stop/start Qemu instance to store logs + possibly recover
     def restart(self):
 
+        return 
         self.shutdown()
         # TODO: Need to wait here or else the next instance dies in set_payload()
         # Perhaps Qemu should do proper munmap()/close() on exit?
@@ -419,20 +408,14 @@ class qemu:
     # Wait forever on Qemu to execute the payload - useful for interactive debug
     def debug_payload(self, apply_patches=True):
 
-        # XXX this way of setting endless timeout is probably not working anymore
-        #while True:
-        #    ready = select.select([self.control], [], [], 0.5)
-        #    if ready[0]:
-        #        break
-
-        self.qemu_aux_buffer.set_timeout(0, 0)
+        self.qemu_aux_buffer.set_timeout(0)
         self.run_qemu()
 
         result = self.qemu_aux_buffer.get_result()
-        print("Result:\n%s" % repr(result))
+        print("Result: %s\n" % self.exit_result(result))
         return result
 
-    def send_payload(self, apply_patches=True, timeout_detection=True, max_iterations=10):
+    def send_payload(self, apply_patches=True, timeout_detection=True):
 
         if (self.debug_mode):
             log_qemu("Send payload..", self.qemu_id)
@@ -442,43 +425,41 @@ class qemu:
 
         result = None
         old_address = 0
-        self.persistent_runs += 1
 
         while True:
+            self.persistent_runs += 1
             start_time = time.time()
 
             self.run_qemu()
 
             result = self.qemu_aux_buffer.get_result()
 
-            if(old_address != 0):
-                print(result)
+            #if(old_address != 0):
+            #    print(result._asdict())
 
-            if result["success"] or result["crash_found"] or result["asan_found"]:
-                  break
+            if result.success or result.crash_found or result.asan_found or result.timeout_found:
+                break
 
-            if result["page_not_found"]:
-                if result["page_fault_addr"] == old_address:
+            if result.page_fault:
+                if result.page_fault_addr == old_address:
                     print_warning("Failed to resolve page after second execution!")
-                    log_qemu(str(result), self.qemu_id)
+                    log_qemu("Failed to resolve page after second execution! Qemu status:\n%s" % str(result._asdict()), self.qemu_id)
                     break
-                old_address = result["page_fault_addr"]
-                self.qemu_aux_buffer.dump_page(result["page_fault_addr"])
-
-        self.crashed = result["crash_found"]
-        self.kasan = result["asan_found"]
-        self.timeout = result["timeout_found"]
+                old_address = result.page_fault_addr
+                self.qemu_aux_buffer.dump_page(result.page_fault_addr)
+        
+        #print("perf: %02.2f" % (result.runtime_sec + result.runtime_usec/1000000))
 
         return ExecutionResult(
                 self.c_bitmap, self.bitmap_size,
-                self.exit_reason(), time.time() - start_time)
+                self.exit_reason(result), time.time() - start_time)
 
-    def exit_reason(self):
-        if self.crashed:
+    def exit_reason(self, result):
+        if result.crash_found:
             return "crash"
-        elif self.timeout:
+        elif result.timeout_found:
             return "timeout"
-        elif self.kasan:
+        elif result.asan_found:
             return "kasan"
         else:
             return "regular"
@@ -500,20 +481,19 @@ class qemu:
 
     def execute_in_redqueen_mode(self, payload):
 
+        # execute once to ensure we have all pages
+        self.qemu_aux_buffer.set_timeout(8)
+        self.set_payload(payload)
+        self.send_payload()
+
+        # execute in trace mode, then restore settings
+        self.qemu_aux_buffer.set_redqueen_mode(True)
+        self.set_payload(payload) # ensure the payload is intact
         self.run_qemu()
 
         result = self.qemu_aux_buffer.get_result()
-        self.qemu_aux_buffer.enable_redqueen()
-        self.qemu_aux_buffer.set_timeout(1, 60000)
-
-        self.run_qemu()
-
-        result = self.qemu_aux_buffer.get_result()
-
-        self.qemu_aux_buffer.disable_redqueen()
-        self.run_qemu()
-
-        result = self.qemu_aux_buffer.get_result()
+        self.qemu_aux_buffer.set_redqueen_mode(False)
+        self.qemu_aux_buffer.set_timeout(3)
 
         return True
 

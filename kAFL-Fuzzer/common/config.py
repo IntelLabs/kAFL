@@ -136,7 +136,6 @@ def add_args_fuzzer(parser):
                         action='store_true', default=False)
     parser.add_argument('-redq_do_simple', required=False, help='do not ignore simple arith. matches in Redqueen',
                         action='store_true', default=False)
-
     parser.add_argument('-cpu_affinity', metavar='<n>', help="limit processes to first n cores.",
                         type=int, required=False)
     parser.add_argument('-abort_time', metavar='<n>', help="exit after n hours",
@@ -171,13 +170,13 @@ def add_args_qemu(parser):
                         default=256, type=int)
 
     parser.add_argument('-ip0', required=False, default=None, metavar='<start-end>', type=parse_range_ip_filter,
-                        help='set IP trace filter range')
+                        help='set IP trace filter range 0 (must be page-aligned!)')
     parser.add_argument('-ip1', required=False, default=None, metavar='<start-end>', type=parse_range_ip_filter,
-                        help='Set IP trace filter range 1 (not supported in this version)')
+                        help='Set IP trace filter range 1 (must be page-aligned!)')
     parser.add_argument('-ip2', required=False, default=None, metavar='<start-end>', type=parse_range_ip_filter,
-                        help='Set IP trace filter range 2 (not supported in this version)')
+                        help='Set IP trace filter range 2 (must be page-aligned!)')
     parser.add_argument('-ip3', required=False, default=None, metavar='<start-end>', type=parse_range_ip_filter,
-                        help='Set IP trace filter range 3 (not supported in this version)')
+                        help='Set IP trace filter range 3 (must be page-aligned!)')
 
     parser.add_argument('-macOS', required=False, help='enable macOS mode (requires Apple OSK)',
                         action='store_true', default=False)

@@ -6,6 +6,7 @@
 import mmap
 import os
 import struct
+from common.util import strdump, print_hprintf
 from collections import namedtuple
 
 result_tuple = namedtuple('result_tuple', [
@@ -86,26 +87,13 @@ class qemu_aux_buffer:
 
         return True
 
+    def get_misc_buf(self):
+        mlen = struct.unpack('H', self.aux_buffer[MISC_OFFSET+0:MISC_OFFSET+2])[0]
+        return self.aux_buffer[MISC_OFFSET+2:MISC_OFFSET+2+mlen]
+
     def print_hprintf_buffer(self):
-        hprintf = struct.unpack('?', self.aux_buffer[STATUS_OFFSET+10:STATUS_OFFSET+11])[0]
-        if not hprintf:
-            return
-
-        len = struct.unpack('H', self.aux_buffer[MISC_OFFSET+0:MISC_OFFSET+2])[0]
-        print('\033[0;33m' + str(self.aux_buffer[MISC_OFFSET+2:MISC_OFFSET+2+len]) + '\033[0m')
-
-
-    def get_status(self):
-        state     = struct.unpack('B', self.aux_buffer[STATUS_OFFSET+0:STATUS_OFFSET+1])[0]
-        hprintf   = (struct.unpack('?', self.aux_buffer[STATUS_OFFSET+10:STATUS_OFFSET+11])[0])
-        exec_done = (struct.unpack('?', self.aux_buffer[STATUS_OFFSET+11:STATUS_OFFSET+12])[0])
-
-        print("STATE: " + str(state) + "\tHPRINTF: " + str(hprintf) + "\tEXEC_DONE: " + str(exec_done))
-
-        if hprintf:
-            self.print_hprintf_buffer()
-
-        return state, exec_done
+        buf = self.get_misc_buf()
+        print_hprintf(strdump(buf[:-1], verbatim=True))
 
     def get_state(self):
         return struct.unpack_from('B', self.aux_buffer, offset=STATUS_OFFSET)[0]
@@ -113,42 +101,31 @@ class qemu_aux_buffer:
     def get_result(self):
 
         status = result_tuple._make(
-                struct.unpack_from('B?BBIBB ?? ?? ?? ?? ?? IQII?', self.aux_buffer, offset=STATUS_OFFSET))
+                struct.unpack_from('B?BBIBB ?? ?? ?? ?B ?? IQII?', self.aux_buffer, offset=STATUS_OFFSET))
 
         #from pprint import pprint
-        #pprint(status)
-
-        self.print_hprintf_buffer()
-
-        self.result["crash_found"] = status.crash_found
-        self.result["asan_found"] = status.asan_found
-        self.result["timeout_found"] = status.timeout_found
-        self.result["reloaded"] = status.reloaded
-        self.result["pt_overflow"] = status.pt_overflow
-        self.result["page_not_found"] = status.page_fault
-        self.result["page_fault_addr"] = status.page_fault_addr
-        self.result["success"] = status.success
-        self.result["payload_write_fault"] = status.payload_corrupted
-
+        #pprint(status._asdict())
         #print("bb_cov: %d" % status.bb_cov)
-        return self.result
+
+        if status.hprintf:
+            self.print_hprintf_buffer()
+        
+        return status
 
     def set_config_buffer_changed(self):
         self.aux_buffer[CONFIG_OFFSET+0] = 1
 
-    def set_timeout(self, sec, usec):
-        data = struct.pack("=BI", sec, usec)
+    def set_timeout(self, timeout):
+        secs = int(timeout)
+        usec = int(1000*(timeout - secs))
+        data = struct.pack("=BI", secs, usec)
         self.aux_buffer.seek(CONFIG_OFFSET+1)
         self.aux_buffer.write(data)
         self.aux_buffer.seek(0)
         self.set_config_buffer_changed()
 
-    def enable_redqueen(self):
-        self.aux_buffer[CONFIG_OFFSET+6] = 1
-        self.set_config_buffer_changed()
-
-    def disable_redqueen(self):
-        self.aux_buffer[CONFIG_OFFSET+6] = 0
+    def set_redqueen_mode(self, enable):
+        self.aux_buffer[CONFIG_OFFSET+6] = int(enable)
         self.set_config_buffer_changed()
 
     def set_trace_mode(self, enable):
@@ -160,9 +137,10 @@ class qemu_aux_buffer:
         self.set_config_buffer_changed()
 
     def dump_page(self, addr):
-        self.aux_buffer[CONFIG_OFFSET+10] = 1
-        data = struct.pack("Q", addr)
-        self.aux_buffer.seek(CONFIG_OFFSET+11)
-        self.aux_buffer.write(data)
-        self.aux_buffer.seek(0)
+        struct.pack_into("BQ", self.aux_buffer, CONFIG_OFFSET+10, 1, addr)
+        #self.aux_buffer[CONFIG_OFFSET+10] = 1
+        #data = struct.pack("Q", addr)
+        #self.aux_buffer.seek(CONFIG_OFFSET+11)
+        #self.aux_buffer.write(data)
+        #self.aux_buffer.seek(0)
         self.set_config_buffer_changed()
