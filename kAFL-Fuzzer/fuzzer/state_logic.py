@@ -197,8 +197,9 @@ class FuzzingStateLogic:
             log_slave("Validate: Skip trimming..", self.slave.slave_id)
             return None
 
+        max_len = self.config.config_values['PAYLOAD_SHM_SIZE']
         if metadata['info']['starved']:
-            return perform_extend(payload, metadata, self.execute)
+            return perform_extend(payload, metadata, self.execute, max_len)
 
         new_payload = perform_trim(payload, metadata, self.execute)
 

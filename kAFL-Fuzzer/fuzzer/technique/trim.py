@@ -71,7 +71,7 @@ def perform_center_trim(payload, old_node, send_handler, trimming_bytes=2):
 # The target should pad with 0 by default so that length-extending with 0 here is a NOP.
 # However, it seems we can still get bitmap changes sometimes, i.e. the extension failed.
 # So we also try some colorized padding at this point, in hope of triggering the starved logic.
-def perform_extend(payload, old_node, send_handler):
+def perform_extend(payload, old_node, send_handler, max_len):
 
     num_findings = 0
 
@@ -81,10 +81,15 @@ def perform_extend(payload, old_node, send_handler):
         return None
 
     padding = 128
-    upper = 0
+    upper = max(0, max_len - len(payload))
     lower = 0
-    for _ in range(MAX_ROUNDS):
-        new_res, is_new = send_handler(payload + bytes(padding), label="stream_extend")
+    for _ in range(2*MAX_ROUNDS):
+        try:
+            new_res, is_new = send_handler(payload + bytes(padding), label="stream_extend")
+        except:
+            print("Round: %d, lengths: %d + %d = %d, maxlen=%d, upper=%d, lower=%d" %(
+                _, len(payload), padding, padding+len(payload), max_len, upper, lower))
+
         if is_new: num_findings += 1
 
         if new_res.is_starved():
@@ -95,6 +100,10 @@ def perform_extend(payload, old_node, send_handler):
         #print("stream_extend: upper=%d, lower=%d" % (upper, lower))
         padding = lower + abs(upper - lower)//2
         if abs(upper - lower) <= 1:
+            break
+
+        if (len(payload) + padding > max_len):
+            upper = max(0, max_len - len(payload))
             break
 
     pad_bytes = upper
