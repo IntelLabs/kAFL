@@ -127,8 +127,8 @@ def check_block(block, edge=None, indent=" "):
         return
 
     # Recursively check any blocks reached unconditionally from this one
-        if verbose:
-            print indent + "`-> added block %s, checking destinations.." % block.getName()
+    if verbose:
+        print indent + "`-> added block %s, checking destinations.." % block.getName()
     indent=indent+"  "
 
     # Mark this block. We have definitely reached it.
@@ -149,14 +149,16 @@ def check_block(block, edge=None, indent=" "):
             continue
 
         if str(destFlow) in ["UNCONDITIONAL_CALL", "UNCONDITIONAL_JUMP"]:
+            if verbose:
+                print indent + "`-> add implicit %s: 0x%08x -> 0x%08x" % (
+                        str(destFlow), destRef.getReferent().getUnsignedOffset(), destRef.getReference().getUnsignedOffset())
             check_block(destRef.getDestinationBlock(), indent=indent)
-        elif destFlow.isFallthrough() and not destFlow.isJump():
-            check_block(destRef.getDestinationBlock(), indent=indent)
-        # report anything outside known false-positive list
-        elif str(destFlow) not in ["COMPUTED_JUMP", "FALL_THROUGH"]:
-            assert False, "Ooops on %s: 0x%08x -> 0x%08x" % (str(destFlow), destRef.getReferent().getUnsignedOffset(), destRef.getReference().getUnsignedOffset())
+        if verbose:
+            print indent + "`-> ignore implicit %s: 0x%08x -> 0x%08x" % (
+                    str(destFlow), destRef.getReferent().getUnsignedOffset(), destRef.getReference().getUnsignedOffset())
 
 def mark_new_block(block):
+    #show_block(block)
     if service:
         setBackgroundColor(block, Color.GREEN)
 
