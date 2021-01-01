@@ -57,16 +57,15 @@ class TraceParser:
             print_note("Could not find trace file %s, skipping.." % trace_file)
             return None
 
-        gaps = set()
         bbs = set()
-        edges = set()
+        edges = dict()
         with lz4.LZ4FrameFile(trace_file, 'rb') as f:
             for m in re.finditer("([\da-f]+),([\da-f]+),([\da-f]+)", f.read().decode()):
-                edges.add("%s,%s" % (m.group(1), m.group(2)))
+                edges["%s,%s" % (m.group(1), m.group(2))] = int(m.group(3),16)
                 bbs.add(m.group(1))
                 bbs.add(m.group(2))
 
-        return {'bbs': bbs, 'edges': edges, 'gaps': gaps}
+        return {'bbs': bbs, 'edges': edges}
 
     def parse_trace_list(self, input_list):
         trace_files = list()
@@ -84,25 +83,28 @@ class TraceParser:
 
     def coverage_totals(self):
         unique_bbs = set()
-        unique_edges = set()
-        unique_gaps = set()
+        unique_edges = dict()
         unique_traces = 0
 
-        for _, finding in self.trace_results:
-            if finding:
+        for _, findings in self.trace_results:
+            if findings:
                 unique_traces += 1
-                unique_edges.update(finding['edges'])
-                unique_bbs.update(finding['bbs'])
-                unique_gaps.update(finding['gaps'])
+                unique_bbs.update(findings['bbs'])
+                edges = findings['edges']
+                for edge,num in edges:
+                    if edge in unique_edges:
+                        unique_edges[edge] += edges[edge]
+                    else:
+                        unique_edges[edge] = num
 
-        print(" Processed %d traces with a total of %d BBs (%d edges, %d gaps)." \
-                % (unique_traces, len(unique_bbs), len(unique_edges), len(unique_gaps)))
+        print(" Processed %d traces with a total of %d BBs (%d edges)." \
+                % (unique_traces, len(unique_bbs), len(unique_edges)))
 
         return unique_edges, unique_bbs
 
     def gen_reports(self):
         unique_bbs = set()
-        unique_edges = set()
+        unique_edges = dict()
         input_to_new_bbs = list()
 
         plot_file = self.trace_dir + "/coverage.csv"
@@ -112,13 +114,18 @@ class TraceParser:
             num_bbs = 0
             num_edges = 0
             num_traces = 0
-            for timestamp, finding in self.trace_results:
-                if not finding: continue
+            for timestamp, findings in self.trace_results:
+                if not findings: continue
 
-                new_bbs = len(finding['bbs'] - unique_bbs)
-                new_edges = len(finding['edges'] - unique_edges)
-                unique_bbs.update(finding['bbs'])
-                unique_edges.update(finding['edges'])
+                new_bbs = len(findings['bbs'] - unique_bbs)
+                new_edges = len(set(findings['edges']) - set(unique_edges))
+                unique_bbs.update(findings['bbs'])
+                edges = findings['edges']
+                for edge,num in edges.items():
+                    if edge in unique_edges:
+                        unique_edges[edge] += edges[edge]
+                    else:
+                        unique_edges[edge] = num
 
                 num_traces += 1
                 num_bbs += new_bbs
@@ -126,8 +133,8 @@ class TraceParser:
                 f.write("%d;%d;%d\n" % (timestamp, num_bbs, num_edges))
         
         with open(edges_file, 'w') as f:
-            for edge in unique_edges:
-                f.write("%s\n" % edge)
+            for edge,num in unique_edges.items():
+                f.write("%s,%x\n" % (edge,num))
 
         print(" Processed %d traces with a total of %d BBs (%d edges)." \
                 % (num_traces, num_bbs, num_edges))
@@ -183,7 +190,7 @@ def kafl_workdir_iterator(work_dir):
     # TODO: Tracing crashes/timeouts has minimal overall improvement ~1-2%
     # Probably want to make this optional, and only trace a small sample
     # of non-regular payloads by default?
-    for input_file in glob.glob(work_dir + "/corpus/[rckt]*/*"):
+    for input_file in glob.glob(work_dir + "/corpus/[rctk]*/*"):
         if not input_file:
             return None
         input_id = os.path.basename(input_file).replace("payload_", "")

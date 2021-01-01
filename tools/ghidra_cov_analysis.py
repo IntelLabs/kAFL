@@ -42,6 +42,8 @@ from java.awt import Color
 
 # print list of missing/uncovered functions?
 print_missing = False
+# report blocks that are only reached implicitly (unconditional jmp/call)
+print_implicit = True
 # ignore funcitons with less than n blocks?
 ignore_threshold = 4
 # detailed log of edge scanning
@@ -53,28 +55,26 @@ if state.getTool():
     if not service:
         print "Can't find ColorizingService service"
 
-def colorize_test(address):
-    anotherAddress = currentAddress.add(10)
-    setBackgroundColor(anotherAddress, Color.YELLOW)
-
-    # create an address set with values you want to change
-    addresses = AddressSet()
-    addresses.add(currentAddress.add(10))
-    addresses.add(currentAddress.add(11))
-    addresses.add(currentAddress.add(12))
-    setBackgroundColor(addresses, Color(100, 100, 200))
+def num2color(v):
+    if v >= 200:
+        return Color.PINK
+    if v >= 64:
+        return Color.ORANGE
+    if v >= 1:
+        return Color.GREEN
+    if v == 0:
+        return Color.CYAN
 
 def read_edges(tracefile):
     addr = getCurrentProgram().getAddressFactory()
     unique_edges = list()
     with open(tracefile) as trace:
         for line in trace.readlines():
-            src,sep,rest = line.rstrip().partition(",")
-            dst,sep,rest = line.rstrip().partition(",")
-            #print "edge: < 0x%08x, 0x%08x >" % (src,dst)
+            src,dst,num = line.rstrip().split(',')
+            #print "edge: < 0x%s, 0x%s, %s >" % (src,dst,num)
             addr_src = addr.getAddress("0x%s" % src)
             addr_dst = addr.getAddress("0x%s" % dst)
-            unique_edges.append([addr_src, addr_dst])
+            unique_edges.append([addr_src, addr_dst, int(num,16)])
 
     return unique_edges
 
@@ -115,27 +115,28 @@ def show_block(block):
         print "  - 0x%08x" % Addr.getUnsignedOffset()
 
 
-blocklist=list()
+blocklist = list()
+implicit_blocks = list()
 
 def check_block(block, edge=None, indent=" "):
     global blocklist
 
-    # only process new found blocks
+    # Mark this block. Implicitly reached blocks have edge=None
+    mark_new_block(block, edge)
+
+    # Recursively check any blocks reached unconditionally from this one
     if block in blocklist:
         if verbose:
             print indent + "`-> block %s already known, skipping.." % block.getName()
         return
 
-    # Recursively check any blocks reached unconditionally from this one
     if verbose:
-        print indent + "`-> added block %s, checking destinations.." % block.getName()
+        print indent + "`-> block %s is new, checking destinations.." % block.getName()
     indent=indent+"  "
-
-    # Mark this block. We have definitely reached it.
     blocklist.append(block)
-    mark_new_block(block)
 
-    # also trace this blocks unconditional/direct destinations, since PT won't trigger events on them
+    # Edges reached by unconditional call/jmp may not be explicitly listed in trace
+    # But they may also be false positives. We recursively check them with edge=None
     destIter = block.getDestinations(monitor);
     while (destIter.hasNext()):
         destRef = destIter.next()
@@ -157,18 +158,53 @@ def check_block(block, edge=None, indent=" "):
             print indent + "`-> ignore implicit %s: 0x%08x -> 0x%08x" % (
                     str(destFlow), destRef.getReferent().getUnsignedOffset(), destRef.getReference().getUnsignedOffset())
 
-def mark_new_block(block):
+def mark_new_block(block, edge):
+    global implicit_blocks
+    global blocklist
     #show_block(block)
-    if service:
-        setBackgroundColor(block, Color.GREEN)
+
+    # colorize reached blocks, potentially overriding an earlier (implicitly reached) block
+    if edge:
+        if service:
+            setBackgroundColor(block, num2color(edge[2])) # warm, execution=1+
+        if block in implicit_blocks:
+            implicit_blocks.remove(block)
+    else:
+        if block not in blocklist:
+            implicit_blocks.append(block)
+            if service:
+                setBackgroundColor(block, num2color(0)) # cold, executions=0
+
+def clear_markup():
+    # only works in GUI mode
+    if not service:
+        return
+
+    listing = getCurrentProgram().getListing()
+    AddrSet = getCurrentProgram().getAddressFactory().getAddressSet()
+
+    clearBackgroundColor(AddrSet)
+
+    CodeIter = listing.getCommentCodeUnitIterator(CodeUnit.EOL_COMMENT, AddrSet)
+    while CodeIter.hasNext():
+        addr = CodeIter.next()
+        addr.setComment(CodeUnit.EOL_COMMENT, "")
 
 def mark_new_edge(edge):
-    if service:
-        #setBackgroundColor(edge[0], Color.CYAN)
-        #setBackgroundColor(edge[1], Color.CYAN)
-        listing = getCurrentProgram().getListing()
-        listing.setComment(edge[0], CodeUnit.EOL_COMMENT, "edge target: 0x%08x" % edge[1].getUnsignedOffset())
-        listing.setComment(edge[1], CodeUnit.EOL_COMMENT, "edge source: 0x%08x" % edge[0].getUnsignedOffset())
+    # only works in GUI mode
+    if not service:
+        return
+
+    #setBackgroundColor(edge[0], Color.CYAN)
+    #setBackgroundColor(edge[1], Color.CYAN)
+    listing = getCurrentProgram().getListing()
+    srcComment = listing.getComment(CodeUnit.EOL_COMMENT, edge[0])
+    srcComment = (srcComment + "\n" if srcComment else "") + "edge dst=0x%08x" % edge[1].getUnsignedOffset()
+    listing.setComment(edge[0], CodeUnit.EOL_COMMENT, srcComment)
+
+    dstComment = listing.getComment(CodeUnit.EOL_COMMENT, edge[1])
+    dstComment = (dstComment + "\n" if dstComment else "") + "edge src=0x%08x" % edge[0].getUnsignedOffset()
+    listing.setComment(edge[1], CodeUnit.EOL_COMMENT, dstComment)
 
 def scan_by_edges(model, edges):
 
@@ -182,13 +218,18 @@ def scan_by_edges(model, edges):
         # jmp(), call() point at begin of a block, ret() points somewhere right after call()
         b = model.getCodeBlockAt(edge[1], monitor)
         if b:
-            #print "-> check jmp/call target block"
+            if verbose:
+                print "Found dest block for edge < 0x%08x, 0x%08x >" % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset())
             check_block(b, edge)
+            found += 1
         else:
             blocks = model.getCodeBlocksContaining(edge[1], monitor)
-            #print "-> check ret target block"
-            if (len(blocks) > 1):
-                printf("Ambigious code block for edge < 0x%08x, 0x%08x >. Supplied the wrong binary?" % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset()))
+            if verbose:
+                if (len(blocks) == 1):
+                    print "Found dest block for edge < 0x%08x, 0x%08x >" % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset())
+                if (len(blocks) > 1):
+                    print "Ambigious dest block for edge < 0x%08x, 0x%08x >" % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset())
+
             for b in blocks:
                 check_block(b, edge)
                 found += 1
@@ -196,9 +237,11 @@ def scan_by_edges(model, edges):
         # source pointers will be mostly within a block.
         # this also catches direct hits (getCodeBlockAt(edge[0]))
         blocks = model.getCodeBlocksContaining(edge[0], monitor)
-        #print "-> jmp/call/ret from source"
-        if(len(blocks) > 1):
-            printf("Ambigious code block for edge < 0x%08x, 0x%08x >. Supplied the wrong binary?" % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset()))
+        if verbose:
+            if(len(blocks) == 1):
+                print "Found src block for edge < 0x%08x, 0x%08x >" % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset())
+            if(len(blocks) > 1):
+                print "Ambigious src block for edge < 0x%08x, 0x%08x >" % (edge[0].getUnsignedOffset(), edge[1].getUnsignedOffset())
         for b in blocks:
             check_block(b, edge)
             found += 1
@@ -215,8 +258,6 @@ def scan_by_edges(model, edges):
 
 def main():
 
-    edges = read_edges("/tmp/edges_uniq.lst")
-
     model = BasicBlockModel(getCurrentProgram())
     print "Block model: %s" % model.getName()
     print "Ignore threshold: %d" % ignore_threshold
@@ -224,8 +265,13 @@ def main():
     print "Verbose=%s" % verbose
 
     ##
-    # Scan program and mark any blocks we reached
+    # Read edges from file, then scan program and mark any reached blocks
+    #
+    # Input format:
+    # One edge per line: "src,dst,num", where num is the number of times the edge was hit
     ##
+    clear_markup()
+    edges = read_edges("/tmp/edges_uniq.lst")
     unmapped_edges = scan_by_edges(model, edges)
 
     ##
@@ -270,6 +316,9 @@ def main():
         for func, blocks in sorted(blocks_map.items(), key=lambda x: str(x[0]).lower):
             if func not in reached_map and blocks > ignore_threshold:
                 print "Missed: %3d blocks in %s" % (blocks, func)
+
+    if print_implicit and len(implicit_blocks):
+        print "Marked %d implicitly reached blocks:\n\t%s" % (len(implicit_blocks), ', '.join(str(x.name) for x in implicit_blocks))
 
 
     ##
