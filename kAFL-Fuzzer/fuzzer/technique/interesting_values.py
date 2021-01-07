@@ -26,7 +26,6 @@ def mutate_seq_8_bit_interesting(data, func, skip_null=False, effector_map=None,
 
         for j in range(len(interesting_8_Bit)):
             value = in_range_8(interesting_8_Bit[j])
-            # TODO: should check with arith_max value here?
             if (is_not_bitflip(orig ^ value) and
                 is_not_arithmetic(orig, value, 1)):
                     data[i] = value
@@ -40,7 +39,7 @@ def mutate_seq_16_bit_interesting(data, func, skip_null=False, effector_map=None
     label="afl_int_2"
     for i in range(len(data) - 1):
         if effector_map:
-            if not (effector_map[i] or effector_map[i + 1]):
+            if not effector_map[i] and not effector_map[i+1]:
                 continue
 
         orig = data[i:i+2]
@@ -56,14 +55,14 @@ def mutate_seq_16_bit_interesting(data, func, skip_null=False, effector_map=None
             if (is_not_bitflip(oval ^ num1) and
                 is_not_arithmetic(oval, num1, 2, arith_max=arith_max) and
                 is_not_interesting(oval, num1, 2, 0)):
-                    data[i:i+2] = struct.pack("<H", num1)
+                    struct.pack_into("<H", data, i, num1)
                     func(data, label=label)
 
-            if (num1 != num2 and \
-                is_not_bitflip(oval ^ num2) and \
-                is_not_arithmetic(oval, num2, 2, arith_max=arith_max) and \
+            if (num1 != num2 and
+                is_not_bitflip(oval ^ num2) and
+                is_not_arithmetic(oval, num2, 2, arith_max=arith_max) and
                 is_not_interesting(oval, num2, 2, 1)):
-                    data[i:i+2] = struct.pack(">H", num1)
+                    struct.pack_into(">H", data, i, num1)
                     func(data, label=label)
 
         data[i:i+2] = orig
@@ -74,7 +73,7 @@ def mutate_seq_32_bit_interesting(data, func, skip_null=False, effector_map=None
     label="afl_int_4"
     for i in range(len(data) - 3):
         if effector_map:
-            if effector_map[i:i+4] == b'\x00\x00\x00\x00':
+            if effector_map[i:i+4] == bytes(4):
                 continue
 
         orig = data[i:i+4]
@@ -88,16 +87,16 @@ def mutate_seq_32_bit_interesting(data, func, skip_null=False, effector_map=None
             num1 = in_range_32(interesting_32_Bit[j])
             num2 = swap_32(num1)
 
-            if (is_not_bitflip(oval ^ num1) and \
-                is_not_arithmetic(oval, num1, 4, arith_max=arith_max) and \
+            if (is_not_bitflip(oval ^ num1) and
+                is_not_arithmetic(oval, num1, 4, arith_max=arith_max) and
                 is_not_interesting(oval, num1, 4, 0)):
-                    data[i:i+4] = struct.pack("<I", num1)
+                    struct.pack_into("<I", data, i, num1)
                     func(data, label=label)
 
             if (num1 != num2 and is_not_bitflip(oval ^ num2) and
                 is_not_arithmetic(oval, num2, 4, arith_max=arith_max) and
                 is_not_interesting(oval, num2, 4, 1)):
-                    data[i:i+4] = struct.pack("<I", num2)
+                    struct.pack_into("<I", data, i, num2)
                     func(data, label=label)
 
         data[i:i+4] = orig

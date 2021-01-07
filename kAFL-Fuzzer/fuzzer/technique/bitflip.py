@@ -7,63 +7,112 @@
 AFL-style bitflip mutations (deterministic stage).
 """
 
-def walking_bits_execs(data, skip_null=False, effector_map=None):
-    execs=0
-    for i in range(len(data) * 8):
-        if effector_map:
-            if not effector_map[i // 8]:
-                continue
-        if data[i // 8] == 0x00 and skip_null:
-            continue
-
-        execs +=1
-
-    return execs
-
-
 def mutate_seq_walking_bits(data, func, skip_null=False, effector_map=None):
-    for i in range(len(data) * 8):
+
+    for i in range(len(data)):
+        orig = data[i]
+
         if effector_map:
-            if not effector_map[i // 8]:
+            if not effector_map[i]:
                 continue
-        if data[i // 8] == 0x00 and skip_null:
+        if skip_null and not data[i]:
             continue
-        data[i // 8] ^= (0x80 >> (i % 8))
-        func(data, label="afl_flip_1/1")
-        data[i // 8] ^= (0x80 >> (i % 8))
+
+        for j in range(8):
+            data[i] ^= 0x80 >> j
+            func(data, label="afl_flip_1/1")
+            data[i] = orig
 
 
 def mutate_seq_two_walking_bits(data, func, skip_null=False, effector_map=None):
-    for i in range((len(data) * 8) - 1):
+
+    for i in range(len(data)-1):
+
         if effector_map:
-            if not (effector_map[i // 8] or effector_map[(i + 1) // 8]):
+            if effector_map[i:i+2] == bytes(2):
                 continue
-        if data[i // 8] == 0x00 and data[(i + 1) // 8] == 0x00 and skip_null:
+
+        if skip_null and data[i:i+2] == bytes(2):
             continue
-        data[i // 8] ^= (0x80 >> (i % 8))
-        data[(i + 1) // 8] ^= (0x80 >> ((i + 1) % 8))
+        
+        orig = data[i:i+2]
+
+        for j in range(7):
+            data[i] ^= (0xc0 >> j)
+            #data[i] ^= (0x80 >> j + 1)
+            func(data, label="afl_flip_2/1")
+            data[i] = orig[0]
+
+        # j=7
+        data[i]   ^= (0x80 >> 7)
+        data[i+1] ^= (0x80 >> 0)
         func(data, label="afl_flip_2/1")
-        data[i // 8] ^= (0x80 >> (i % 8))
-        data[(i + 1) // 8] ^= (0x80 >> ((i + 1) % 8))
+        data[i:i+2] = orig
+
+    # special round for last byte
+    i=len(data)-1
+    orig = data[i]
+
+    if effector_map and not effector_map[i]:
+        return
+    if skip_null and not data[i]:
+        return
+
+    for j in range(7):
+        data[i] ^= (0xc0 >> j)
+        #data[i] ^= (0x80 >> j + 1)
+        func(data, label="afl_flip_2/1")
+        data[i] = orig
 
 
 def mutate_seq_four_walking_bits(data, func, skip_null=False, effector_map=None):
-    for i in range((len(data) * 8 - 3)):
+
+    for i in range(len(data)-1):
+
         if effector_map:
-            if not (effector_map[i // 8] or effector_map[(i + 3) // 8]):
+            if effector_map[i:i+2] == bytes(2):
                 continue
-        if data[i // 8] == 0x00 and data[(i + 3) // 8] == 0x00 and skip_null:
+
+        if skip_null and data[i:i+2] == bytes(2):
             continue
 
-        data[i // 8] ^= (0x80 >> (i % 8))
-        data[(i + 1) // 8] ^= (0x80 >> ((i + 1) % 8))
-        data[(i + 2) // 8] ^= (0x80 >> ((i + 2) % 8))
-        data[(i + 3) // 8] ^= (0x80 >> ((i + 3) % 8))
-        func(data, label="afl_flip_4/1")
-        data[i // 8] ^= (0x80 >> (i % 8))
-        data[(i + 1) // 8] ^= (0x80 >> ((i + 1) % 8))
-        data[(i + 2) // 8] ^= (0x80 >> ((i + 2) % 8))
-        data[(i + 3) // 8] ^= (0x80 >> ((i + 3) % 8))
+        orig = data[i:i+2]
+
+        for j in range(5):
+            data[i] ^= (0xf0 >> j)
+            func(data, label="afl_flip_2/1")
+            data[i] = orig[0]
+
+        # j=5,6,7
+        data[i]   ^= (0xe0 >> 5)
+        data[i+1] ^= (0x80 >> 0)
+        func(data, label="afl_flip_2/1")
+        data[i:i+2] = orig
+        
+        data[i]   ^= (0xc0 >> 6)
+        data[i+1] ^= (0xc0 >> 0)
+        func(data, label="afl_flip_2/1")
+        data[i:i+2] = orig
+        
+        data[i]   ^= (0x80 >> 7)
+        data[i+1] ^= (0xe0 >> 0)
+        func(data, label="afl_flip_2/1")
+        data[i:i+2] = orig
+
+    # special round for last byte
+    i=len(data)-1
+    orig = data[i]
+
+    if effector_map and not effector_map[i]:
+        return
+    if skip_null and not data[i]:
+        return
+
+    for j in range(5):
+        # j=0,1,2,3,4
+        data[i] ^= (0xf0 >> j)
+        func(data, label="afl_flip_2/1")
+        data[i] = orig
 
 
 def mutate_seq_walking_byte(data, func, effector_map=None, limiter_map=None, skip_null=False):
@@ -76,7 +125,7 @@ def mutate_seq_walking_byte(data, func, effector_map=None, limiter_map=None, ski
             if not limiter_map[i]:
                 continue
 
-        if data[i] == 0x00 and skip_null:
+        if skip_null and not data[i]:
             continue
 
         data[i] ^= 0xFF
@@ -92,10 +141,10 @@ def mutate_seq_two_walking_bytes(data, func, effector_map=None, skip_null=False)
 
     for i in range(0, len(data)-1):
         if effector_map:
-            if effector_map[i:i+2] == b'\x00\x00':
+            if effector_map[i:i+2] == bytes(2):
                 continue
 
-        if data[i:i+2] == b'\x00\x00' and skip_null:
+        if skip_null and data[i:i+2] == bytes(2):
             continue
 
         data[i+0] ^= 0xFF
@@ -112,10 +161,10 @@ def mutate_seq_four_walking_bytes(data, func, effector_map=None, skip_null=False
     for i in range(0, len(data)-3):
 
         if effector_map:
-            if effector_map[i:i+4] == b'\x00\x00\x00\x00':
+            if effector_map[i:i+4] == bytes(4):
                 continue
 
-        if data[i:i+4] == b'\x00\x00\x00\x00' and skip_null:
+        if skip_null and data[i:i+4] == bytes(4):
             continue
 
         data[i+0] ^= 0xFF

@@ -106,9 +106,12 @@ class rand:
     #   if rand.int(2)        # execute with p(0.5)
     # a[rand.int(len(a)) = 5  # never out of bounds
     def int(limit):
-        if limit == 0:
-            return 0
-        return fastrand.pcg32bounded(limit)
+        try:
+            return fastrand.pcg32bounded(limit)
+        except:
+            if limit == 0:
+                return 0
+            raise
 
     def select(arg):
         return arg[rand.int(len(arg))]
@@ -124,14 +127,11 @@ def in_range_8(value):
 def in_range_16(value):
     return ctypes.c_uint16(value).value
 
-
 def in_range_32(value):
     return ctypes.c_uint32(value).value
 
-
 def swap_16(value):
     return struct.unpack("<H", struct.pack(">H", value))[0]
-
 
 def swap_32(value):
     return struct.unpack("<I", struct.pack(">I", value))[0]
