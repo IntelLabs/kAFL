@@ -16,7 +16,7 @@ from tests.test_havoc_handler import *
 
 if __name__ == '__main__':
 
-    print("\nRunning tests...")
+    print("\nRunning benchmarks... (use pytest -v to run actual tests!)\n")
 
     rand_main()
     deter_main()

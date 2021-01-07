@@ -109,8 +109,8 @@ def test_havoc_interesting_value_32():
             assert(32 >= ham_distance(data_in, data_out)), "Flipped too many bits!"
 
             success=False
-            for i in interesting_16_Bit:
-                if struct.pack("<h",i) in bytearray(data_out) or struct.pack(">h",i) in bytearray(data_out):
+            for i in interesting_32_Bit:
+                if struct.pack("<i",i) in bytearray(data_out) or struct.pack(">i",i) in bytearray(data_out):
                     success=True
             assert(success), "Bitflip flipped wrong bits!"
 
@@ -129,14 +129,16 @@ def test_havoc_insert_line(v=False):
 
 def havoc_main():
 
+    return
+
     test_redqueen_dict_clear()
     test_redqueen_dict_add()
 
     test_havoc_bit_flip()
-    #test_havoc_interesting_value_8()
-    #test_havoc_interesting_value_16()
-    #test_havoc_interesting_value_32()
+    test_havoc_interesting_value_8()
+    test_havoc_interesting_value_16()
+    test_havoc_interesting_value_32()
 
-    #test_havoc_insert_line(v=True)
+    test_havoc_insert_line(v=True)
 
     print("All tests passed!")

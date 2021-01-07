@@ -14,7 +14,7 @@ from fuzzer.technique.arithmetic import *
 from fuzzer.technique.bitflip import *
 from fuzzer.technique.helper import *
 
-from tests.helper import ham_distance, ham_weight
+from tests.helper import ham_distance, ham_weight, bindiff
 
 def generate_effector_map(length):
     eff_map = []
@@ -35,12 +35,14 @@ def run_mutation(func, payloads, v=False):
         if v:
             print("Outdata: ",hexlify(outdata))
 
+        return True, True
+
     for payload in payloads:
         calls = 0
         if v:
             print("Payload: ",hexlify(payload))
 
-        func(bytearray(payload), verifier, effector_map=eff_map, skip_null=skip_zero, verbose=v)
+        func(bytearray(payload), verifier, effector_map=eff_map, skip_null=skip_zero)
 
         if v:
             print("Performed %d mutations." % calls)
@@ -69,19 +71,25 @@ def assert_invariants(func, max_flipped_bits, payloads):
 
 def assert_bitflip_invariants(func, flipped_bits, loops, skips, payloads):
 
-    global calls
-
     def verifier(outdata, label=None):
-        global calls
-        calls += 1
+        nonlocal calls
+        nonlocal use_eff_map
+        eff_map_creator = mutate_seq_walking_byte
+
         # each mutator has characteristic max number of bits it can flip
-        assert(ham_distance(payload,outdata) == flipped_bits), "Bitflips mismatch:\n%s\n%s" % (hexlify(payload),hexlify(outdata))
-        return True, True
+        # only special case is first call by eff_map_creator
+        calls += 1
+        if calls == 1 and use_eff_map == True and func == eff_map_creator:
+            assert(ham_distance(payload,outdata) == 0)
+        else:
+            assert(ham_distance(payload,outdata) == flipped_bits), "Bitflips mismatch on call %d:\n%s\n%s" % (calls, hexlify(payload),hexlify(outdata))
+            #assert(bindiff(payload,outdata) in [b'\x80', b'\x40', b'\x20', b'\x10', b'\x08', b'\x04', b'\x02', b'\x01']), "Unexpected bitflip pattern"
+        return False, False
 
     for payload in payloads:
         copy = bytearray(payload)
         for skip_null in [False, True]:
-            for use_eff_map in [False, True]:
+            for use_eff_map in [True, False]:
 
                 if use_eff_map:
                     eff_map = generate_effector_map(len(payload))
@@ -139,9 +147,6 @@ def test_invariants(v=False):
                 [mutate_seq_four_walking_bytes_array, 32, 1, 3]]
     else:
         func_calls = [
-                [mutate_seq_walking_bits, 1, 8, 0],
-                [mutate_seq_two_walking_bits, 2, 8, 1],
-                [mutate_seq_four_walking_bits, 4, 8, 3],
                 [mutate_seq_walking_byte, 8, 1, 0],
                 [mutate_seq_two_walking_bytes, 16, 1, 1],
                 [mutate_seq_four_walking_bytes, 32, 1, 3]]
@@ -170,7 +175,7 @@ def assert_func_num_calls(func, payload, expected_calls, v=False):
     assert(expected_calls == calls), "Expected %d, got %d calls for payload %s" % (expected_calls, calls, hexlify(payload))
 
 
-def test_arith_8_calls():
+def test_arith_8_call_num():
 
     verbose=False
     old=False
@@ -197,7 +202,7 @@ def test_arith_8_calls():
 
         assert_func_num_calls(func, bytearray(pld), loops*ops, verbose)
 
-def test_arith_16_calls():
+def test_arith_16_call_num():
 
     verbose=False
     old=False
@@ -223,7 +228,7 @@ def test_arith_16_calls():
         assert_func_num_calls(func, bytearray(pld), loops*ops, verbose)
 
 
-def test_arith_32_calls():
+def test_arith_32_call_num():
 
     verbose=False
     old=False
@@ -257,7 +262,7 @@ def test_arith_32_calls():
 
         assert_func_num_calls(func, bytearray(pld), loops*ops, verbose)
 
-def test_int_8_calls():
+def test_int_8_call_num():
 
     verbose=False
     old=False
@@ -282,7 +287,7 @@ def test_int_8_calls():
         loops = len(pld)
         assert_func_num_calls(func, bytearray(pld), loops*ops, verbose)
 
-def test_int_16_calls():
+def test_int_16_call_num():
 
     verbose=False
     old=False
@@ -311,7 +316,7 @@ def test_int_16_calls():
         assert_func_num_calls(func, bytearray(pld), loops*ops, verbose)
 
 
-def test_int_32_calls():
+def test_int_32_call_num():
 
     verbose=False
     old=False
@@ -349,44 +354,66 @@ def deter_benchmark():
 
     verbose=False
     old=False
-    payloads = [b'abcdefghijk']
+    payloads = [b'abcdefghijklmnopqrstuvwxyz01234567890', bytes([254,255,255,254,255,254,252])]
 
     def bench_arith_8():
-        test_mutate_8_arithmetic(True, verbose)
-        test_mutate_8_arithmetic(False, verbose)
+        run_mutation(mutate_seq_8_bit_arithmetic, payloads)
 
     def bench_arith_16():
-        run_arith_16(True, verbose)
-        bench_arith_16(False, verbose)
+        run_mutation(mutate_seq_16_bit_arithmetic, payloads)
 
     def bench_arith_32():
-        #test_mutate_32_arithmetic(True, verbose)
-        test_mutate_32_arithmetic(False, verbose)
+        run_mutation(mutate_seq_32_bit_arithmetic, payloads)
 
     def bench_int32():
-        test_mutate_32_interesting(True, verbose)
-        test_mutate_32_interesting(False, verbose)
+        run_mutation(mutate_seq_32_bit_interesting, payloads)
 
     def bench_int16():
-        run_mutation(mutate_seq_16_bit_interesting_array, payloads, v=False)
-        #run_mutation(mutate_seq_16_bit_interesting, payloads, v=False)
+        run_mutation(mutate_seq_16_bit_interesting, payloads)
 
-    #time_arith8  = timeit.timeit(stmt=bench_arith_8, number=10000)
-    #print("afl_arith_8  = %5.02fs" % time_arith8)
+    def bench_int8():
+        run_mutation(mutate_seq_8_bit_interesting, payloads)
 
-    #time_arith16 = timeit.timeit(stmt=bench_arith_16, number=1)
-    #print("afl_arith_16 = %5.02fs" % time_arith16)
+    def bench_flip_bits():
+        run_mutation(mutate_seq_walking_bits, payloads)
+        run_mutation(mutate_seq_two_walking_bits, payloads)
+        run_mutation(mutate_seq_four_walking_bits, payloads)
 
-    #time_arith32 = timeit.timeit(stmt=bench_arith_32, number=900)
-    #print("afl_arith_32 = %5.02fs" % time_arith32)
+    def bench_walk_bytes():
+        run_mutation(mutate_seq_walking_byte, payloads)
+        run_mutation(mutate_seq_two_walking_bytes, payloads)
+        run_mutation(mutate_seq_four_walking_bytes, payloads)
 
-    time_int16 = timeit.timeit(stmt=bench_int16, number=5000)
+    num = 5000
+
+    time_flips = timeit.timeit(stmt=bench_flip_bits, number=num*3)
+    print("afl_flip_1/2/4 = %5.02fs" % time_flips)
+
+    time_walks = timeit.timeit(stmt=bench_walk_bytes, number=num*3)
+    print("afl_walk_1/2/4 = %5.02fs" % time_walks)
+
+    time_arith8 = timeit.timeit(stmt=bench_arith_8, number=num)
+    print("afl_arith_8  = %5.02fs" % time_arith8)
+
+    time_arith16 = timeit.timeit(stmt=bench_arith_16, number=num)
+    print("afl_arith_16 = %5.02fs" % time_arith16)
+
+    time_arith32 = timeit.timeit(stmt=bench_arith_32, number=num)
+    print("afl_arith_32 = %5.02fs" % time_arith32)
+
+    time_int8 = timeit.timeit(stmt=bench_int8, number=num)
+    print("afl_int_8 = %5.02fs" % time_int8)
+
+    time_int16 = timeit.timeit(stmt=bench_int16, number=num//2)
     print("afl_int_16 = %5.02fs" % time_int16)
+
+    time_int32 = timeit.timeit(stmt=bench_int32, number=num//2)
+    print("afl_int_32 = %5.02fs" % time_int32)
 
 def deter_main():
 
-    #deter_benchmark()
-    #return
+    deter_benchmark()
+    return
 
     verbose=True
 
@@ -404,9 +431,9 @@ def deter_main():
 
     #run_mutation(mutate_seq_8_bit_interesting_array, payloads,v=verbose)
     #run_mutation(mutate_seq_8_bit_interesting, payloads,v=verbose)
-    #run_mutation(mutate_seq_16_bit_interesting_array, payloads, v=verbose)
     #run_mutation(mutate_seq_16_bit_interesting, payloads, v=verbose)
-    #run_mutation(mutate_seq_32_bit_interesting_array, payloads, v=verbose)
+    #run_mutation(mutate_seq_16_bit_interesting, payloads, v=verbose)
+    #run_mutation(mutate_seq_32_bit_interesting, payloads, v=verbose)
     #run_mutation(mutate_seq_32_bit_interesting, payloads, v=verbose)
 
     #test_invariables()

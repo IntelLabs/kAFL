@@ -15,3 +15,10 @@ def ham_weight(x):
 def ham_distance(a,b):
     return ham_weight(bytes(x ^ y for (x, y) in zip(a, b)))
 
+def bindiff(a,b):
+    res = bytearray()
+    for (x, y) in zip(a, b):
+        r = bytearray([x^y])
+        if r != b'\x00':
+            res += r
+    return res

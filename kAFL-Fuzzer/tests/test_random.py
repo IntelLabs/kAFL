@@ -6,6 +6,7 @@ Test kAFL rand() wrapper / coin toss
 """
 
 import random
+import fastrand
 from fuzzer.technique.helper import rand
 
 
@@ -159,18 +160,50 @@ def test_coin_semantics():
 
     assert(abs(check/samples - 3/4*1/2) < 0.1), "Coin toss bias - semantics mismatch?"
 
+def bench_randint():
+
+    data = bytearray()
+    selection = bytearray()
+    for i in range(2048):
+        data += bytes([rand.int(256)])
+        #data += bytes([fastrand.pcg32bounded(256)])
+
+    num=256
+    for i in range(num):
+        selection += bytes([rand.select(data)])
+    assert(len(selection) == num)
+
+def bench_randomint():
+
+    data = bytearray()
+    selection = bytearray()
+    for i in range(2048):
+        data += bytes([random.randint(0,255)])
+
+    num=256
+    for i in range(num):
+        selection += bytes([random.choice(data)])
+    assert(len(selection) == num)
 
 import timeit
 def rand_benchmark():
 
     ## simple benchmark to check if rand.int() is really faster..
-    time_int = timeit.timeit(stmt=test_rand_int, number=10)
-    time_coin = timeit.timeit(stmt=test_coin_semantics, number=2000)
-    time_sel = timeit.timeit(stmt=test_rand_select, number=10)
+    #time_int = timeit.timeit(stmt=test_rand_int, number=10)
+    #print("rand_int()    = %5.02fs" % time_int)
 
-    print("rand_int()    = %5.02fs" % time_int)
-    print("rand_coin()   = %5.02fs" % time_coin)
-    print("rand_select() = %5.02fs" % time_sel)
+    #time_coin = timeit.timeit(stmt=test_coin_semantics, number=2000)
+    #print("rand_coin()   = %5.02fs" % time_coin)
+
+    #time_sel = timeit.timeit(stmt=test_rand_select, number=10)
+    #print("rand_select() = %5.02fs" % time_sel)
+
+    time_rand = timeit.timeit(stmt=bench_randint, number=1000)
+    print("bench_rand.int() = %5.02fs" % time_rand)
+
+    time_random = timeit.timeit(stmt=bench_randomint, number=1000)
+    print("bench_random.int() = %5.02fs" % time_random)
 
 def rand_main():
-    test_coin_semantics()
+    #test_coin_semantics()
+    rand_benchmark()
