@@ -60,16 +60,10 @@ class QueueNode:
 
     def update_file(self, write=True):
         if write:
-            self.write_metadata()
-            self.dirty = False
-        else:
-            self.dirty = True
+            atomic_write(QueueNode.__get_metadata_filename(self.get_id()), msgpack.packb(self.node_struct, use_bin_type=True))
 
     def write_bitmap(self, bitmap):
         atomic_write(self.__get_bitmap_filename(), lz4.frame.compress(bitmap))
-
-    def write_metadata(self):
-        return atomic_write(QueueNode.__get_metadata_filename(self.get_id()), msgpack.packb(self.node_struct, use_bin_type=True))
 
     def load_metadata(self):
         QueueNode.get_metadata(self.id)
@@ -92,7 +86,7 @@ class QueueNode:
 
     def update_metadata(self, delta, write=True):
         self.node_struct = QueueNode.apply_metadata_update(self.node_struct, delta)
-        self.update_file(write=True)
+        self.update_file(write=write)
 
     def set_payload(self, payload, write=True):
         self.set_payload_len(len(payload), write=False)

@@ -139,4 +139,4 @@ class InputQueue:
                     changed_nodes.add(old_node)
                     self.statistics.event_node_remove_fav_bit(old_node)
         for node in changed_nodes:
-            node.write_metadata()
+            node.update_file()
