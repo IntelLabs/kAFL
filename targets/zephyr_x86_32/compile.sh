@@ -63,13 +63,17 @@ function fetch_sdk() {
 	read
 	wget -c -O $INSTALLER $SDK_URL
 	bash $INSTALLER
+
+	echo "export ZEPHYR_TOOLCHAIN_VARIANT=zephyr\nexportZEPHYR_SDK_INSTALL_DIR=$HOME/zephyr-sdk" >> ~/.zephyrrc
 }
 
 function check_sdk() {
 
 	# fetch Zephyr and SDK if not available
 	test -d "$KAFL_ROOT/zephyrproject" || (echo "Could not find Zephyr."; fetch_zephyr)
-	test -f "$HOME/.zephyrrc" || (echo "Could not find a Zephyr SDK."; fetch_sdk)
+
+	# assuming zephyr SDK was installed to default directory with default name
+	test -d "$HOME/zephyr-sdk" || (echo "Could not find a Zephyr SDK."; exit)
 
 	# check again and this time bail out on error
 	test -d "$KAFL_ROOT/zephyrproject" || fail "Could not find Zephyr install. Exit."

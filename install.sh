@@ -28,16 +28,15 @@ checked_download()
 
 check_gitconfig()
 {
-	git config --get user.name > /dev/null && git config --get user.email > /dev/null && return
-
-	echo "
-	The installer uses git in order to manage local patches against qemu and linux sources.
-   	Please setup a valid git config in order for this to work:
-	
-	 $ git config user.name Joe User
-	 $ git config user.email <joe.user@invalid.local>
-	"
-	exit 1
+	if [ ! "`git config --get user.name`" ] || [ ! "`git config --get user.email`" ]; then
+		echo "[-] Error: The installer uses git in order to manage local patches against qemu and linux sources."
+   		echo "           Please setup a valid git config in order for this to work:"
+		echo
+	 	echo " $ git config --global user.name Joe User"
+	    echo " $ git config --global user.email joe.user@invalid.local"
+		echo
+		exit 1
+	fi
 }
 
 system_check()
@@ -56,7 +55,7 @@ system_check()
 		exit 1
 	fi
 
-	dist_id="$(lsb_release -si)"
+dist_id="$(lsb_release -si)"
 	if [ "$dist_id" != "Debian" -a "$dist_id" != "Ubuntu" ]; then
 		echo "[-] Error: This installer was tested using recent Debian and Ubuntu."
 		echo
@@ -95,7 +94,7 @@ system_deps()
 	sudo apt-get install libcapstone-dev libcapstone3
 
 	echo "[*] Installing kAFL python dependencies ..."
-	pip3 install --user mmh3 lz4 psutil fastrand ipdb inotify msgpack toposort pygraphviz pgrep tqdm
+	pip3 install --user mmh3 lz4 psutil fastrand ipdb inotify msgpack toposort pygraphviz pgrep tqdm six python-dateutil
 }
 
 build_qemu()
