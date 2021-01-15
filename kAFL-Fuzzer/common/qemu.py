@@ -150,7 +150,14 @@ class qemu:
             if self.qemu_id == 0:
                 self.cmd = self.cmd.replace("-machine pc-q35-2.4", "-machine pc-q35-2.4 -redir tcp:5901:0.0.0.0:5900 -redir tcp:10022:0.0.0.0:22")
         else:
-            self.cmd += " -machine q35 "
+            self.cmd = self.cmd.replace("-nographic -net none",
+                    "-nographic -cpu pentium3 -machine xbox,accel=kvm:hax:whpx,kernel_irqchip=off,bootrom=/home/user/Documents/xkAFL-vm/mcpx_1.0.bin -m 64M -bios /home/user/Documents/xkAFL-vm/Complex_4627.bin -drive index=1,media=cdrom,file=/home/user/Documents/nxdk/samples/harness/harness.iso")
+            if self.qemu_id == 0:
+                self.cmd = self.cmd.replace("-machine pc-q35-2.4", "-machine pc-q35-2.4 -redir tcp:5901:0.0.0.0:5900 -redir tcp:10022:0.0.0.0:22")
+        # This patch deserves better. Quickly edited to get a POC going.
+        # TODO: make an actual xbox flag
+        # TODO: restore the original else statement
+        # TODO: These lines are too long
 
 
         self.crashed = False
