@@ -163,6 +163,17 @@ def ptime(secs):
         return "%2dh%02dm" % (hours, mins)
     return     "%2dm%02ds" % (mins, seconds)
 
+def atime(secs):
+    secs = int(secs)
+    seconds = secs % 60
+    secs //= 60
+    mins = secs % 60
+    secs //= 60
+    hours = secs % 24
+    days = secs  // 24
+    if days > 0:
+        return "%dd,%02dh" % (days, hours)
+    return "%2dh%02dm" % (hours, mins)
 
 class GuiDrawer:
     def __init__(self, workdir, stdscr):
@@ -207,7 +218,7 @@ class GuiDrawer:
         self.gui.print_info_line([
             (16, "", ""),
             (16, "CurExec/s", pnum(d.execs_p_sec_cur())),
-            (16, "Timeouts", pfloat(d.relative_timeouts()) + "%"),
+            (16, "Funkiness", d.clever_funky()),
             #(16, "Reload/s", pnum(d.reload_p_sec()))])
             (16, "CPU Use", pnum(d.cpu_used()) + "%")])
             #(16, "", "")])
@@ -215,7 +226,7 @@ class GuiDrawer:
             #(16, "", ""),
             (16, "User", pfloat(d.cpu_user()) + "%"),
             (16, "AvgExec/s", pnum(d.execs_p_sec_avg())),
-            (16, "Funky", d.clever_funky()),
+            (16, "Timeouts", pfloat(d.relative_timeouts()) + "%"),
             (16, "Mem Use", pfloat(d.ram_used()) + "%")])
 
 
@@ -274,7 +285,13 @@ class GuiDrawer:
             if i == self.current_slave_id:
                 hl = ">"
             nid = d.slave_input_id(i)
-            if nid not in [None, 0] and d.nodes.get(nid, None):
+            if d.slave_is_stalled(i):
+                self.gui.print_info_line([(15, "", "[STALLED]"),
+                                          (10, "node", "%5d" % d.slave_input_id(i)),
+                                          (15, "fav/lvl", "       -"),
+                                          (13, "exec/s",    "     -")],
+                                          prefix="%c Slave %2d" % (hl, i))
+            elif nid not in [None, 0] and d.nodes.get(nid, None):
                 self.gui.print_info_line([(15, "", d.slave_stage(i)),
                                           (10, "node", "%5d" % d.slave_input_id(i)),
                                           (15, "fav/lvl",  "%4d/%3d" % (d.node_fav_bits(nid),
@@ -283,9 +300,9 @@ class GuiDrawer:
                                           prefix="%c Slave %2d" % (hl, i))
             else:
                 self.gui.print_info_line([(15, "", d.slave_stage(i)),
-                                          (10, "node",       " N/A "),
-                                          (15, "fav/lvl", "    N/A "),
-                                          (13, "exec/s",    "  N/A ")],
+                                          (10, "node",       "    -"),
+                                          (15, "fav/lvl", "       -"),
+                                          (13, "exec/s",    "     -")],
                                           prefix="%c Slave %2d" % (hl, i))
 
         i = self.current_slave_id
@@ -297,9 +314,9 @@ class GuiDrawer:
             self.gui.print_info_line([
                 (12, "Parent", "%5d" % d.node_parent_id(nid)),
                 (12, "Size",   pbyte(d.node_size(nid)) + "B"),
-                (12, "Bytes",  pnum(d.node_new_bytes(nid))),
-                (12, "Bits",   pnum(d.node_new_bits(nid))),
-                (12, "Exit",   d.node_exit_reason(nid))])
+                (12, "Perf",  "%.2fms" % (d.node_performance(nid)*1000)),
+                (10, "Score",   pnum(d.node_score(nid))),
+                (14, "Fuzzed",    atime(d.node_time(nid)))])
             self.gui.print_thin_line()
             self.gui.print_hexdump(d.node_payload(nid), max_rows=12)
             self.gui.print_thin_line()
@@ -666,8 +683,20 @@ class GuiData:
     def slave_input_id(self, i):
         return self.slave_stats[i]["node_id"]
 
+    def slave_is_stalled(self, i):
+        return (self.runtime() - self.slave_stats[i]["run_time"]) > 10
+
     def node_size(self, nid):
         return self.nodes[nid]["payload_len"]
+
+    def node_performance(self, nid):
+        return self.nodes[nid]["performance"]
+
+    def node_score(self, nid):
+        return self.nodes[nid]["score"]
+
+    def node_time(self, nid):
+        return self.nodes[nid]["attention_secs"]
 
     def node_level(self, nid):
         return self.nodes[nid].get("level", 0)
