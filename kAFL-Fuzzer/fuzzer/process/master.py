@@ -56,7 +56,7 @@ class MasterProcess:
         imports = glob.glob(self.config.argument_values['work_dir'] + "/imports/*")
         if imports:
             path = imports.pop()
-            print("Importing payload from %s" % path)
+            #print("Importing payload from %s" % path)
             seed = read_binary_file(path)
             os.remove(path)
             return self.comm.send_import(conn, {"type": "import", "payload": seed})

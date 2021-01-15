@@ -9,8 +9,10 @@ Manage status outputs for Master and Slave instances
 
 import msgpack
 import time
+import sys
 
 from common.util import atomic_write, read_binary_file
+from common.color import FLUSH_LINE, FAIL, OKBLUE, ENDC
 
 class MasterStatistics:
     def __init__(self, config):
@@ -19,6 +21,8 @@ class MasterStatistics:
         self.execs_time = 0
         self.plot_last = 0
         self.plot_thres = 5
+        self.stat_last = 0
+        self.stat_thres = 60*60
         self.write_last = 0
         self.write_thres = 0.5
         self.num_slaves = self.config.argument_values['p']
@@ -68,6 +72,8 @@ class MasterStatistics:
         self.data["findings"][exit] += 1
 
         if exit != "regular":
+            if sys.stdout.isatty():
+                self.print_finding_line(node)
             return
 
         self.data["paths_total"] += 1
@@ -79,6 +85,56 @@ class MasterStatistics:
 
         self.data["bytes_in_bitmap"] += len(node.get_new_bytes())
         self.data["max_level"] = max(node.get_level(), self.data["max_level"])
+
+        if sys.stdout.isatty():
+            self.print_finding_line(node)
+
+    def print_finding_line(self, node):
+        node_id = node.get_id()
+        plen = node.get_payload_len()
+        perf = node.get_performance()
+        favs = len(node.get_fav_bits())
+        new_bytes = len(node.get_new_bytes())
+        new_bits = len(node.get_new_bits())
+        parent = node.get_parent_id()
+        method = node.get_method()
+
+        t_total = node.get_timestamp() - self.data["start_time"]
+        t_hours, t_tmp = divmod(t_total, 3600)
+        t_mins, t_secs = divmod(t_tmp, 60)
+        t_str=('{:02}:{:02}:{:02}'.format(int(t_hours), int(t_mins), int(t_secs)))
+
+        exit = node.get_exit_reason()[:1].title()
+        if exit == "R":
+            PREFIX = FLUSH_LINE
+        elif exit == "T":
+            PREFIX = FLUSH_LINE + OKBLUE
+        else:
+            PREFIX = FLUSH_LINE + FAIL
+
+        print(PREFIX + "%s: Got %4d from %4d: exit=%s, %2d/%2d bits, %2d favs, %1.2fmsec, %1.1fKB (%s)%s"
+                % (t_str, node_id, parent, exit, new_bytes, new_bits, favs, perf*1000, plen/1024, method[:12], ENDC))
+        self.print_status_line()
+
+    def print_status_line(self, keep_line=False):
+
+        t_total = time.time() - self.data["start_time"]
+        t_hours, t_tmp = divmod(t_total, 3600)
+        t_mins, t_secs = divmod(t_tmp, 60)
+        t_str=('{:02}:{:02}:{:02}'.format(int(t_hours), int(t_mins), int(t_secs)))
+        execs = self.data["total_execs"] / t_total
+
+        print(FLUSH_LINE + "%s: %5d exec/s, %4d edges, %2.0f%% favs pending, findings: <%d, %d, %d>" % (
+            t_str,
+            execs,
+            #self.data["paths_total"],
+            self.data["bytes_in_bitmap"],
+            self.data["favs_pending"]*100/max(1,self.data["favs_total"]),
+            self.data["findings"]["crash"],
+            self.data["findings"]["kasan"],
+            self.data["findings"]["timeout"]),
+            end="\n" if keep_line else "\r")
+
 
     def event_node_remove_fav_bit(self, node):
         # called when queue manager removed a fav bit from an existing node.
@@ -132,6 +188,12 @@ class MasterStatistics:
             self.write_last = cur_time
             self.event_slave_poll()
             self.write_statistics()
+            if sys.stdout.isatty():
+                if cur_time - self.stat_last > self.stat_thres:
+                    self.stat_last = cur_time
+                    self.print_status_line(keep_line=True)
+                else:
+                    self.print_status_line(keep_line=False)
 
             if cur_time - self.plot_last > self.plot_thres:
                 self.plot_last = cur_time

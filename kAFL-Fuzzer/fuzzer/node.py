@@ -154,6 +154,12 @@ class QueueNode:
     def get_parent_id(self):
         return self.node_struct["info"]["parent"]
 
+    def get_timestamp(self):
+        return self.node_struct["info"]["time"]
+
+    def get_method(self):
+        return self.node_struct["info"]["method"]
+
     def get_initial_performance(self):
         return self.node_struct["info"]["performance"]
 
