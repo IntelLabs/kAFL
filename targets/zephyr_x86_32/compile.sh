@@ -61,23 +61,21 @@ function fetch_sdk() {
 
 	echo -e "\nAttempting to fetch and execute Zephyr SDK installer from\n$SDK_URL\n\n\tHit Enter to continue or ctrl-c to abort."
 	read
+	# This will auto-generate ~/.zephyrrc
 	wget -c -O $INSTALLER $SDK_URL
 	bash $INSTALLER
-
-	echo "export ZEPHYR_TOOLCHAIN_VARIANT=zephyr\nexportZEPHYR_SDK_INSTALL_DIR=$HOME/zephyr-sdk" >> ~/.zephyrrc
 }
 
 function check_sdk() {
 
 	# fetch Zephyr and SDK if not available
 	test -d "$KAFL_ROOT/zephyrproject" || (echo "Could not find Zephyr."; fetch_zephyr)
-
-	# assuming zephyr SDK was installed to default directory with default name
-	test -d "$HOME/zephyr-sdk" || (echo "Could not find a Zephyr SDK."; exit)
+	test -f "$HOME/.zephyrrc" || (echo "Could not find Zephyr SDK."; fetch_sdk)
 
 	# check again and this time bail out on error
 	test -d "$KAFL_ROOT/zephyrproject" || fail "Could not find Zephyr install. Exit."
-	test -f "$HOME/.zephyrrc" || fail "Could not find Zephyr SDK. Exit."
+
+	# activate Zephyr env
 	source "$KAFL_ROOT/zephyrproject/zephyr/zephyr-env.sh"
 
 	echo "Using Zephyr build settings:"
