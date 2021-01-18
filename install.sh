@@ -30,10 +30,10 @@ check_gitconfig()
 {
 	if [ ! "`git config --get user.name`" ] || [ ! "`git config --get user.email`" ]; then
 		echo "[-] Error: The installer uses git in order to manage local patches against qemu and linux sources."
-   		echo "           Please setup a valid git config in order for this to work:"
+		echo "           Please setup a valid git config in order for this to work:"
 		echo
-	 	echo " $ git config --global user.name Joe User"
-	    echo " $ git config --global user.email joe.user@invalid.local"
+		echo " $ git config --global user.name Joe User"
+		echo " $ git config --global user.email joe.user@invalid.local"
 		echo
 		exit 1
 	fi
@@ -55,7 +55,7 @@ system_check()
 		exit 1
 	fi
 
-dist_id="$(lsb_release -si)"
+	dist_id="$(lsb_release -si)"
 	if [ "$dist_id" != "Debian" -a "$dist_id" != "Ubuntu" ]; then
 		echo "[-] Error: This installer was tested using recent Debian and Ubuntu."
 		echo
@@ -158,7 +158,7 @@ build_linux()
 
 	echo "[*] Building ..."
 	echo "-------------------------------------------------"
-   	# use current/system config as base, but limit modules to actual used..
+	# use current/system config as base, but limit modules to actual used..
 	yes ""|make oldconfig
 	#make localmodconfig
 	./scripts/config --set-str CONFIG_LOCALVERSION "-kAFL" --set-val CONFIG_KVM_VMX_PT y
