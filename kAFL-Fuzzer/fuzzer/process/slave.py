@@ -173,7 +173,7 @@ class SlaveProcess:
                 confirmations += 1
                 runtime_avg += runtime
 
-        if confirmations >= 0.8*validations:
+        if confirmations >= 0.75*validations:
             return True, runtime_avg/num
 
         log_slave("Funky input received %d/%d confirmations. Rejecting.." % (confirmations, validations), self.slave_id)
@@ -268,7 +268,7 @@ class SlaveProcess:
         return self.__execute(data, retry=retry+1)
 
 
-    def execute(self, data, info):
+    def execute(self, data, info, validate_timeouts=True):
 
         if len(data) > self.payload_size_limit:
             data = data[:self.payload_size_limit]
@@ -276,9 +276,9 @@ class SlaveProcess:
         exec_res = self.__execute(data)
         self.statistics.event_exec(bb_cov=self.q.bb_seen)
 
-        is_new_input = self.bitmap_storage.should_send_to_master(exec_res)
+        is_new_input = self.bitmap_storage.should_send_to_master(exec_res, exec_res.exit_reason)
         crash = exec_res.is_crash()
-        stable = False;
+        stable = False
 
         # store crashes and any validated new behavior
         # do not validate timeouts and crashes at this point as they tend to be nondeterministic
@@ -286,18 +286,36 @@ class SlaveProcess:
             if not crash:
                 assert exec_res.is_lut_applied()
                 if self.config.argument_values["funky"]:
-                    stable = self.funky_validate(data, exec_res)
+                    stable, runtime = self.funky_validate(data, exec_res)
+                    exec_res.performance = runtime
                 else:
-                    stable = self.quick_validate(data, exec_res)
+                    stable, runtime = self.quick_validate(data, exec_res)
+                    exec_res.performance = (exec_res.performance + runtime)/2
 
                 if not stable:
                     # TODO: auto-throttle persistent runs based on funky rate?
                     self.statistics.event_funky()
+            if validate_timeouts and exec_res.exit_reason == "timeout":
+                # re-run timeout payload with max timeout to ensure it is a real timeout.
+                # can be quite slow, so we only validate timeouts that also show new edges in reg bitmap
+                maybe_new_regular = self.bitmap_storage.should_send_to_master(exec_res, "regular")
+                if maybe_new_regular: ## validate all the timeouts..?
+                    #print_warning("Validating timeout node")
+                    dyn_timeout = self.q.get_timeout()
+                    # cleanup qemu state, increment timeout exec counter
+                    #if crash:
+                    #    self.statistics.event_reload(exec_res.exit_reason)
+                    #    self.q.reload()
+                    self.q.set_timeout(self.timeout_limit_max)
+                    # if still new, register the payload as regular or (true) timeout
+                    exec_res, is_new = self.execute(data, info, validate_timeouts=False)
+                    self.q.set_timeout(dyn_timeout)
+                    if is_new and exec_res.exit_reason != "timeout":
+                        print_warning("\ntimeout checker found non-timeout with runtime %f >= %f!" % (exec_res.performance, dyn_timeout))
+                    # regular version of this payload is added to reg bitmap, so we can bail out here
+                    return exec_res, is_new
             if crash or stable:
                 self.__send_to_master(data, exec_res, info)
-        else:
-            if crash:
-                log_slave("Crashing input found (%s), but not new (discarding)" % (exec_res.exit_reason), self.slave_id)
 
         # restart Qemu on crash
         if crash:
