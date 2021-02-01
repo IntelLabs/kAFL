@@ -30,6 +30,10 @@ class QueueNode:
         if bitmap and FuzzerConfiguration().argument_values['v']:
             self.write_bitmap(bitmap)
 
+        self.node_struct["attention_execs"] = 0
+        self.node_struct["attention_secs"] = 0
+        self.set_state("initial", write=False)
+
     @staticmethod
     def get_metadata(id):
         return msgpack.unpackb(read_binary_file(QueueNode.__get_metadata_filename(id)), raw=False, strict_map_key=False)
@@ -76,16 +80,13 @@ class QueueNode:
     # This function must leave new_data unchanged, but may change old_data
     def apply_metadata_update(old_data, new_data):
         new_data = new_data.copy()  # if we remove keys deeper than attention_execs and attention_secs, we need a deep copy
-        old_data["attention_execs"] = old_data.get("attention_execs", 0) + new_data["attention_execs"]
-        old_data["attention_secs"] = old_data.get("attention_secs", 0) + new_data["attention_secs"]
 
-        for key in ["state_time_initial", "state_time_havoc", "state_time_grimoire", "state_time_grimoire_inference",
-                    "state_time_redqueen"]:
+        for key in ["attention_execs", "attention_secs", "state_time_initial",
+                    "state_time_havoc", "state_time_grimoire",
+                    "state_time_grimoire_inference", "state_time_redqueen"]:
             old_data[key] = old_data.get(key, 0) + new_data[key]
             del new_data[key]
 
-        del new_data["attention_execs"]
-        del new_data["attention_secs"]
         old_data.update(new_data)
         return old_data
 
