@@ -5,7 +5,7 @@ Based on README.kAFL.md. Tested on Ubuntu 20.04 host.
 ## Preparing Linux VM
 
 ### Preparing Base VM Image
-1. [Download](https://www.microsoft.com/evalcenter/evaluate-windows) Ubuntu 16.04 Installer iso - `ubuntu.iso`. Last verified working version (`https://releases.ubuntu.com/16.04/ubuntu-16.04.7-server-amd64.iso`).
+1. [Download](https://releases.ubuntu.com/16.04/ubuntu-16.04.7-server-amd64.iso) Ubuntu 16.04 Installer iso - `ubuntu.iso`. Last verified working version (`https://releases.ubuntu.com/16.04/ubuntu-16.04.7-server-amd64.iso`).
 2. `qemu-img create -f qcow2 ubuntu.qcow2 20G` - create QEMU hard drive image for Ubuntu.
 3. Start VM `./kAFL/qemu-5.0.0/x86_64-softmmu/qemu-system-x86_64 -machine q35 -enable-kvm -m 1024 -hda ./ubuntu.qcow2 -cdrom ./ubuntu.iso` and install Ubuntu.
 4. Clone the kAFL repository on the VM guest (`git clone https://github.com/IntelLabs/kAFL.git`) and install the targets (`./install.sh targets`).
