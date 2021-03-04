@@ -6,7 +6,9 @@
 import mmap
 import os
 import struct
-from common.util import strdump, print_warning
+
+from common.log import logger
+from common.util import strdump
 from collections import namedtuple
 
 result_tuple = namedtuple('result_tuple', [
@@ -73,15 +75,15 @@ class qemu_aux_buffer:
         hash = (struct.unpack('H', self.aux_buffer[10:12])[0])
 
         if magic != my_magic:
-            print_warning("MAGIC MISMATCH: %x != %x\n" % (magic, my_magic))
+            logger.error("MAGIC MISMATCH: %x != %x\n" % (magic, my_magic))
             return False
 
         if version != my_version:
-            print_warning("VERSION MISMATCH: %x != %x\n" % (version, my_version))
+            logger.error("VERSION MISMATCH: %x != %x\n" % (version, my_version))
             return False 
 
         if hash != my_hash:
-            print_warning("HASH MISMATCH: %x != %x\n" % (hash, my_hash))
+            logger.error("HASH MISMATCH: %x != %x\n" % (hash, my_hash))
             return False
 
         return True

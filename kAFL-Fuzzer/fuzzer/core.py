@@ -18,60 +18,60 @@ import time
 import pgrep
 import sys
 
-from common.debug import enable_logging
+from common.log import init_logger, logger
 from common.self_check import post_self_check
-from common.util import prepare_working_dir, print_fail, print_note, print_warning, copy_seed_files
+from common.util import prepare_working_dir, copy_seed_files
 from fuzzer.process.master import MasterProcess
 from fuzzer.process.slave import slave_loader
-
 
 def qemu_sweep():
     pids = pgrep.pgrep("qemu")
 
     if (len(pids) > 0):
-        print_warning("Detected potential qemu zombies, please kill -9: " + repr(pids))
+        logger.warn("Detected potential qemu zombies, please kill -9: " + repr(pids))
 
 
 def graceful_exit(slaves):
     for s in slaves:
         s.terminate()
 
-    print("Waiting for Slave instances to shutdown...")
+    logger.info("Waiting for Slave instances to shutdown...")
     time.sleep(1)
 
     while len(slaves) > 0:
         for s in slaves:
             if s and s.exitcode is None:
-                print("Still waiting on %s (pid=%d)..  [hit Ctrl-c to abort..]" % (s.name,s.pid))
+                logger.info("Still waiting on %s (pid=%d)..  [hit Ctrl-c to abort..]" % (s.name, s.pid))
                 s.join(timeout=1)
             else:
                 slaves.remove(s)
 
 
-def start(config):
+def start(config):    
 
     if not post_self_check(config):
-        print_fail("Startup checks failed. Abort.")
+        #print(FAIL + ERROR_PREFIX + "Startup checks failed. Abort." + ENDC)
+        logger.error("Startup checks failed. Exit.")
         return -1
-    
+        
+    if not prepare_working_dir(config):
+        #print(FAIL + ERROR_PREFIX + "Refuse to operate on existing work directory. Use --purge to override." + ENDC)
+        logger.error("Refuse to operate on existing work directory. Use --purge to override.")
+        return 1
+
     work_dir   = config.argument_values["work_dir"]
     seed_dir   = config.argument_values["seed_dir"]
     num_slaves = config.argument_values['p']
 
-    if config.argument_values['v'] or config.argument_values['debug']:
-        enable_logging(work_dir)
-
-    if not prepare_working_dir(config):
-        print_fail("Refuse to operate on existing work directory. Use --purge to override.")
-        return 1
+    init_logger(config)
 
     if seed_dir and not copy_seed_files(work_dir, seed_dir):
-        print_fail("Error when importing seeds. Exit.")
+        logger.error("Error when importing seeds. Exit.")
         return 1
 
     # Without -ip0, Qemu will not active PT tracing and we turn into a blind fuzzer
     if not config.argument_values['ip0']:
-        print_warning("No trace region configured! PT feedback disabled!")
+        logger.warn("No trace region configured! PT feedback disabled!")
 
     master = MasterProcess(config)
 
@@ -83,9 +83,9 @@ def start(config):
     try:
         master.loop()
     except KeyboardInterrupt:
-        print_note("Received Ctrl-C, killing slaves...")
+        logger.info("Received Ctrl-C, killing slaves...")
     except SystemExit as e:
-        print_fail("Master exit: " + str(e))
+        logger.error("Master exit: " + str(e))
     finally:
         graceful_exit(slaves)
 

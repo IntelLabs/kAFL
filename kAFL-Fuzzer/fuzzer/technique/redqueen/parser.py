@@ -11,7 +11,7 @@ import re
 from binascii import unhexlify
 
 from common.util import read_binary_file
-from common.debug import log_redq
+from common.log import logger
 from .cmp import Cmp
 
 

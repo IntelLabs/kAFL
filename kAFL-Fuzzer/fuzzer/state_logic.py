@@ -17,7 +17,8 @@ import fuzzer.technique.grimoire_mutations as grimoire
 import fuzzer.technique.havoc as havoc
 import fuzzer.technique.radamsa as radamsa
 import fuzzer.technique.interesting_values as interesting_values
-from common.debug import log_slave, log_grimoire, log_redq
+
+from common.log import logger
 from fuzzer.node import QueueNode
 from fuzzer.technique.grimoire_inference import GrimoireInference
 from fuzzer.technique.redqueen.colorize import ColorizerStrategy
@@ -47,6 +48,9 @@ class FuzzingStateLogic:
         self.stage_info_findings = 0
         self.attention_secs_start = None
         self.attention_execs_start = None
+
+    def __str__(self):
+        return "QEMU%s " % self.slave.slave_id
 
     def create_limiter_map(self, payload):
         limiter_map = bytearray([1 for _ in range(len(payload))])
@@ -142,10 +146,8 @@ class FuzzingStateLogic:
             qinfo = f" (fav={fav_bits}, speed={speed})"
         else:
             qinfo = ""
-        log_slave(msg + qinfo, self.slave.slave_id)
 
-        if verbose:
-            print(f"[Slave {self.slave.slave_id}] {msg}{qinfo}")
+        logger.debug("%s%s%s" % (self, msg, qinfo))
 
     def stage_update_label(self, method):
         self.stage_info["method"] = method
@@ -175,8 +177,7 @@ class FuzzingStateLogic:
         # Inform user if seed yields no new coverage. This may happen if -ip0 is
         # wrong or the harness is buggy.
         if not is_new:
-            print("Imported payload produced no new coverage, skipping..")
-            log_slave("`Imported payload produced no new coverage, skipping..", self.slave.slave_id)
+            logger.debug("%s Imported payload produced no new coverage, skipping.." % self)
 
 
     def handle_initial(self, payload, metadata):
@@ -197,7 +198,7 @@ class FuzzingStateLogic:
 
         # Trimming only for stable + non-crashing inputs
         if metadata["info"]["exit_reason"] != "regular": #  or metadata["info"]["stable"]:
-            log_slave("Validate: Skip trimming..", self.slave.slave_id)
+            logger.debug("%s Validate: Skip trimming.." % self)
             return None
 
         if metadata['info']['starved']:
@@ -235,8 +236,8 @@ class FuzzingStateLogic:
         grimoire_info["generalized_input"] = generalized_input
 
         self.grimoire_inference_time = time.time() - start_time
-        log_grimoire("generalization took {} seconds".format(self.grimoire_inference_time))
-        log_grimoire("number of unique generalized inputs: {}".format(len(list(self.grimoire.generalized_inputs.keys()))))
+        logger.debug("%s Grimoire generalization took {} seconds".format(self, self.grimoire_inference_time))
+        logger.debug("%s Number of unique generalized inputs: {}".format(self, len(list(self.grimoire.generalized_inputs.keys()))))
         return grimoire_info
 
     def __perform_grimoire(self, payload, metadata):
@@ -307,9 +308,8 @@ class FuzzingStateLogic:
                 self.__perform_havoc(payload, metadata, use_splicing=True)
                 self.splice_time += time.time() - splice_start_time
 
-        log_slave("HAVOC times: afl: %.1f, splice: %.1f, grim: %.1f, rdmsa: %.1f"
-                  % (self.havoc_time, self.splice_time, self.grimoire_time, self.radamsa_time),
-                  self.slave.slave_id)
+        logger.debug("%s HAVOC times: afl: %.1f, splice: %.1f, grim: %.1f, rdmsa: %.1f"
+                  % (self, self.havoc_time, self.splice_time, self.grimoire_time, self.radamsa_time))
 
 
     def validate_bytes(self, payload, metadata, extra_info=None):
@@ -348,7 +348,7 @@ class FuzzingStateLogic:
         hashes = {self.__get_bitmap_hash(payload) for _ in range(3)}
         if len(hashes) == 1:
             return hashes.pop()
-        # log_slave("Hash Doesn't seem Stable", self.slave.slave_id)
+        # logger.warn("%s Hash doesn't seem stable" % self)
         return None
 
 
@@ -360,7 +360,7 @@ class FuzzingStateLogic:
         appended_hash = self.__get_bitmap_hash_robust(payload + extension)
 
         if orig_hash and orig_hash == appended_hash:
-            log_slave("Redqueen: input can be extended", self.slave.slave_id)
+            logger.debug("%s Redqueen: Input can be extended" % self)
             payload_array = bytearray(payload + extension)
         else:
             payload_array = bytearray(payload)
@@ -371,7 +371,7 @@ class FuzzingStateLogic:
             assert isinstance(colored_alternatives[0], bytearray), print(
                     "!! ColoredAlternatives:", repr(colored_alternatives[0]), type(colored_alternatives[0]))
         else:
-            log_redq("Input is not stable, skipping..")
+            logger.debug("%s Redqueen: Input is not stable, skipping.." % self)
             return
 
         rq_info = RedqueenInfoGatherer()
@@ -436,7 +436,7 @@ class FuzzingStateLogic:
         if det_info["stage"] == "flip_8":
             # Generate AFL-style effector map based on walking_bytes()
             if use_effector_map:
-                log_slave("Preparing effector map..", self.slave.slave_id)
+                logger.debug("%s Preparing effector map.." % self)
                 effector_map = bytearray(limiter_map)
 
             bitflip.mutate_seq_walking_byte(payload_array, self.execute, skip_null=skip_zero, limiter_map=limiter_map, effector_map=effector_map)
@@ -491,14 +491,13 @@ class FuzzingStateLogic:
                     if not addr in seen_addr_to_value:
                         seen_addr_to_value[addr] = set()
                     seen_addr_to_value[addr].add(repl)
-                    log_redq("Attempting %s " % repr(repl))
+                    logger.debug("RQ-Dict: attempting %s " % repr(repl))
                     for apply_dict in [havoc.dict_insert_sequence, havoc.dict_replace_sequence]:
                         for i in range(len(payload_array)-len(repl)):
                             counter += 1
                             mutated = apply_dict(payload_array, repl, i)
-                            # log_redq("dict_bf %d %s %s"%(i,repr(repl),repr(mutated)))
                             self.execute(mutated, label="rq_dict")
-        log_redq("RQ-Dict: Have performed %d iters" % counter)
+        logger.debug("%s RedQ-Dict: Have performed %d iters" % (self, counter))
 
 
     def __perform_radamsa(self, payload_array, metadata):
@@ -548,11 +547,10 @@ class FuzzingStateLogic:
 
 
     def __perform_coloring(self, payload_array):
-        # log_redq("Initial Redqueen Colorize...")
+        # logger.debug("%s Redqueen: Initial colorize..." % self)
         orig_hash = self.__get_bitmap_hash_robust(payload_array)
         if orig_hash is None:
             return None
-        # log_redq("Orig Redqueen Colorize...(" + str(orig_hash) + ")")
 
         colored_arrays = []
         for i in range(FuzzingStateLogic.COLORIZATION_COUNT):
@@ -563,9 +561,7 @@ class FuzzingStateLogic:
             new_hash = self.__get_bitmap_hash(tmpdata)
             if new_hash is not None and new_hash == orig_hash:
                 colored_arrays.append(tmpdata)
-                # log_redq("found good orig_hash")
             else:
-                # log_redq("found bad orig_hash: " + repr(new_hash) + " retry")
                 return None
 
         colored_arrays.append(payload_array)

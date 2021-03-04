@@ -14,7 +14,7 @@ import math
 import subprocess
 
 from common.config import FuzzerConfiguration
-from common.debug import log_radamsa
+from common.log import logger
 from common.util import read_binary_file
 from fuzzer.technique.helper import KAFL_MAX_FILE
 
@@ -50,14 +50,14 @@ def perform_radamsa_round(data, func, num_inputs):
             "-n", str(num_inputs)] + samples
 
     try:
-        #log_radamsa("Radamsa cmd: " + repr(radamsa_cmd))
+        #logger.debug("Radamsa cmd: " + repr(radamsa_cmd))
         p = subprocess.Popen(radamsa_cmd, stdin=subprocess.PIPE, shell=False)
 
         while True:
             try:
                 # repeatedly wait and process an item to update kAFL stats
                 for path in os.listdir(input_dir):
-                    #log_radamsa("Radamsa input %s" % path)
+                    #logger.debug("Radamsa input %s" % path)
                     func(read_binary_file(input_dir+path))
                     os.remove(input_dir+path)
                 p.communicate(timeout=1)
@@ -70,7 +70,7 @@ def perform_radamsa_round(data, func, num_inputs):
 
     # actual processing of generated inputs
     for path in os.listdir(input_dir):
-        #log_radamsa("Radamsa input %s" % path)
+        #logger.debug("Radamsa input %s" % path)
         func(read_binary_file(input_dir+path))
         os.remove(input_dir+path)
 
@@ -79,7 +79,7 @@ def mutate_seq_radamsa_array(data, func, num_inputs):
     max_round_inputs = 512
     rounds = math.ceil(num_inputs / max_round_inputs)
 
-    log_radamsa("Radamsa: %d inputs in %d rounds.." % (num_inputs, rounds))
+    logger.debug("Radamsa: %d inputs in %d rounds.." % (num_inputs, rounds))
 
     for _ in range(rounds):
         perform_radamsa_round(data, func, min(max_round_inputs, num_inputs))

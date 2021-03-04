@@ -12,6 +12,7 @@ import string
 from shutil import copyfile
 
 from common import color
+from common.log import logger
 
 class Singleton(type):
     _instances = {}
@@ -115,23 +116,11 @@ def copy_seed_files(working_directory, seed_directory):
                     copyfile(path, working_directory + "/imports/" + "seed_%05d" % i)
                     i += 1
                 except PermissionError:
-                    print_warning("Skipping seed file %s (permission denied)." % path)
+                    logger.error("Skipping seed file %s (permission denied)." % path)
     return True
 
-def print_note(msg):
-    sys.stdout.write(color.WARNING + msg + color.ENDC + "\n")
-    sys.stdout.flush()
-
-def print_warning(msg):
-    sys.stdout.write(color.WARNING + color.BOLD + "[WARNING] " + msg + color.ENDC + "\n")
-    sys.stdout.flush()
-
-def print_fail(msg):
-    sys.stdout.write(color.FAIL + color.BOLD + "[FATAL] " + msg + color.ENDC + "\n")
-    sys.stdout.flush()
-
 def print_hprintf(msg):
-    sys.stdout.write(color.HPRINTF + msg + color.ENDC + "\n")
+    sys.stdout.write(color.HPRINTF + msg + color.ENDC)
     sys.stdout.flush()
 
 def is_float(value):

@@ -11,7 +11,7 @@ import itertools
 import re
 import struct
 
-from common.debug import log_redq
+from common.log import logger
 from fuzzer.technique import havoc_handler
 from .encoding import Encoders
 
@@ -22,11 +22,6 @@ SKIP_SIMPLE = None
 AFL_ARITH_MAX = None
 known_lea_offsets = set()
 
-#def enable_hammering():
-#    global HAMMER_LEA
-#    log_redq("Hammering enabled!")
-#    HAMMER_LEA = True
-
 def redqueen_global_config(redq_hammering, redq_do_simple, afl_arith_max):
     global HAMMER_LEA
     global SKIP_SIMPLE
@@ -36,7 +31,7 @@ def redqueen_global_config(redq_hammering, redq_do_simple, afl_arith_max):
     SKIP_SIMPLE = not redq_do_simple
     AFL_ARITH_MAX = afl_arith_max
 
-    log_redq("Config: hammer=%s, skip_simple=%s, arith_max=%s" % (HAMMER_LEA, SKIP_SIMPLE, AFL_ARITH_MAX))
+    logger.debug("Redqueen config: hammer=%s, skip_simple=%s, arith_max=%s" % (HAMMER_LEA, SKIP_SIMPLE, AFL_ARITH_MAX))
 
 
 class Cmp:
@@ -114,12 +109,12 @@ class Cmp:
                     yield (offsets, lhs, rhs, enc)
 
     def could_be_hash(self):
-        # log_redq("Got cmp @ %x could be hash?"%self.addr)
-        # log_redq("orig_lhs \t%s"%repr(self.original_lhs))
-        # log_redq("colo_lhs\t%s"%repr(self.colored_lhs))
+        # logger.debug("Redqueen: Got cmp @ %x could be hash?"%self.addr)
+        # logger.debug("Redqueen: orig_lhs \t%s"%repr(self.original_lhs))
+        # logger.debug("Redqueen: colo_lhs\t%s"%repr(self.colored_lhs))
 
-        # log_redq("orig_rhs \t%s"%repr(self.original_rhs))
-        # log_redq("colo_rhs\t%s"%repr(self.colored_rhs))
+        # logger.debug("Redqueen: orig_rhs \t%s"%repr(self.original_rhs))
+        # logger.debug("Redqueen: colo_rhs\t%s"%repr(self.colored_rhs))
         # assert(self.num_mutations != None)
         if not self.num_mutations or self.num_mutations > 16:
             return False
@@ -132,12 +127,13 @@ class Cmp:
         if all([lhs.count("\0") > 0 for lhs in self.original_lhs]) and all(
                 [lhs.count("\0") > 0 for lhs in self.original_lhs]):
             return False
-        # log_redq("Got cmp @ %x could be hash?"%self.addr)
-        # log_redq("orig_lhs \t%s"%repr(self.original_lhs))
-        # log_redq("colo_lhs\t%s"%repr(self.colored_lhs))
+        # logger.debug("Redqueen: Got cmp @ %x could be hash?"%self.addr)
+        # logger.debug("Redqueen: orig_lhs \t%s"%repr(self.original_lhs))
+        # logger.debug("Redqueen: colo_lhs\t%s"%repr(self.colored_lhs))
 
-        # log_redq("orig_rhs \t%s"%repr(self.original_rhs))
-        # log_redq("colo_rhs\t%s"%repr(self.colored_rhs))
+        # logger.debug("Redqueen: orig_rhs \t%s"%repr(self.original_rhs))
+        # logger.debug("Redqueen: colo_rhs\t%s"%repr(self.colored_rhs))
+
         return True
 
 

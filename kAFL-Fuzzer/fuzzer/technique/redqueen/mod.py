@@ -11,7 +11,7 @@ import os.path
 from array import array
 from shutil import copyfile, rmtree
 
-from common.debug import log_redq
+from common.log import logger
 from .parser import parse_rq
 
 MAX_NUMBER_PERMUTATIONS = 1000  # number of trials per address, lhs and encoding
@@ -23,7 +23,6 @@ class RedqueenInfoGatherer:
         self.collected_infos_path = None
         self.workdir = None
         self.num_mutations = 0
-        self.verbose = False
 
     def make_paths(self, workdir):
         self.workdir = workdir
@@ -34,7 +33,7 @@ class RedqueenInfoGatherer:
     def get_info(self, input_data):
         self.num_alternative_inputs += 1
         self.save_rq_data(self.num_alternative_inputs, input_data)
-        log_redq("redqueen saving new input %d" % self.num_alternative_inputs)
+        #logger.debug("redqueen saving new input %d" % self.num_alternative_inputs)
         with open(self.collected_infos_path + "/input_%d.bin" % (self.num_alternative_inputs), "wb") as f:
             f.write(input_data)
 
@@ -69,8 +68,7 @@ class RedqueenInfoGatherer:
 
     def run_mutate_redqueen(self, payload_array, func):
         for (offset, lhs, rhs, info) in self.enumerate_mutations():
-            if self.verbose:
-                log_redq("redqueen fuzz data %s" % repr((offset, lhs, rhs, info)))
+            #logger.debug("redqueen fuzz data %s" % repr((offset, lhs, rhs, info)))
 
             def run(data):
                 extra_info = {"redqueen": [repr(lhs), repr(rhs)] + list(info.infos)}

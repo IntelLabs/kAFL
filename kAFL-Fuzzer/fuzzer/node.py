@@ -27,7 +27,7 @@ class QueueNode:
 
         self.set_payload(payload, write=write)
         # store individual bitmaps only in debug mode
-        if bitmap and FuzzerConfiguration().argument_values['v']:
+        if bitmap and FuzzerConfiguration().argument_values['debug']:
             self.write_bitmap(bitmap)
 
         self.node_struct["attention_execs"] = 0

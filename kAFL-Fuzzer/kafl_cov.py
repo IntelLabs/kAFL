@@ -31,8 +31,8 @@ from math import ceil
 from common.config import DebugConfiguration
 from common.self_check import self_check, post_self_check
 import common.color
-from common.debug import log_debug, enable_logging
-from common.util import prepare_working_dir, read_binary_file, print_note, print_fail, print_warning
+from common.log import init_logger, logger
+from common.util import prepare_working_dir, read_binary_file
 from common.qemu import qemu
 from common.execution_result import ExecutionResult
 from fuzzer.technique.helper import rand
@@ -54,7 +54,7 @@ class TraceParser:
     @staticmethod
     def parse_trace_file(trace_file):
         if not os.path.isfile(trace_file):
-            print_note("Could not find trace file %s, skipping.." % trace_file)
+            logger.warn("Could not find trace file %s, skipping.." % trace_file)
             return None
 
         bbs = set()
@@ -97,7 +97,7 @@ class TraceParser:
                     else:
                         unique_edges[edge] = num
 
-        print(" Processed %d traces with a total of %d BBs (%d edges)." \
+        logger.info(" Processed %d traces with a total of %d BBs (%d edges)." \
                 % (unique_traces, len(unique_bbs), len(unique_edges)))
 
         return unique_edges, unique_bbs
@@ -136,11 +136,11 @@ class TraceParser:
             for edge,num in unique_edges.items():
                 f.write("%s,%x\n" % (edge,num))
 
-        print(" Processed %d traces with a total of %d BBs (%d edges)." \
+        logger.info(" Processed %d traces with a total of %d BBs (%d edges)." \
                 % (num_traces, num_bbs, num_edges))
 
-        print(" Plot data written to %s" % plot_file)
-        print(" Unique edges written to %s" % edges_file)
+        logger.info(" Plot data written to %s" % plot_file)
+        logger.info(" Unique edges written to %s" % edges_file)
 
         return unique_edges, unique_bbs
 
@@ -217,7 +217,7 @@ def get_inputs_by_time(data_dir):
           os.path.isdir(data_dir + "/metadata")):
             input_data = kafl_workdir_iterator(data_dir)
     else:
-        print_note("Unrecognized target directory type «%s». Exit." % data_dir)
+        logger.error("Unrecognized target directory type «%s». Exit." % data_dir)
         sys.exit()
 
     # timestamps may be off slightly but payload IDs are strictly ordered by kAFL master
@@ -228,13 +228,13 @@ def graceful_exit(workers):
     for w in workers:
         w.terminate()
 
-    print("Waiting for Worker to shutdown...")
+    logger.info("Waiting for Worker to shutdown...")
     time.sleep(1)
 
     while len(workers) > 0:
         for w in workers:
             if w and w.exitcode is None:
-                print("Still waiting on %s (pid=%d)..  [hit Ctrl-c to abort..]" % (w.name, w.pid))
+                logger.info("Still waiting on %s (pid=%d)..  [hit Ctrl-c to abort..]" % (w.name, w.pid))
                 w.join(timeout=1)
             else:
                 workers.remove(w)
@@ -245,7 +245,7 @@ def generate_traces(config, input_list):
 
     # TODO What is the effect of not defining a trace region? will it trace?
     if not config.argument_values['ip0']:
-        print_warning("No trace region configured!")
+        logger.warn("No trace region configured!")
         return None
 
     start = time.time()
@@ -257,7 +257,7 @@ def generate_traces(config, input_list):
     for input_path, _, _ in input_list:
         trace_file = trace_dir + os.path.basename(input_path) + ".lz4"
         if os.path.exists(trace_file):
-            print("Skip input with existing trace: %s" % input_path)
+            logger.info("Skip input with existing trace: %s" % input_path)
         else:
             input_files.append(input_path)
 
@@ -282,7 +282,7 @@ def generate_traces(config, input_list):
                 return None
 
     except KeyboardInterrupt:
-        print_note("Received Ctrl-C, killing slaves...")
+        logger.info("Received Ctrl-C, killing slaves...")
         return None
     except Exception:
         return None
@@ -290,7 +290,7 @@ def generate_traces(config, input_list):
         graceful_exit(workers)
 
     end = time.time()
-    print("\n\nDone. Time taken: %.2fs\n" % (end - start))
+    logger.info("\n\nDone. Time taken: %.2fs\n" % (end - start))
     return trace_dir
 
 def generate_traces_worker(config, pid, input_list):
@@ -314,7 +314,7 @@ def generate_traces_worker(config, pid, input_list):
 
     q = qemu(1337, config, debug_mode=False)
     if not q.start():
-        print_fail("%s: Could not start Qemu. Exit." % pname)
+        logger.error("%s: Could not start Qemu. Exit." % pname)
         return None
 
     pbar = tqdm(total=len(input_list), desc=pname, dynamic_ncols=True, smoothing=0.1, position=pid+1)
@@ -413,15 +413,13 @@ def main():
     if not post_self_check(config):
         return -1
 
-    verbose = config.argument_values['v']
-    if verbose:
-        enable_logging(config.argument_values["work_dir"])
+    init_logger(config)
 
     data_dir = config.argument_values["input"]
 
     null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
 
-    print(" Scanning target data_dir »%s«..." % data_dir )
+    logger.info("Scanning target data_dir »%s«..." % data_dir)
     input_list = get_inputs_by_time(data_dir)
     trace_dir = generate_traces(config, input_list)
 

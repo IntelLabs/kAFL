@@ -10,7 +10,8 @@ Abstractions for kAFL Master/Slave communicaton.
 import msgpack
 import select
 from multiprocessing.connection import Listener, Client
-from common.util import print_fail
+
+from common.log import logger
 
 MSG_READY = 0
 MSG_IMPORT = 1
@@ -40,7 +41,7 @@ class ServerConnection:
                     msg = msgpack.unpackb(msg, raw=False, strict_map_key=False)
                     results.append((sock_ready, msg))
                 except (EOFError, IOError):
-                    print_fail("Slave has died - check logs!")
+                    logger.error("Slave has died - check logs!")
                     sock_ready.close()
                     self.clients.remove(sock_ready)
                     if len(self.clients) == 1:

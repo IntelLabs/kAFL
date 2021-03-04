@@ -10,7 +10,7 @@ Grimoire grammar inference (inference stage)
 import re
 from collections import OrderedDict
 
-from common.debug import log_grimoire
+from common.log import logger
 from six.moves import map
 
 
@@ -118,7 +118,7 @@ class GrimoireInference:
         if not self.verify_input(payload, old_node):
             return None
 
-        log_grimoire("generalizing input {} with bytes {}".format(repr(payload), old_node["new_bytes"]))
+        #logger.debug("Grimoire: Generalizing input {} with bytes {}".format(repr(payload), old_node["new_bytes"]))
         generalized_input = [bytes([c]) for c in payload]
 
         def increment_by_offset(_, index, offset):
@@ -178,15 +178,9 @@ class GrimoireInference:
             return None
 
         self.add_to_inputs(generalized_input)
-        #printable_generalized = self.to_printable(generalized_input)
-        #log_grimoire("final class learnt: {}".format(repr(printable_generalized)))
-        log_grimoire("new input: {}".format(repr(self.generalized_to_string(generalized_input))))
+        #logger.debug("Grimoire: new input: {}".format(repr(self.generalized_to_string(generalized_input))))
 
-        #return repr(printable_generalized), generalized_input
         return generalized_input
-
-    #def to_printable(self, generalized_input):
-    #    return strdump(self.generalized_to_string(generalized_input))
 
     @staticmethod
     def finalize_generalized(generalized_input):
@@ -218,6 +212,6 @@ class GrimoireInference:
             if len(token) < 2:
                 continue
             if token not in self.tokens:
-                log_grimoire("adding token {}".format(repr(token)))
+                #logger.debug(Grimoire: "adding token {}".format(repr(token)))
                 self.tokens[token] = 0
             self.tokens[token] += 1

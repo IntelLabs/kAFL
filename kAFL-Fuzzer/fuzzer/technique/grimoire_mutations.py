@@ -7,7 +7,7 @@
 Grimoire grammar-based mutations (havoc stage)
 """
 
-from common.debug import log_grimoire
+from common.log import logger
 from fuzzer.technique.helper import rand
 
 CHOOSE_SUBINPUT = 50
@@ -24,7 +24,7 @@ def find_string_matches(generalized_input, grimoire_inference):
     payload = grimoire_inference.generalized_to_string(generalized_input)
     string_matches = [match for match in grimoire_inference.strings_regex.finditer(payload)]
 
-    log_grimoire("{} string matches for {} strings".format(len(string_matches), len(grimoire_inference.strings)))
+    #logger.debug("Grimoire: {} string matches for {} strings".format(len(string_matches), len(grimoire_inference.strings)))
 
     return string_matches
 

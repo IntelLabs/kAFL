@@ -11,11 +11,11 @@ Manage overall fuzz inputs/findings and schedule work for Slave instances.
 
 import glob
 import os
-from   pprint import pformat
+from pprint import pformat
 import mmh3
 
-from common.debug import log_master
-from common.util import read_binary_file, print_note
+from common.log import logger
+from common.util import read_binary_file
 from common.execution_result import ExecutionResult
 from fuzzer.communicator import ServerConnection, MSG_NODE_DONE, MSG_NEW_INPUT, MSG_READY
 from fuzzer.queue import InputQueue
@@ -35,7 +35,6 @@ class MasterProcess:
         self.busy_events = 0
         self.empty_hash = mmh3.hash(("\x00" * self.config.config_values['BITMAP_SHM_SIZE']), signed=False)
 
-
         self.statistics = MasterStatistics(self.config)
         self.queue = InputQueue(self.config, self.statistics)
         self.bitmap_storage = BitmapStorage(config, config.config_values['BITMAP_SHM_SIZE'], "master", read_only=False)
@@ -46,9 +45,8 @@ class MasterProcess:
                 afl_arith_max=self.config.config_values['ARITHMETIC_MAX']
                 )
 
-        log_master("Starting (pid: %d)" % os.getpid())
-        log_master("Configuration dump:\n%s" %
-                pformat(config.argument_values, indent=4, compact=True))
+        logger.debug("Starting (pid: %d)" % os.getpid())
+        logger.debug("Configuration dump:\n%s" % pformat(config.argument_values, indent=4, compact=True))
 
     def send_next_task(self, conn):
         # Inputs placed to imports/ folder have priority.
@@ -56,7 +54,7 @@ class MasterProcess:
         imports = glob.glob(self.config.argument_values['work_dir'] + "/imports/*")
         if imports:
             path = imports.pop()
-            #print("Importing payload from %s" % path)
+            logger.debug("Importing payload from %s" % path)
             seed = read_binary_file(path)
             os.remove(path)
             return self.comm.send_import(conn, {"type": "import", "payload": seed})
@@ -73,24 +71,23 @@ class MasterProcess:
             self.busy_events = 0
             main_bitmap = self.bitmap_storage.get_bitmap_for_node_type("regular").c_bitmap
             if mmh3.hash(main_bitmap) == self.empty_hash:
-                print_note("Coverage bitmap is empty?! Check -ip0 or try better seeds.")
-
+                logger.warn("Coverage bitmap is empty?! Check -ip0 or try better seeds.")
 
     def loop(self):
         while True:
             for conn, msg in self.comm.wait(self.statistics.plot_thres):
                 if msg["type"] == MSG_NODE_DONE:
                     # Slave execution done, update queue item + send new task
-                    log_master("Received results, sending next task..")
+                    logger.debug("Received results, sending next task..")
                     if msg["node_id"]:
                         self.queue.update_node_results(msg["node_id"], msg["results"], msg["new_payload"])
                     self.send_next_task(conn)
                 elif msg["type"] == MSG_NEW_INPUT:
                     # Slave reports new interesting input
                     if self.debug_mode:
-                        log_master("Received new input (exit=%s): %s" % (
-                            msg["input"]["info"]["exit_reason"],
-                            repr(msg["input"]["payload"][:24])))
+                        logger.debug("Received new input (exit=%s): %s" % (
+                           msg["input"]["info"]["exit_reason"],
+                           repr(msg["input"]["payload"][:24])))
                     node_struct = {"info": msg["input"]["info"], "state": {"name": "initial"}}
                     self.maybe_insert_node(msg["input"]["payload"], msg["input"]["bitmap"], node_struct)
                 elif msg["type"] == MSG_READY:
@@ -131,7 +128,7 @@ class MasterProcess:
             self.queue.insert_input(node, bitmap)
         elif self.debug_mode:
             if node_struct["info"]["exit_reason"] != "regular":
-                log_master("Payload found to be boring, not saved (exit=%s)" % node_struct["info"]["exit_reason"])
+                logger.info("Payload found to be boring, not saved (exit=%s)" % node_struct["info"]["exit_reason"])
             for i in range(len(bitmap_array)):
                 if backup_data[i] != new_data[i]:
                     assert(False), "Bitmap mangled at {} {} {}".format(i, repr(backup_data[i]), repr(new_data[i]))

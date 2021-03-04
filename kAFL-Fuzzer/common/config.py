@@ -12,7 +12,8 @@ import sys
 import six.moves.configparser
 
 from dateutil.parser import parse as dateparser
-from common.util import print_fail, is_float, is_int, Singleton
+from common.util import is_float, is_int, Singleton
+from common.log import logger
 import six
 
 
@@ -32,7 +33,7 @@ default_config = {"PAYLOAD_SHM_SIZE": 131072,
 class ArgsParser(argparse.ArgumentParser):
     def error(self, message):
         self.print_help()
-        print_fail('%s\n\n' % message)
+        logger.warn('%s\n\n' % message)
         sys.exit(1)
 
 
@@ -92,19 +93,28 @@ def parse_range_ip_filter(string):
 
 # General startup options used by fuzzer, qemu, and/or utilities
 def add_args_general(parser):
+    parser.add_argument('-h', '--help', action='help',
+                        help='show this help message and exit')
     parser.add_argument('-work_dir', metavar='<dir>', action=FullPath, type=str,
                         required=True, help='path to the output/working directory.')
     parser.add_argument('--purge', required=False, help='purge the working directory at startup.',
                         action='store_true', default=False)
     parser.add_argument('-p', required=False, metavar='<num>', type=int, default=1,
                         help='number of parallel Qemu instances.')
-    parser.add_argument('-v', help='enable verbose logging to $work_dir/debug.log.',
+    parser.add_argument('-v', '--verbose', required=False, action='store_true', default=False,
+                        help='use verbose console output')
+    parser.add_argument('-q', '--quiet', help='only print warnings and errors to console',
+                        required=False, action='store_true', default=False)
+    parser.add_argument('-l', '--log', help='enable standard logging to $workdir/debug.log',
                         action='store_true', default=False)
-    parser.add_argument('-vv', '--debug', help='enable extra debug logging + qeme trace logs in $workdir/.',
+    parser.add_argument('--debug', help='enable extra debug checks and max logging verbosity',
                         action='store_true', default=False)
-    parser.add_argument('-h', '--help', action='help',
-                        help='show this help message and exit'
-)
+
+# --quiet - mute stdout, disabling debug, info and statistics output
+# --verbose - enable verbose stdout (logger.debug())
+# --debug - enable extra debug checks and qemu tracing
+# --log - log outputs to file, combine with --debug for max verbosity
+# --hprintf_log - write hprintf to separate files
 
 # kAFL/Fuzzer-specific options
 def add_args_fuzzer(parser):
@@ -195,7 +205,8 @@ def add_args_qemu(parser):
                         action='store_true', default=False)
     parser.add_argument('-gdbserver', required=False, help='enable Qemu gdbserver (use via kafl_debug.py!)',
                         action='store_true', default=False)
-
+    parser.add_argument('--log_hprintf', required=False, help="log hprintf output to seperate files (not console)",
+                        action='store_true', default=False)
 
 
 class FullPath(argparse.Action):

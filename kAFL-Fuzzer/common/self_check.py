@@ -8,19 +8,19 @@ import subprocess
 import sys
 from fcntl import ioctl
 
-from common.color import WARNING_PREFIX, ERROR_PREFIX, FAIL, WARNING, ENDC
+from common.log import logger
 
 
 def check_if_nativ_lib_compiled(kafl_root):
     if not (os.path.exists(kafl_root + "fuzzer/native/") and
             os.path.exists(kafl_root + "fuzzer/native/bitmap.so")):
-        print(WARNING + "Attempting to build missing file fuzzer/native/bitmap.so ..." + ENDC)
+        logger.warn("Attempting to build missing file fuzzer/native/bitmap.so ...")
 
         p = subprocess.Popen(("make -C " + kafl_root + "fuzzer/native/").split(" "),
                              stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
 
         if p.wait() != 0:
-            print(FAIL + ERROR_PREFIX + "Build failed, please check.." + ENDC)
+            logger.error("Build failed, please check..")
             return False
     return True
 
@@ -35,7 +35,7 @@ def check_if_installed(cmd):
 
 def check_version():
     if sys.version_info < (3, 0, 0):
-        print(FAIL + ERROR_PREFIX + "This script requires python 3!" + ENDC)
+        logger.error("This script requires python 3!")
         return False
     return True
 
@@ -44,47 +44,45 @@ def check_packages():
     try:
         import msgpack
     except ImportError:
-        print(FAIL + ERROR_PREFIX + "Package 'msgpack' is missing!" + ENDC)
+        logger.error("Package 'msgpack' is missing!")
         return False
 
     if msgpack.version < (0,6,0):
-        print(FAIL + ERROR_PREFIX + "Package 'msgpack' is too old, try pip3 install -U msgpack!" + ENDC)
+        logger.error("Package 'msgpack' is too old, try pip3 install -U msgpack!")
         return False
 
     try:
         import mmh3
     except ImportError:
-        print(FAIL + ERROR_PREFIX + "Package 'mmh3' is missing!" + ENDC)
+        logger.error("Package 'mmh3' is missing!")
         return False
 
     try:
         import lz4
     except ImportError:
-        print(FAIL + ERROR_PREFIX + "Package 'lz4' is missing!" + ENDC)
+        logger.error("Package 'lz4' is missing!")
         return False
 
     try:
         import psutil
     except ImportError:
-        print(FAIL + ERROR_PREFIX + "Package 'psutil' is missing!" + ENDC)
+        logger.error("Package 'psutil' is missing!")
         return False
 
     if not check_if_installed("lddtree"):
-        print(FAIL + ERROR_PREFIX + "Tool 'lddtree' is missing (Hint: run `sudo apt install pax-utils`)!" + ENDC)
+        logger.error("Tool 'lddtree' is missing (Hint: run `sudo apt install pax-utils`)!")
         return False
 
     try:
         import fastrand
     except ImportError:
-        print(
-            FAIL + ERROR_PREFIX + "Package 'fastrand' is missing!" + ENDC)
+        logger.error("Package 'fastrand' is missing!")
         return False
 
     try:
         import inotify
     except ImportError:
-        print(
-            FAIL + ERROR_PREFIX + "Package 'inotify' is missing!" + ENDC)
+        logger.error("Package 'inotify' is missing!")
         return False
 
     return True
@@ -98,15 +96,13 @@ def vmx_pt_get_addrn(verbose=True):
     try:
         fd = open("/dev/kvm", "wb")
     except:
-        if verbose:
-            print(FAIL + ERROR_PREFIX + "KVM-PT is not loaded!" + ENDC)
+        logger.error("KVM-PT is not loaded!")
         return 0
 
     try:
         ret = ioctl(fd, KVM_VMX_PT_GET_ADDRN, 0)
     except IOError:
-        if verbose:
-            print(WARNING + WARNING_PREFIX + "Kernel does not support multi-range tracing!" + ENDC)
+        logger.warn("Kernel does not support multi-range tracing!")
         ret = 1
     finally:
         fd.close()
@@ -128,7 +124,7 @@ def vmx_pt_check_addrn(config):
     ret = vmx_pt_get_addrn()
 
     if ip_ranges > ret:
-        print(FAIL + ERROR_PREFIX + "CPU supports only " + str(ret) + " hardware ip trace filters!" + ENDC)
+        logger.error("Attempt to use %d PT range filters but CPU only supports %d!" % (ip_ranges, ret))
         return False
     return True
 
@@ -141,18 +137,18 @@ def check_vmx_pt():
     try:
         fd = open("/dev/kvm", "wb")
     except:
-        print(FAIL + ERROR_PREFIX + "Unable to access /dev/kvm. Check permissions and ensure kvm.ko is loaded." + ENDC)
+        logger.error("Unable to access /dev/kvm. Check permissions and ensure KVM is loaded.")
         return False
 
     try:
         ret = ioctl(fd, KVM_VMX_PT_SUPPORTED, 0)
     except IOError:
-        print(FAIL + ERROR_PREFIX + "VMX_PT is not loaded!" + ENDC)
+        logger.error("VMX_PT is not loaded!")
         return False
     fd.close()
 
     if ret == 0:
-        print(FAIL + ERROR_PREFIX + "Intel PT is not supported on this CPU!" + ENDC)
+        logger.error("Intel PT is not supported on this CPU!")
         return False
 
     return True
@@ -161,7 +157,7 @@ def check_vmx_pt():
 def check_apple_osk(config):
     if config.argument_values["macOS"]:
         if config.config_values["APPLE-SMC-OSK"] == "":
-            print(FAIL + ERROR_PREFIX + "APPLE SMC OSK is missing in kafl.ini!" + ENDC)
+            logger.error("APPLE SMC OSK is missing in kafl.ini!")
             return False
     return True
 
@@ -171,9 +167,9 @@ def check_apple_ignore_msrs(config):
         try:
             f = open("/sys/module/kvm/parameters/ignore_msrs")
             if not 'Y' in f.read(1):
-                print(
-                    FAIL + ERROR_PREFIX + "KVM-PT is not properly configured! Please execute the following command:" \
-                         + ENDC + "\n\n\tsudo su\n\techo 1 > /sys/module/kvm/parameters/ignore_msrs\n")
+                logger.error(
+                    "KVM-PT is not properly configured! Please try the following:" \
+                    "\n\n\tsudo su\n\techo 1 > /sys/module/kvm/parameters/ignore_msrs\n")
                 return False
             else:
                 return True
@@ -181,7 +177,7 @@ def check_apple_ignore_msrs(config):
             pass
         finally:
             f.close()
-        print(FAIL + ERROR_PREFIX + "KVM-PT is not ready?!" + ENDC)
+        logger.error("KVM-PT is not ready?!")
         return False
     return True
 
@@ -189,7 +185,7 @@ def check_apple_ignore_msrs(config):
 def check_kafl_ini(rootdir):
     configfile = rootdir + "kafl.ini"
     if not os.path.exists(configfile):
-        print(WARNING + WARNING_PREFIX + "Could not find kafl.ini. Creating default config at " + configfile + ENDC)
+        logger.error("Could not find kafl.ini. Creating default config at %s" % configfile)
         from common.config import FuzzerConfiguration
         FuzzerConfiguration(configfile,skip_args=True).create_initial_config()
         return False
@@ -197,26 +193,28 @@ def check_kafl_ini(rootdir):
 
 
 def check_qemu_version(config):
-    if not config.config_values["QEMU_KAFL_LOCATION"] or config.config_values["QEMU_KAFL_LOCATION"] == "":
-        print(FAIL + ERROR_PREFIX + "QEMU_KAFL_LOCATION is not set in kafl.ini!" + ENDC)
+    qemu_path = config.config_values["QEMU_KAFL_LOCATION"]
+    if not qemu_path or qemu_path == "":
+        logger.error("Please set QEMU_KAFL_LOCATION in kafl.ini!")
         return False
 
-    if not os.path.exists(config.config_values["QEMU_KAFL_LOCATION"]):
-        print(FAIL + ERROR_PREFIX + "QEMU-PT executable does not exists..." + ENDC)
+    if not os.path.exists(qemu_path):
+        logger.error("Could not find QEMU-PT at %s..." % qemu_path)
         return False
 
     output = ""
     try:
-        proc = subprocess.Popen([config.config_values["QEMU_KAFL_LOCATION"], "-version"],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        proc = subprocess.Popen(
+                [qemu_path, "-version"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
         output = str(proc.stdout.readline())
         proc.wait()
     except:
-        print(FAIL + ERROR_PREFIX + "Binary is not executable...?" + ENDC)
+        logger.error("Failed to execute %s...?" % qemu_path)
         return False
     if not ("QEMU-PT" in output and "(kAFL)" in output):
-        print(FAIL + ERROR_PREFIX + "Wrong QEMU-PT executable..." + ENDC)
+        logger.error("Qemu executable at %s is missing the kAFL patch?" % qemu_path)
         return False
     return True
 
@@ -224,12 +222,13 @@ def check_radamsa_location(config):
     if "radamsa" not in config.argument_values or not config.argument_values["radamsa"]:
         return True
 
-    if not config.config_values["RADAMSA_LOCATION"] or config.config_values["RADAMSA_LOCATION"] == "":
-        print(FAIL + ERROR_PREFIX + "RADAMSA_LOCATION is not set in kafl.ini!" + ENDC)
+    radamsa_path = config.config_values["RADAMSA_LOCATION"]
+    if not radamsa_path or radamsa_path == "":
+        logger.error("RADAMSA_LOCATION is not set in kafl.ini!")
         return False
 
-    if not os.path.exists(config.config_values["RADAMSA_LOCATION"]):
-        print(FAIL + ERROR_PREFIX + "RADAMSA executable does not exist. Try ./install.sh radamsa" + ENDC)
+    if not os.path.exists(radamsa_path):
+        logger.error("RADAMSA executable does not exist. Try ./install.sh radamsa")
         return False
 
     return True
@@ -240,9 +239,9 @@ def check_cpu_num(config):
     if 'p' not in config.argument_values:
         return True
 
-    if int(config.argument_values["p"]) > int(multiprocessing.cpu_count()):
-        print(FAIL + ERROR_PREFIX +
-                "Only %d fuzzing processes are supported..." % (int(multiprocessing.cpu_count())) + ENDC)
+    max_cpus = int(multiprocessing.cpu_count())
+    if int(config.argument_values["p"]) > max_cpus:
+        logger.error("Only %d fuzzing processes are supported..." % max_cpus)
         return False
     return True
 

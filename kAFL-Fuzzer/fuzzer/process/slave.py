@@ -20,9 +20,9 @@ import shutil
 import lz4.frame as lz4
 
 from common.config import FuzzerConfiguration
-from common.debug import log_slave
+from common.log import logger
 from common.qemu import qemu
-from common.util import read_binary_file, atomic_write, print_warning, print_fail
+from common.util import read_binary_file, atomic_write
 from fuzzer.bitmap import BitmapStorage, GlobalBitmap
 from fuzzer.communicator import ClientConnection, MSG_IMPORT, MSG_RUN_NODE, MSG_BUSY
 from fuzzer.node import QueueNode
@@ -38,8 +38,7 @@ def slave_loader(slave_id):
             slave_process.q.async_exit()
         sys.exit(0)
 
-
-    log_slave("PID: " + str(os.getpid()), slave_id)
+    logger.debug(("QEMU-%02d PID: " % slave_id) + str(os.getpid()))
     # sys.stdout = open("slave_%d.out"%slave_id, "w")
     config = FuzzerConfiguration()
 
@@ -61,7 +60,7 @@ def slave_loader(slave_id):
         if slave_process.q:
             slave_process.q.async_exit()
         raise
-    log_slave("Exit.", slave_id)
+    logger.info("QEMU-%02d Exit." % slave_id)
 
 
 num_funky = 0
@@ -81,6 +80,9 @@ class SlaveProcess:
 
         self.bitmap_storage = BitmapStorage(self.config, self.config.config_values['BITMAP_SHM_SIZE'], "master")
 
+    def __str__(self):
+        return "QEMU-%02d" % self.slave_id
+
     def handle_import(self, msg):
         meta_data = {"state": {"name": "import"}, "id": 0}
         payload = msg["task"]["payload"]
@@ -92,14 +94,14 @@ class SlaveProcess:
         kickstart = False
 
         if kickstart: # spend busy cycle by feeding random strings?
-            log_slave("No ready work items, attempting random..", self.slave_id)
+            logger.warn("%s No ready work items, attempting random.." % self)
             start_time = time.time()
             while (time.time() - start_time) < busy_timeout:
                 meta_data = {"state": {"name": "import"}, "id": 0}
                 payload = rand.bytes(rand.int(32))
                 self.logic.process_node(payload, meta_data)
         else:
-            log_slave("No ready work items, waiting...", self.slave_id)
+            logger.warn("%s No ready work items, waiting..." % self)
             time.sleep(busy_timeout)
         self.conn.send_ready()
 
@@ -108,32 +110,30 @@ class SlaveProcess:
         payload = QueueNode.get_payload(meta_data["info"]["exit_reason"], meta_data["id"])
 
         ## update default timeout in Qemu instance
-        t_dyn = 2 * meta_data["info"]["performance"]
+        t_dyn = 500/1000/1000 + 2 * meta_data["info"]["performance"]
         self.q.set_timeout(min(self.timeout_limit_max, t_dyn))
 
         results, new_payload = self.logic.process_node(payload, meta_data)
         if new_payload:
             default_info = {"method": "validate_bits", "parent": meta_data["id"]}
             if self.validate_bits(new_payload, meta_data, default_info):
-                log_slave("Stage %s found alternative payload for node %d"
-                          % (meta_data["state"]["name"], meta_data["id"]),
-                          self.slave_id)
+                logger.debug("%s Stage %s found alternative payload for node %d"
+                          % (self, meta_data["state"]["name"], meta_data["id"]))
             else:
-                log_slave("Provided alternative payload found invalid - bug in stage %s?"
-                          % meta_data["state"]["name"],
-                          self.slave_id)
+                logger.warn("%s Provided alternative payload found invalid - bug in stage %s?"
+                          % (self, meta_data["state"]["name"]))
         self.conn.send_node_done(meta_data["id"], results, new_payload)
 
     def loop(self):
         if not self.q.start():
             return
 
-        log_slave("Started qemu", self.slave_id)
+        logger.info("%s is ready." % self)
         while True:
             try:
                 msg = self.conn.recv()
             except ConnectionResetError:
-                log_slave("Lost connection to master. Shutting down.", self.slave_id)
+                logger.error("%s Lost connection to master. Shutting down." % self)
                 return
 
             if msg["type"] == MSG_RUN_NODE:
@@ -157,7 +157,7 @@ class SlaveProcess:
             return True, new_res.performance
 
         if not quiet:
-            log_slave("Input validation failed! Target is funky?..", self.slave_id)
+            logger.warn("%s Input validation failed! Target is funky?.." % self)
         return False, new_res.performance
 
     def funky_validate(self, data, old_res):
@@ -176,8 +176,8 @@ class SlaveProcess:
         if confirmations >= 0.75*validations:
             return True, runtime_avg/num
 
-        log_slave("Funky input received %d/%d confirmations. Rejecting.." % (confirmations, validations), self.slave_id)
-        if self.config.argument_values['v']:
+        logger.warn("%s Funky input received %d/%d confirmations. Rejecting.." % (self, confirmations, validations))
+        if self.config.argument_values['log_file']:
             self.store_funky(data)
         return False, runtime_avg/num
 
@@ -230,7 +230,7 @@ class SlaveProcess:
         trace_folder = self.config.argument_values['work_dir'] + "/traces/"
         trace_file_out = trace_folder + "payload_%05d" % info['id']
 
-        log_slave("Tracing payload_%05d.." % info['id'], self.slave_id)
+        logger.info("%s Tracing payload_%05d.." % (self, info['id']))
 
         try:
             self.q.set_payload(data)
@@ -244,7 +244,7 @@ class SlaveProcess:
                 self.statistics.event_reload(exec_res.exit_reason)
                 self.q.reload()
         except Exception as e:
-            log_slave("Failed to produce trace %s: %s (skipping..)" % (trace_file_out, e), self.slave_id)
+            logger.info("%s Failed to produce trace %s: %s (skipping..)" % (self, trace_file_out, e))
             return None
 
         return exec_res
@@ -257,11 +257,10 @@ class SlaveProcess:
         except (ValueError, BrokenPipeError):
             if retry > 2:
                 # TODO if it reliably kills qemu, perhaps log to master for harvesting..
-                print_fail("Slave %d aborting due to repeated SHM/socket error. Check logs." % self.slave_id)
-                log_slave("Aborting due to repeated SHM/socket error. Payload: %s" % repr(data), self.slave_id)
+                logger.error("%s Aborting due to repeated SHM/socket error." % self)
+                logger.debug("%s Payload: %s" % (self, repr(data)))
                 raise
-            print_warning("SHM/socket error on Slave %d (retry %d)" % (self.slave_id, retry))
-            log_slave("SHM/socket error, trying to restart qemu...", self.slave_id)
+            logger.warn("%s SHM/socket error (retry %d)" % (self, retry))
             self.statistics.event_reload("shm/socket error")
             if not self.q.restart():
                 raise
@@ -311,7 +310,7 @@ class SlaveProcess:
                     exec_res, is_new = self.execute(data, info, validate_timeouts=False)
                     self.q.set_timeout(dyn_timeout)
                     if is_new and exec_res.exit_reason != "timeout":
-                        print_warning("\ntimeout checker found non-timeout with runtime %f >= %f!" % (exec_res.performance, dyn_timeout))
+                        logger.warn("timeout checker found non-timeout with runtime %f >= %f!" % (exec_res.performance, dyn_timeout))
                     # regular version of this payload is added to reg bitmap, so we can bail out here
                     return exec_res, is_new
             if crash or stable:

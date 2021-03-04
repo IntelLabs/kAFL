@@ -16,10 +16,10 @@ import subprocess
 import time
 import sys
 
-from common.debug import log_qemu
+from common.log import logger
 from common.execution_result import ExecutionResult
 from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
-from common.util import read_binary_file, atomic_write, print_fail, print_warning, strdump, print_note, print_hprintf
+from common.util import read_binary_file, atomic_write, strdump, print_hprintf
 from common.qemu_aux_buffer import qemu_aux_buffer
 
 
@@ -34,7 +34,7 @@ class qemu:
         self.payload_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 5
         self.timeout_min = 1e-6 # minimum valid timeout/runtime = 1usec
         self.config = config
-        self.qemu_id = str(qid)
+        self.qemu_id = qid
         self.alt_bitmap = bytearray(self.bitmap_size)
         self.alt_edges = 0
         self.bb_seen = 0
@@ -43,18 +43,21 @@ class qemu:
         self.control = None
         self.persistent_runs = 0
 
-        project_name = self.config.argument_values['work_dir'].split("/")[-1]
+        work_dir = self.config.argument_values['work_dir']
+        project_name = work_dir.split("/")[-1]
 
-        self.qemu_aux_buffer_filename = self.config.argument_values['work_dir'] + "/aux_buffer_" + self.qemu_id
+        self.qemu_aux_buffer_filename = work_dir + "/aux_buffer_%d" % self.qemu_id
 
-        self.tracedump_filename = "/dev/shm/kafl_%s_pt_trace_dump_%s" % (project_name, self.qemu_id)
+        self.tracedump_filename = "/dev/shm/kafl_%s_pt_trace_dump_%d" % (project_name, self.qemu_id)
 
-        self.binary_filename = self.config.argument_values['work_dir'] + "/program"
-        self.bitmap_filename = self.config.argument_values['work_dir'] + "/bitmap_" + self.qemu_id
-        self.payload_filename = self.config.argument_values['work_dir'] + "/payload_" + self.qemu_id
-        self.control_filename = self.config.argument_values['work_dir'] + "/interface_" + self.qemu_id
-        self.qemu_trace_log = self.config.argument_values['work_dir'] + "/qemu_trace_%s.log" % self.qemu_id
-        self.qemu_serial_log = self.config.argument_values['work_dir'] + "/qemu_serial_%s.log" % self.qemu_id
+        self.binary_filename = work_dir + "/program"
+        self.bitmap_filename = work_dir + "/bitmap_%d" % self.qemu_id
+        self.payload_filename = work_dir + "/payload_%d" % self.qemu_id
+        self.control_filename = work_dir + "/interface_%d" % self.qemu_id
+        self.qemu_trace_log = work_dir + "/qemu_trace_%02d.log" % self.qemu_id
+        self.serial_logfile = work_dir + "/serial_%02d.log" % self.qemu_id
+        self.hprintf_log = self.config.argument_values['log_hprintf']
+        self.hprintf_logfile = work_dir + "/hprintf_%02d.log" % self.qemu_id
 
         self.redqueen_workdir = RedqueenWorkdir(self.qemu_id, config)
         self.redqueen_workdir.init_dir()
@@ -65,15 +68,15 @@ class qemu:
         self.cmd = self.config.config_values['QEMU_KAFL_LOCATION']
 
         # TODO: list append should work better than string concatenation, especially for str.replace() and later popen()
-        self.cmd += " -serial file:" + self.qemu_serial_log + \
-                    " -enable-kvm" \
+        self.cmd += " -enable-kvm" \
+                    " -serial file:" + self.serial_logfile + \
                     " -m " + str(config.argument_values['mem']) + \
                     " -net none" \
                     " -chardev socket,server,nowait,path=" + self.control_filename + \
                     ",id=kafl_interface" \
                     " -device kafl,chardev=kafl_interface" + \
-                    ",workdir=" + self.config.argument_values['work_dir'] + \
-                    ",worker_id=" + self.qemu_id + \
+                    ",workdir=" + work_dir + \
+                    ",worker_id=%d" % self.qemu_id + \
                     ",bitmap_size=" + str(self.bitmap_size)
 
         if self.config.argument_values['dump_pt']:
@@ -104,7 +107,8 @@ class qemu:
                 #self.cmd += ",filter" + str(i) + "=/dev/shm/kafl_filter" + str(i)
 
         if self.debug_mode:
-            self.cmd += " -d kafl -D " + self.qemu_trace_log
+            #self.cmd += " -d kafl -D " + self.qemu_trace_log
+            pass
 
         self.cmd += " -no-reboot"
 
@@ -150,14 +154,14 @@ class qemu:
                 #self.cmd = self.cmd.replace("-display none ", "-vnc :0 ")
                 if self.config.argument_values["vm_snapshot"]:
                     self.cmd += " -fast_vm_reload path=%s,load=off,pre_path=%s " % (
-                            self.config.argument_values['work_dir'] + "/snapshot/",
+                            work_dir + "/snapshot/",
                             self.config.argument_values['vm_snapshot'])
                 else:
                     self.cmd += " -fast_vm_reload path=%s,load=off " % (
-                            self.config.argument_values['work_dir'] + "/snapshot/")
+                            work_dir + "/snapshot/")
             else:
                 self.cmd += " -fast_vm_reload path=%s,load=on " % (
-                             self.config.argument_values['work_dir'] + "/snapshot/")
+                             work_dir + "/snapshot/")
                 time.sleep(1) # fixes some page_cache race bugs?!
 
         # split cmd into list of arguments for Popen(), replace BOOTPARAM as single element
@@ -169,6 +173,8 @@ class qemu:
                 break
             c += 1
 
+    def __str__(self):
+        return "QEMU-%02d" % self.qemu_id
 
     # Asynchronous exit by slave instance. Note this may be called multiple times
     # while we were in the middle of shutdown(), start(), send_payload(), ..
@@ -192,7 +198,7 @@ class qemu:
 
 
     def shutdown(self):
-        log_qemu("Shutting down Qemu after %d execs.." % self.persistent_runs, self.qemu_id)
+        logger.info("%s Shutting down Qemu after %d execs.." % (self, self.persistent_runs))
 
         if not self.process:
             # start() has never been called, all files/shm are closed.
@@ -200,7 +206,7 @@ class qemu:
 
         # If Qemu exists, try to graciously read its I/O and SIGTERM it.
         # If still alive, attempt SIGKILL or loop-wait on kill -9.
-        output = "<no output received>\n"
+        output = ""
         try:
             self.process.terminate()
             output = strdump(self.process.communicate(timeout=1)[0], verbatim=True)
@@ -213,17 +219,19 @@ class qemu:
             except:
                 pass
 
-        log_qemu("Qemu exit code: %s" % str(self.process.returncode), self.qemu_id)
-        header = "\n=================<Qemu %s Console Output>==================\n" % self.qemu_id
-        footer = "====================</Console Output>======================\n"
-        log_qemu(header + output + footer, self.qemu_id)
+        logger.file_log("INFO", "%s exit code: %s" % (self, str(self.process.returncode)))
 
-        if os.path.isfile(self.qemu_serial_log):
-            header = "\n=================<Qemu %s Serial Output>==================\n" % self.qemu_id
+        if len(output) > 0:
+            header = "\n=================<%s Console Output>==================\n" %self
+            footer = "====================</Console Output>======================\n"
+            logger.file_log("INFO", header + output + footer)
+
+        # on full debug, also include the serial log at point of Qemu exit
+        serial_out = strdump(read_binary_file(self.serial_logfile), verbatim=True)
+        if len(serial_out) > 0:
+            header = "\n=================<%s Serial Output>==================\n" % self
             footer = "====================</Serial Output>======================\n"
-            serial_out = strdump(read_binary_file(self.qemu_serial_log), verbatim=True)
-            log_qemu(header + serial_out + footer, self.qemu_id)
-
+            logger.file_log("INFO", header + serial_out + footer)
 
         try:
             # TODO: exec_res keeps from_buffer() reference to kafl_shm
@@ -261,17 +269,18 @@ class qemu:
 
         self.persistent_runs = 0
 
-        if self.qemu_id == "0" or self.qemu_id == "1337": ## 1337 is debug instance!
-            log_qemu("Launching virtual machine...CMD:\n" + ' '.join(self.cmd), self.qemu_id)
+        if self.qemu_id == 0 or self.qemu_id == 1337: ## 1337 is debug instance!
+            logger.info(("%s Launching virtual machine...CMD:\n" % self) + ' '.join(self.cmd))
         else:
-            log_qemu("Launching virtual machine...", self.qemu_id)
+            logger.info("%s Launching virtual machine..." % self)
 
 
         # Launch Qemu. stderr to stdout, stdout is logged on VM exit
         # os.setpgrp() prevents signals from being propagated to Qemu, instead allowing an
         # organized shutdown via async_exit()
         self.process = subprocess.Popen(self.cmd,
-                preexec_fn=os.setpgrp)
+                preexec_fn=os.setpgrp,
+                stdin=subprocess.DEVNULL)
                 # TODO: shutdown() fails to capture libxdc fprintf() - why?
                 #stdin=subprocess.PIPE,
                 #stdout=subprocess.PIPE,
@@ -285,8 +294,7 @@ class qemu:
             self.__qemu_handshake()
         except (OSError, BrokenPipeError) as e:
             if not self.exiting:
-                print_fail("Failed to launch Qemu, please see logs. Error: " + str(e))
-                log_qemu("Fatal error: Failed to launch Qemu: " + str(e), self.qemu_id)
+                logger.error("%s Failed to launch Qemu: %s" % (self, str(e)))
                 self.shutdown()
             return False
 
@@ -306,20 +314,18 @@ class qemu:
 
         self.qemu_aux_buffer = qemu_aux_buffer(self.qemu_aux_buffer_filename)
         if not self.qemu_aux_buffer.validate_header():
-            log_qemu("Invalid header in qemu_aux_buffer.py. Abort.", self.qemu_id)
-            print_fatal("Invalid header in qemu_aux_buffer. Abort.")
+            logger.error("%s Invalid header in qemu_aux_buffer.py. Abort." % self)
             self.async_exit()
 
         while self.qemu_aux_buffer.get_state() != 3:
-            print("[Qemu %s] Waiting for target to enter fuzz mode.." % self.qemu_id)
+            logger.info("%s Waiting for target to enter fuzz mode.." % self)
             self.run_qemu()
             result = self.qemu_aux_buffer.get_result()
             if result.hprintf:
                 msg = strdump(self.qemu_aux_buffer.get_misc_buf()[:-1], verbatim=True)
                 print_hprintf(msg)
 
-        log_qemu("Qemu is ready.", self.qemu_id)
-        print("[Qemu %02d] Qemu is ready." % int(self.qemu_id))
+        logger.debug("%s Handshake done." % self)
 
         self.qemu_aux_buffer.set_reload_mode(True)
         #self.qemu_aux_buffer.set_trace_mode(True)
@@ -362,6 +368,16 @@ class qemu:
 
         return True
 
+    def handle_hprintf(self):
+        msg = strdump(self.qemu_aux_buffer.get_misc_buf()[:-1], verbatim=True)
+
+        if self.hprintf_log:
+            with open(self.hprintf_logfile, "a") as f:
+                f.write(msg)
+        else:
+            print_hprintf(msg)
+
+
     # Fully stop/start Qemu instance to store logs + possibly recover
     def restart(self):
 
@@ -390,17 +406,16 @@ class qemu:
             self.run_qemu()
             result = self.qemu_aux_buffer.get_result()
             if result.page_fault:
-                print_warning("Page fault encountered!")
+                logger.warn("Page fault encountered!")
             if result.pt_overflow:
-                print_warning("PT trashed!")
+                logger.warn("PT trashed!")
             if result.hprintf:
-                msg = strdump(self.qemu_aux_buffer.get_misc_buf()[:-1], verbatim=True)
-                print_hprintf(msg)
+                self.handle_hprintf()
                 continue
             if result.success or result.crash_found or result.asan_found or result.timeout_found:
                 break
 
-        print("Result: %s\n" % self.exit_reason(result))
+        logger.info("Result: %s\n" % self.exit_reason(result))
         #self.audit(result)
         return result
 
@@ -420,12 +435,10 @@ class qemu:
             result = self.qemu_aux_buffer.get_result()
 
             if result.pt_overflow:
-                print_warning("pt trashed")
+                logger.warn("PT trashed!")
 
             if result.hprintf:
-                msg = strdump(self.qemu_aux_buffer.get_misc_buf()[:-1], verbatim=True)
-                print_hprintf(msg.rstrip())
-                log_qemu("hprintf:\n" + msg.rstrip(), self.qemu_id)
+                self.handle_hprintf()
                 continue
 
             if result.success or result.crash_found or result.asan_found or result.timeout_found:
@@ -433,8 +446,7 @@ class qemu:
 
             if result.page_fault:
                 if result.page_fault_addr == old_address:
-                    print_warning("Failed to resolve page after second execution!")
-                    log_qemu("Failed to resolve page after second execution! Qemu status:\n%s" % str(result._asdict()), self.qemu_id)
+                    logger.error("%s Failed to resolve page after second execution! Qemu status:\n%s" % (self, str(result._asdict())))
                     break
                 old_address = result.page_fault_addr
                 self.qemu_aux_buffer.dump_page(result.page_fault_addr)
@@ -471,7 +483,7 @@ class qemu:
     def audit(self, bitmap):
 
         if len(bitmap) != self.bitmap_size:
-            print("bitmap size: %d" % len(bitmap))
+            logger.info("bitmap size: %d" % len(bitmap))
 
         new_bytes = 0
         new_bits = 0
@@ -484,8 +496,8 @@ class qemu:
                     new_bits += 1
         if new_bytes > 0:
             self.alt_edges += new_bytes;
-            print("[Slave %02d] New bytes: %03d, bits: %03d, total edges seen: %03d" % (
-                int(self.qemu_id), new_bytes, new_bits, self.alt_edges))
+            logger.info("%s New bytes: %03d, bits: %03d, total edges seen: %03d" % (
+                self, new_bytes, new_bits, self.alt_edges))
 
 
     def exit_reason(self, result):
@@ -499,15 +511,14 @@ class qemu:
             return "regular"
 
     def execute_in_trace_mode(self, trace_timeout=None):
-        log_qemu("Performing trace iteration...", self.qemu_id)
+        logger.debug("%s Performing trace iteration..." % self)
         exec_res = None
         try:
             self.qemu_aux_buffer.set_trace_mode(True)
             exec_res = self.send_payload()
             self.qemu_aux_buffer.set_trace_mode(False)
         except Exception as e:
-            log_qemu("Error during trace: %s" % str(e), self.qemu_id)
-            print("Error during trace: %s" % str(e))
+            logger.error("%s Trace execution failed: %s" % (self, str(e)))
             return None
 
         return exec_res
@@ -555,6 +566,5 @@ class qemu:
             if self.exiting:
                 sys.exit(0)
             # Qemu crashed. Could be due to prior payload but more likely harness/config is broken..
-            #print_fail("Failed to set new payload - Qemu crash?");
-            log_qemu("Failed to set new payload - Qemu crash?", self.qemu_id);
+            logger.error("%s Failed to set new payload - Qemu crash?" % self)
             raise

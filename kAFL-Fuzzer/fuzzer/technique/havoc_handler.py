@@ -7,7 +7,7 @@
 AFL-style havoc mutations (havoc stage)
 """
 
-from common.debug import log_redq
+from common.log import logger
 from common.util import read_binary_file, find_diffs
 from fuzzer.technique.helper import *
 
@@ -257,7 +257,7 @@ def set_dict(new_dict):
 
 def clear_redqueen_dict():
     global redqueen_dict, redqueen_addr_list
-    log_redq("clearing dict %s" % repr(redqueen_dict))
+    #logger.debug("Redqueen: clearing dict %s" % repr(redqueen_dict))
     redqueen_dict = {}
     redqueen_addr_list = []
 
@@ -283,7 +283,7 @@ def add_to_redqueen_dict(addr, val):
             if not addr in redqueen_dict:
                 redqueen_dict[addr] = set()
                 redqueen_addr_list.append(addr)
-            # log_redq("Added Dynamic Dict: %s"%repr(v))
+            #logger.debug("Redqueen: Added Dynamic Dict: %s"%repr(v))
             redqueen_dict[addr].add(v)
 
 
@@ -294,13 +294,13 @@ def append_handler(handler):
 
 # placing dict entry at variable offset overlapping the end should also be useful?
 def dict_insert_sequence(data, entry, entry_pos=None):
-    #log_redq("HAVOC DICT-INS: %s [%s] -> %s " % (repr(data), repr(entry), repr(newdata)))
+    #logger.debug("HAVOC DICT-INS: %s [%s] -> %s " % (repr(data), repr(entry), repr(newdata)))
     if entry_pos is None:
         entry_pos = rand.int(max([0, len(data) - len(entry)]))
     return b''.join([data[:entry_pos], entry, data[entry_pos+len(entry):]])
 
 def dict_replace_sequence(data, entry, entry_pos=None):
-    #log_redq("HAVOC DICT-REP: %s [%s] -> %s " % (repr(data), repr(entry), repr(newdata)))
+    #logger.debug("HAVOC DICT-REP: %s [%s] -> %s " % (repr(data), repr(entry), repr(newdata)))
     if entry_pos is None:
         entry_pos = rand.int(max([0, len(data) - len(entry)]))
     return b''.join([data[:entry_pos], entry, data[entry_pos:]])

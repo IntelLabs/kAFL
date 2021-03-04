@@ -8,7 +8,7 @@ AFL-style trim algorithms (init stage)
 """
 
 from fuzzer.bitmap import GlobalBitmap
-from common.debug import log_trim
+from common.log import logger
 
 MAX_EXECS = 16
 MAX_ROUNDS = 32
@@ -107,7 +107,7 @@ def perform_extend(payload, old_node, send_handler, max_len):
             break
 
     pad_bytes = upper
-    log_trim("stream_extend: pad_bytes=%d" % (pad_bytes))
+    logger.debug("stream_extend: pad_bytes=%d" % (pad_bytes))
 
     if pad_bytes == 0:
         return None
@@ -126,7 +126,7 @@ def perform_extend(payload, old_node, send_handler, max_len):
     if check_trim_still_valid(old_node, old_res, new_res):
         return payload + bytes(pad_bytes)
     else:
-        log_trim("stream_extend: dropped funky NUL padding (len=%d, other finds=%d)" % (pad_bytes, num_findings))
+        logger.debug("stream_extend: dropped funky NUL padding (len=%d, other finds=%d)" % (pad_bytes, num_findings))
         return None
 
 

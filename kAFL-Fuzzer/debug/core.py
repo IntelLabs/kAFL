@@ -13,10 +13,10 @@ import mmh3
 
 import common.color
 from common.config import DebugConfiguration
-from common.debug import log_debug, enable_logging
+from common.log import init_logger, logger
 from common.qemu import qemu
 from common.self_check import post_self_check
-from common.util import print_warning, prepare_working_dir, read_binary_file
+from common.util import prepare_working_dir, read_binary_file
 from fuzzer.technique.redqueen import parser
 from fuzzer.technique.redqueen.hash_fix import HashFixer
 from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
@@ -38,24 +38,24 @@ def hexdump(src, length=16):
 
 
 def benchmark(config):
-    log_debug("Starting benchmark...")
+    logger.info("Starting benchmark...")
     payload_file = config.argument_values["input"]
 
     q = qemu(1337, config, debug_mode=False)
     q.start()
     q.set_payload(read_binary_file(payload_file))
-    log_debug("Hash: " + str(q.send_payload().hash()))
+    logger.info("Hash: " + str(q.send_payload().hash()))
     try:
         while True:
             start = time.time()
             execs = 0
-            # for i in range(execs):
+
             while (time.time() - start < REFRESH):
                 q.set_payload(read_binary_file(payload_file))
                 q.send_payload()
                 execs += 1
+
             end = time.time()
-            # print("Performance: " + str(execs/(end - start)) + "t/s")
             stdout.write(common.color.FLUSH_LINE + "Performance: " + str(execs / (end - start)) + "t/s")
             stdout.flush()
     except KeyboardInterrupt:
@@ -73,22 +73,21 @@ def gdb_session(config, qemu_verbose=True, notifiers=True):
     config.argument_values["gdbserver"] = True
     q = qemu(1337, config, notifiers=notifiers)
 
-    print("Starting Qemu + GDB with payload %s" % payload_file)
-    print("Connect with gdb to release guest from reset (localhost:1234)")
+    logger.info("Starting Qemu + GDB with payload %s" % payload_file)
+    logger.info("Connect with gdb to release guest from reset (localhost:1234)")
     try:
         if q.start():
             q.set_payload(read_binary_file(payload_file))
             result = q.debug_payload()
-            print("Thank you for playing.")
+            logger.info("Thank you for playing.")
             #pprint(result._asdict())
     finally:
-        print("Shutting down..")
+        logger.info("Shutting down..")
         q.async_exit()
 
 def execute_once(config, qemu_verbose=False, notifiers=True):
-
     payload_file = config.argument_values["input"]
-    log_debug("Execute payload %s.. " % payload_file)
+    logger.info("Execute payload %s.. " % payload_file)
     zero_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
 
     q = qemu(1337, config, debug_mode=False, notifiers=notifiers)
@@ -99,16 +98,16 @@ def execute_once(config, qemu_verbose=False, notifiers=True):
     result = q.send_payload()
     current_hash = result.hash()
     if zero_hash == current_hash:
-        log_debug("Feedback Hash: " + str(
-            current_hash) + common.color.WARNING + " (WARNING: Zero hash found!)" + common.color.ENDC)
+        logger.info("Feedback Hash: " + str(current_hash))
+        logger.warn("Zero hash found!")
     else:
-        log_debug("Feedback Hash: " + str(current_hash))
+        logger.info("Feedback Hash: " + str(current_hash))
 
     q.shutdown()
     return 0
 
 def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
-    log_debug("Starting debug execution...(%d rounds)" % execs)
+    logger.info("Starting debug execution...(%d rounds)" % execs)
 
     payload_file = config.argument_values["input"]
     null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
@@ -117,7 +116,7 @@ def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
 
     start = time.time()
     for i in range(execs):
-        log_debug("Launching payload %d/%d.." % (i+1,execs))
+        logger.info("Launching payload %d/%d.." % (i+1,execs))
         if i % 3 == 0:
             q.set_payload(read_binary_file(payload_file))
         # time.sleep(0.01 * rand.int(0, 9))
@@ -126,17 +125,17 @@ def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
         result = q.send_payload()
         current_hash = result.hash()
         if null_hash == current_hash:
-            log_debug("Feedback Hash: " + str(
-                current_hash) + common.color.WARNING + " (WARNING: Zero hash found!)" + common.color.ENDC)
+            logger.info("Feedback Hash: " + str(current_hash))
+            logger.warn("Zero hash found!")
         else:
-            log_debug("Feedback Hash: " + str(current_hash))
+            logger.info("Feedback Hash: " + str(current_hash))
             #log_debug("Full hexdump:\n" + hexdump(result.copy_to_array()))
         if result.is_crash():
             q.reload()
 
     q.shutdown()
     end = time.time()
-    print("Performance: " + str(execs / (end - start)) + "t/s")
+    logger.info("Performance: " + str(execs / (end - start)) + "t/s")
 
     return 0
 
@@ -144,7 +143,7 @@ def execution_exited_abnormally(qemu):
     return qemu.crashed or qemu.timeout or qemu.kasan
 
 def debug_non_det(config, max_execs=0):
-    log_debug("Starting non-deterministic...")
+    logger.info("Starting non-deterministic...")
 
     delay = 0
     payload_file = config.argument_values["input"]
@@ -183,7 +182,7 @@ def debug_non_det(config, max_execs=0):
         default_hash = exec_res.hash()
         hashes[default_hash] = 1
 
-        log_debug("Default Hash: " + str(default_hash))
+        logger.info("Default Hash: " + str(default_hash))
 
         if store_traces:
             shutil.copyfile(trace_out, trace_dir + "/trace_%08x.txt" % default_hash)
@@ -205,7 +204,7 @@ def debug_non_det(config, max_execs=0):
                     exec_res = q.send_payload()
 
                 if exec_res.is_crash():
-                    print("Crashed - restarting...")
+                    logger.info("Crashed - restarting...")
                     q.reload()
 
                 time.sleep(delay)
@@ -244,9 +243,9 @@ def debug_non_det(config, max_execs=0):
     stdout.write("\n")
     for h in hashes.keys():
         if h == default_hash:
-            print("* %08x: %03d" % (h, hashes[h]))
+            logger.info("* %08x: %03d" % (h, hashes[h]))
         else:
-            print("  %08x: %03d" % (h, hashes[h]))
+            logger.info("  %08x: %03d" % (h, hashes[h]))
 
     return 0
 
@@ -286,7 +285,7 @@ def redqueen_dbg_thread(q):
 
 def redqueen_dbg(config, qemu_verbose=False):
     global thread_done
-    log_debug("Starting Redqueen debug...")
+    logger.info("Starting Redqueen debug...")
 
     q = qemu(1337, config, debug_mode=True)
     q.start()
@@ -305,11 +304,13 @@ def redqueen_dbg(config, qemu_verbose=False):
     thread.join()
     requeen_print_state(q)
     end = time.time()
+
     if result:
-        print(common.color.OKGREEN + "Execution succeded!" + common.color.ENDC)
+        logger.info("Execution succeded!")
     else:
-        print(common.color.FLUSH_LINE + common.color.FAIL + "Execution failed!" + common.color.ENDC)
-    print("Time: " + str(end - start) + "t/s")
+        logger.error("Execution failed!")
+
+    logger.info("Time: " + str(end - start) + "t/s")
 
     num_muts, muts = parser.parse_rq_data(
         open("/tmp/kafl_debug_workdir/redqueen_workdir_1337/redqueen_results.txt").read(), payload)
@@ -318,8 +319,8 @@ def redqueen_dbg(config, qemu_verbose=False):
         for lhs in muts[offset]:
             for rhs in muts[offset][lhs]:
                 count += 1
-                print(offset, lhs, rhs)
-    print(count)
+                logger.info(offset, lhs, rhs)
+    logger.info(count)
 
     return 0
 
@@ -327,7 +328,7 @@ def redqueen_dbg(config, qemu_verbose=False):
 def verify_dbg(config, qemu_verbose=False):
     global thread_done
 
-    print("Starting...")
+    logger.info("Starting...")
 
     rq_state = RedqueenState()
     workdir = RedqueenWorkdir(1337)
@@ -337,13 +338,12 @@ def verify_dbg(config, qemu_verbose=False):
             for x in f.readlines():
                 rq_state.add_candidate_hash_addr(int(x, 16))
     if not rq_state.get_candidate_hash_addrs():
-        print("WARNING: no patches configured\n")
-        print("Maybe add ./patches with addresses to patch\n")
+        logger.warn("No patches configured\nMaybe add ./patches with addresses to patch.")
     else:
-        print("OK: got patches %s\n", rq_state.get_candidate_hash_addrs())
+        logger.info("OK: got patches %s\n", rq_state.get_candidate_hash_addrs())
     q = qemu(1337, config, debug_mode=True)
 
-    print("using qemu command:\n%s\n" % q.cmd)
+    logger.info("using qemu command:\n%s\n" % q.cmd)
 
     q.start()
 
@@ -359,37 +359,37 @@ def verify_dbg(config, qemu_verbose=False):
                 w.write(addr)
                 p.write(addr)
 
-    print("RUN WITH PATCHING:")
+    logger.info("RUN WITH PATCHING:")
     bmp1 = q.send_payload(apply_patches=True)
 
-    print("\nNOT PATCHING:")
+    logger.info("\nNOT PATCHING:")
     bmp2 = q.send_payload(apply_patches=False)
 
     if bmp1 == bmp2:
-        print("WARNING: patches don't seem to change anything, are checksums present?")
+        logger.warn("Patches don't seem to change anything, are checksums present?")
     else:
-        print("OK: bitmaps are distinct")
+        logger.info("OK: bitmaps are distinct")
 
     q.soft_reload()
 
     hash = HashFixer(q, rq_state)
 
-    print("fixing hashes\n")
+    logger.info("fixing hashes")
     fixed_payload = hash.try_fix_data(orig_input)
     if fixed_payload:
 
-        print("%s\n", repr("".join(map(chr, fixed_payload))))
+        logger.info("%s\n", repr("".join(map(chr, fixed_payload))))
 
         q.set_payload(fixed_payload)
 
         bmp3 = q.send_payload(apply_patches=False)
 
         if bmp1 == bmp3:
-            print("CONGRATZ, BITMAPS ARE THE SAME, all cmps fixed\n")
+            logger.info("CONGRATZ, BITMAPS ARE THE SAME, all cmps fixed\n")
         else:
-            print("Warning, after fixing cmps, bitmaps differ\n")
+            logger.warn("After fixing cmps, bitmaps differ\n")
     else:
-        print("couldn't fix payload\n")
+        logger.error("couldn't fix payload\n")
 
     start = time.time()
     return 0
@@ -402,22 +402,20 @@ def start(config):
     if not post_self_check(config):
         return -1
 
-    # kAFL debug output is redirected to logs as part of -v mode. stdout will only print test/debug results.
-    if config.argument_values['v']:
-        enable_logging(config.argument_values["work_dir"])
+    work_dir = config.argument_values["work_dir"]
+    init_logger(config)
 
     # Without -ip0, Qemu will not active PT tracing and Redqueen will not
     # attempt to handle debug traps. This is a requirement for modes like gdb.
     if not config.argument_values['ip0']:
-        print_warning("No trace region configured! Intel PT disabled!")
+        logger.warn("No trace region configured! Intel PT disabled!")
 
     max_execs = config.argument_values['n']
 
     try:
         # TODO: noise, benchmark, trace are working, others untested
         mode = config.argument_values['action']
-        if   (mode == "noise"):
-                                        debug_non_det(config, max_execs)
+        if   (mode == "noise"):         debug_non_det(config, max_execs)
         elif (mode == "benchmark"):     benchmark(config)
         elif (mode == "gdb"):           gdb_session(config, qemu_verbose=True)
         elif (mode == "single"):        execute_once(config, qemu_verbose=False)
@@ -428,7 +426,7 @@ def start(config):
         elif (mode == "redqueen-qemu"): redqueen_dbg(config, qemu_verbose=True)
         elif (mode == "verify"):        verify_dbg(config, qemu_verbose=True)
         else:
-            print("Unknown debug mode. Exit");
+            logger.error("Unknown debug mode. Exit")
     except Exception as e:
         raise e
     finally:
@@ -440,6 +438,6 @@ def start(config):
             else:
                 break
 
-        print("\nDone. Check logs for details.\nAny remaining qemu instances should be GC'ed on exit:")
-        os.system("pgrep qemu-system")
+        logger.info("Done. Check logs for details.")
+        logger.info(Any remaining qemu instances should be GC'ed on exit: %s" % os.system("pgrep qemu-system"))
     return 0

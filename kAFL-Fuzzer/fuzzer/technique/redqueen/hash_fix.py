@@ -10,7 +10,7 @@ Redqueen Checksum Fixer
 import traceback
 from array import array
 
-from common.debug import log_redq
+from common.log import logger
 from .parser import RedqueenRunInfo
 from .cmp import Cmp
 
@@ -35,23 +35,21 @@ class HashFixer:
         return broken_cmps, run_info
 
     def get_cmps(self, data):
-        # log_redq("runnning on %s"%repr("".join( map(chr, data) )) )
         self.qemu.set_payload(data)
-        # self.qemu.send_enable_patches()
-        log_redq("hashfix run in rq mode")
+        logger.debug("hashfix run in rq mode")
         self.qemu.send_rq_set_whitelist_instrumentation()
         self.qemu.send_enable_redqueen()
         self.qemu.send_payload(timeout_detection=True, apply_patches=True)
-        log_redq("hashfix run in non rq mode")
+        logger.debug("hashfix run in non rq mode")
         self.qemu.send_disable_redqueen()
         self.qemu.send_payload(timeout_detection=True, apply_patches=True)
-        log_redq("hashfix done running, now parsing")
+        logger.debug("hashfix done running, now parsing")
         res = self.parse_redqueen_results(data)
-        log_redq("hashfix done parsing")
+        logger.debug("hashfix done parsing")
         return res
 
     def mark_unfixable(self, cmp):
-        log_redq("Unfixable cmp at: %x" % cmp.addr)
+        logger.debug("Unfixable cmp at: %x" % cmp.addr)
         self.blacklisted_addrs.add(cmp.addr)
         self.redqueen_state.blacklist_hash_addr(cmp.addr)
 
@@ -64,17 +62,17 @@ class HashFixer:
     def try_fix_data(self, data):
         self.qemu.send_payload(timeout_detection=True, apply_patches=False)
         self.qemu.send_payload(timeout_detection=True, apply_patches=True)
-        log_redq("PATCHES %s\n" % repr(list(map(hex, self.redqueen_state.get_candidate_hash_addrs()))))
-        log_redq("BLACKLIST %s\n" % repr(list(map(hex, self.redqueen_state.get_blacklisted_hash_addrs()))))
+        logger.debug("PATCHES %s\n" % repr(list(map(hex, self.redqueen_state.get_candidate_hash_addrs()))))
+        logger.debug("BLACKLIST %s\n" % repr(list(map(hex, self.redqueen_state.get_blacklisted_hash_addrs()))))
         self.redqueen_state.update_redqueen_patches(self.qemu.redqueen_workdir)
         self.redqueen_state.update_redqueen_whitelist(self.qemu.redqueen_workdir,
                                                       self.redqueen_state.get_candidate_hash_addrs())
         fixed_data = array('B', data)
         orig_cmps, _ = self.get_cmps(fixed_data)
         shape = self.get_shape(orig_cmps)
-        log_redq("shape of hashes: ")
+        logger.debug("shape of hashes: ")
         for addr in shape:
-            log_redq("\t%x: %d" % (addr, shape[addr]))
+            logger.debug("\t%x: %d" % (addr, shape[addr]))
 
         if len(shape) == 0:
             return fixed_data
@@ -84,15 +82,15 @@ class HashFixer:
         if num_iters < num_cmps:
             num_iters = num_cmps
 
-        log_redq("try fixing for %d iters" % num_iters)
+        logger.debug("try fixing for %d iters" % num_iters)
         for i in range(num_iters):
             broken_checks, run_info = self.get_broken_cmps(fixed_data)
-            log_redq("got %d broken checks\n" % len(broken_checks))
+            logger.debug("got %d broken checks\n" % len(broken_checks))
             if not broken_checks:
                 return fixed_data
-            cmp = broken_checks.pop(-1);
+            cmp = broken_checks.pop(-1)
             if not self.try_fix_cmp(shape, fixed_data, run_info, cmp):
-                log_redq("cmp at %x unfixable:" % cmp.addr)
+                logger.debug("cmp at %x unfixable:" % cmp.addr)
                 self.mark_unfixable(cmp)
         broken_checks, run_info = self.get_broken_cmps(fixed_data)
         for cmp in broken_checks:
@@ -120,24 +118,24 @@ class HashFixer:
             data[offset + o] = repl[o]
 
     def try_fix_cmp_with(self, shape, fixed_data, cmp, offsets, lhs, rhs, enc):
-        log_redq("Trying mutation %s" % (repr((offsets, lhs, rhs, enc))))
+        logger.debug("Trying mutation %s" % (repr((offsets, lhs, rhs, enc))))
         if list(map(len, lhs)) != list(map(len, rhs)):
             return False
         self.redqueen_state.update_redqueen_whitelist(self.qemu.redqueen_workdir,
                                                       self.redqueen_state.get_candidate_hash_addrs())
         try:
             if self.try_fix_cmp_offset(shape, fixed_data, cmp, offsets, rhs):
-                log_redq("Mutation fixed it")
+                logger.debug("Mutation fixed it")
                 return True
-            log_redq("Mutation didn't Fix it")
+            logger.debug("Mutation didn't Fix it")
             return False
         except Exception as e:
-            log_redq("fixing hash failed %s" % traceback.format_exc())
+            logger.error("fixing hash failed %s" % traceback.format_exc())
             raise e
 
     def try_fix_cmp(self, shape, fixed_data, run_info, cmp):
         known_offsets = self.redqueen_state.get_candidate_file_offsets(cmp.addr)
-        log_redq("known offsets for: %x = %s" % (cmp.addr, known_offsets))
+        logger.debug("known offsets for: %x = %s" % (cmp.addr, known_offsets))
         mutations = [x for x in cmp.calc_mutations(run_info, 1)]
         for (offsets, lhs, rhs, enc) in cmp.calc_mutations(run_info, 1):
             if offsets in known_offsets:
@@ -154,18 +152,14 @@ class HashFixer:
         return shape == self.get_shape(res) and res[cmp.addr][cmp.index].was_true_in(run_info)
 
     def try_fix_cmp_offset(self, shape, data, cmp, offsets, repls):
-        # try:
         backup = {}
         for i, repl in zip(offsets, repls):
             backup[i] = data[i:i + len(repl)]
             HashFixer.replace_data(data, i, array('B', repl))
         if self.does_data_fix_cmp(shape, data, cmp):
-            log_redq("found candidate offset %x %s" % (cmp.addr, repr(offsets)))
+            logger.debug("found candidate offset %x %s" % (cmp.addr, repr(offsets)))
             self.redqueen_state.add_candidate_file_offset(cmp.addr, tuple(offsets))
             return True
         for i in offsets:
             HashFixer.replace_data(data, i, backup[i])
         return False
-    # except Exception as e:
-    #    log_redq("failed to fix %s with %s"%(cmp.addr,(offset_tuples,repls)) )
-    #    raise e

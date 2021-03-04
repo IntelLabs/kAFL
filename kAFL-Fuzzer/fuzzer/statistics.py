@@ -25,6 +25,7 @@ class MasterStatistics:
         self.stat_thres = 60*60
         self.write_last = 0
         self.write_thres = 0.5
+        self.quiet = self.config.argument_values['quiet']
         self.num_slaves = self.config.argument_values['p']
         self.work_dir = self.config.argument_values['work_dir']
         self.data = {
@@ -72,8 +73,7 @@ class MasterStatistics:
         self.data["findings"][exit] += 1
 
         if exit != "regular":
-            if sys.stdout.isatty():
-                self.print_finding_line(node)
+            self.print_finding_line(node)
             return
 
         self.data["paths_total"] += 1
@@ -86,10 +86,13 @@ class MasterStatistics:
         self.data["bytes_in_bitmap"] += len(node.get_new_bytes())
         self.data["max_level"] = max(node.get_level(), self.data["max_level"])
 
-        if sys.stdout.isatty():
-            self.print_finding_line(node)
+        self.print_finding_line(node)
 
     def print_finding_line(self, node):
+
+        if not sys.stdout.isatty() or self.quiet:
+            return
+
         node_id = node.get_id()
         plen = node.get_payload_len()
         perf = node.get_performance()
