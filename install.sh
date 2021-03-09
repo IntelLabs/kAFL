@@ -3,6 +3,7 @@
 #LINUX_VERSION="5.4.55"
 LINUX_VERSION="5.7.12"
 LINUX_VERSION="5.8.12"
+LINUX_VERSION="5.11.4"
 LINUX_URL="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_VERSION}.tar.xz"
 
 #QEMU_VERSION="4.2.0"
