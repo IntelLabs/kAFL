@@ -1,0 +1,53 @@
+From 7d10fba9675a1d118c1c34956698fef6142cb491 Mon Sep 17 00:00:00 2001
+From: Steffen Schulz <steffen.schulz@intel.com>
+Date: Thu, 11 Mar 2021 16:28:07 +0100
+Subject: [PATCH 19/19] finalize trace on panic/kasan/timeout events
+
+---
+ pt/hypercall.c | 3 +++
+ pt/interface.c | 2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/pt/hypercall.c b/pt/hypercall.c
+index 841246de..92a264e6 100644
+--- a/pt/hypercall.c
++++ b/pt/hypercall.c
+@@ -346,12 +346,14 @@ void handle_hypercall_kafl_panic(struct kvm_run *run, CPUState *cpu){
+ 	} else{
+ 		QEMU_PT_DEBUG(CORE_PREFIX, "Panic in kernel mode!");
+ 	}
++	synchronization_disable_pt(cpu);
+ 	hypercall_snd_char(KAFL_PROTO_CRASH);
+ }
+ 
+ void handle_hypercall_kafl_timeout(struct kvm_run *run, CPUState *cpu){
+ 	assert(hypercall_enabled);
+ 	QEMU_PT_DEBUG(CORE_PREFIX, "Timeout detected!");
++	synchronization_disable_pt(cpu);
+ 	hypercall_snd_char(KAFL_PROTO_TIMEOUT);
+ }
+ 
+@@ -362,6 +364,7 @@ void handle_hypercall_kafl_kasan(struct kvm_run *run, CPUState *cpu){
+ 	} else{
+ 		QEMU_PT_DEBUG(CORE_PREFIX, "ASan notification in kernel mode!");
+ 	}
++	synchronization_disable_pt(cpu);
+ 	hypercall_snd_char(KAFL_PROTO_KASAN);
+ }
+ 
+diff --git a/pt/interface.c b/pt/interface.c
+index 486951fb..5aa57e2c 100644
+--- a/pt/interface.c
++++ b/pt/interface.c
+@@ -129,7 +129,7 @@ static void kafl_guest_receive(void *opaque, const uint8_t * buf, int size){
+ 			/* finalize iteration (dump and decode PT data) in case of timeouts */
+ 			case KAFL_PROTO_FINALIZE:
+ 				synchronization_disable_pt(qemu_get_cpu(0));
+-				send_char('F', s);
++				send_char(KAFL_PROTO_FINALIZE, s);
+ 				break;
+ #ifdef CONFIG_REDQUEEN
+ 				
+-- 
+2.30.1
+
