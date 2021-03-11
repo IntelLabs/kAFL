@@ -24,10 +24,16 @@ ssize_t write_info(struct file *filp, const char __user *buff, size_t len, loff_
 
 struct proc_dir_entry *proc_file_entry;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
+static const struct proc_ops proc_file_fops = {
+	 .proc_write = write_info,
+	};
+#else
 static const struct file_operations proc_file_fops = {
 	 .owner = THIS_MODULE,
 	 .write = write_info,
 	};
+#endif
 
 int init_mod( void )
 {
