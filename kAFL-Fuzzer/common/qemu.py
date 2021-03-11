@@ -474,7 +474,13 @@ class qemu:
         if self.config.argument_values['agent']:
             self.__set_agent()
 
+        log_qemu("Handshake: Send kAFL Connect", self.qemu_id)
+        self.__debug_send(qemu_protocol.CONNECT)
+
+        log_qemu("Handshake: Waiting on Guest Ready", self.qemu_id)
         self.__debug_recv_expect(qemu_protocol.RELEASE + qemu_protocol.PT_TRASHED)
+
+        log_qemu("Handshake: Release VM!", self.qemu_id)
         self.__debug_send(qemu_protocol.RELEASE)
         log_qemu("Stage 1 handshake done [INIT]", self.qemu_id)
 

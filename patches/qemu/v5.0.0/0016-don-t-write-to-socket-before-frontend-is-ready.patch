@@ -1,0 +1,336 @@
+From b878f61b37d218e57f3b1d6bb8a1bbf353b819e7 Mon Sep 17 00:00:00 2001
+From: Steffen Schulz <steffen.schulz@intel.com>
+Date: Thu, 11 Mar 2021 16:26:24 +0100
+Subject: [PATCH 16/19] don't write to socket before frontend is ready
+
+---
+ pt/hypercall.c | 194 ++++++++++++++++++++++++-------------------------
+ pt/hypercall.h |   2 +-
+ pt/interface.c |   7 +-
+ pt/interface.h |   1 +
+ 4 files changed, 100 insertions(+), 104 deletions(-)
+
+diff --git a/pt/hypercall.c b/pt/hypercall.c
+index ea4c59f2..841246de 100644
+--- a/pt/hypercall.c
++++ b/pt/hypercall.c
+@@ -74,17 +74,20 @@ void pt_setup_enable_hypercalls(void){
+ 	hypercall_enabled = true;
+ }
+ 
++static void wait_hypercall_enabled(void) {
++	while (!hypercall_enabled) {
++		usleep(1000*100);
++	};
++}
++
+ void pt_setup_snd_handler(void (*tmp)(char, void*), void* tmp_s){
+ 	s = tmp_s;
+ 	handler = tmp;
+ }
+ 
+-bool hypercall_snd_char(char val){
+-	if (handler != NULL){
+-		handler(val, s);
+-		return true;
+-	}
+-	return false;
++void hypercall_snd_char(char val){
++	assert(handler);
++	handler(val, s);
+ }
+ 
+ void hypercall_reset_hprintf_counter(void){
+@@ -222,155 +225,144 @@ void pt_setup_payload(void* ptr){
+ }
+ 
+ bool handle_hypercall_kafl_next_payload(struct kvm_run *run, CPUState *cpu){
+-	if(hypercall_enabled){
+-		if (init_state){
+-			synchronization_lock(cpu);
+-		} else {
+-			if(!setup_snapshot_once){  //TODO???
+-				pt_reset_bitmap();
+-				/* decrease RIP value by vmcall instruction size */
+-				X86CPU *x86_cpu = X86_CPU(cpu);
+-				CPUX86State *env = &x86_cpu->env;
+-				kvm_cpu_synchronize_state(cpu);
+-				env->eip -= 3; /* vmcall size */
+-				kvm_arch_put_registers(cpu, KVM_PUT_FULL_STATE);
+-
+-				setup_snapshot_once = true;
+-				for(int i = 0; i < INTEL_PT_MAX_RANGES; i++){
+-					//printf("=> %d\n", i);
+-					if(filter_enabled[i]){
++	assert(hypercall_enabled);
++
++	if (init_state){
++		synchronization_lock(cpu);
++	} else {
++		if(!setup_snapshot_once){  //TODO???
++			pt_reset_bitmap();
++			/* decrease RIP value by vmcall instruction size */
++			X86CPU *x86_cpu = X86_CPU(cpu);
++			CPUX86State *env = &x86_cpu->env;
++			kvm_cpu_synchronize_state(cpu);
++			env->eip -= 3; /* vmcall size */
++			kvm_arch_put_registers(cpu, KVM_PUT_FULL_STATE);
++
++			setup_snapshot_once = true;
++			for(int i = 0; i < INTEL_PT_MAX_RANGES; i++){
++				//printf("=> %d\n", i);
++				if(filter_enabled[i]){
+ 	#ifdef CONFIG_REDQUEEN
+-						pt_enable_ip_filtering(cpu, i, filter[i][0], filter[i][1], true, false);
++					pt_enable_ip_filtering(cpu, i, filter[i][0], filter[i][1], true, false);
+ 	#else					
+-						pt_enable_ip_filtering(cpu, i, filter[i][0], filter[i][1], false);
++					pt_enable_ip_filtering(cpu, i, filter[i][0], filter[i][1], false);
+ 	#endif			
+-					}
+ 				}
+ 			}
+-			else{
+-				synchronization_lock(cpu);
+-				write_virtual_memory((uint64_t)payload_buffer_guest, payload_buffer, PAYLOAD_SIZE, cpu);
+-				return true;
+-			}
++		}
++		else{
++			synchronization_lock(cpu);
++			write_virtual_memory((uint64_t)payload_buffer_guest, payload_buffer, PAYLOAD_SIZE, cpu);
++			return true;
+ 		}
+ 	}
+ 	return false;
+ }
+ 
+ void handle_hypercall_kafl_acquire(struct kvm_run *run, CPUState *cpu){
+-	if(hypercall_enabled){
+-		if (!init_state){
+-			init_det_filter();
+-			if (pt_enable(cpu, false) == 0){
+-				cpu->pt_enabled = true;
+-			}
++	wait_hypercall_enabled();
++	if (!init_state){
++		init_det_filter();
++		if (pt_enable(cpu, false) == 0){
++			cpu->pt_enabled = true;
+ 		}
+ 	}
+ }
+ 
+ void handle_hypercall_get_payload(struct kvm_run *run, CPUState *cpu){
+-	if(hypercall_enabled){
+-		if(payload_buffer){
+-			QEMU_PT_PRINTF(CORE_PREFIX, "Got payload address:\t%llx", run->hypercall.args[0]);
+-			payload_buffer_guest = (void*)run->hypercall.args[0];
+-			write_virtual_memory((uint64_t)payload_buffer_guest, payload_buffer, PAYLOAD_SIZE, cpu);
+-		}
++	if(payload_buffer){
++		QEMU_PT_PRINTF(CORE_PREFIX, "Got payload address:\t%llx", run->hypercall.args[0]);
++		payload_buffer_guest = (void*)run->hypercall.args[0];
++		write_virtual_memory((uint64_t)payload_buffer_guest, payload_buffer, PAYLOAD_SIZE, cpu);
+ 	}
+ }
+ 
+ void handle_hypercall_get_program(struct kvm_run *run, CPUState *cpu){
+-	if(hypercall_enabled){
+-		if(program_buffer){
+-			QEMU_PT_PRINTF(CORE_PREFIX, "Got program address:\t%llx", run->hypercall.args[0]);
+-			write_virtual_memory((uint64_t)run->hypercall.args[0], program_buffer, PROGRAM_SIZE, cpu);
+-		}
++	assert(hypercall_enabled);
++	if(program_buffer){
++		QEMU_PT_PRINTF(CORE_PREFIX, "Got program address:\t%llx", run->hypercall.args[0]);
++		write_virtual_memory((uint64_t)run->hypercall.args[0], program_buffer, PROGRAM_SIZE, cpu);
+ 	}
+ }
+ 
+ void handle_hypercall_kafl_release(struct kvm_run *run, CPUState *cpu){
+-	if(hypercall_enabled){
+-		if (init_state){
+-			init_state = false;	
++	wait_hypercall_enabled();
++	if (init_state){
++		init_state = false;	
+ 
+-			hypercall_snd_char(KAFL_PROTO_RELEASE);
+-		} else {
++		hypercall_snd_char(KAFL_PROTO_RELEASE);
++	} else {
+ 
+-			synchronization_disable_pt(cpu);
+-		}
++		synchronization_disable_pt(cpu);
+ 	}
+ }
+ 
+ 
+ void handle_hypercall_kafl_cr3(struct kvm_run *run, CPUState *cpu){
+-	if(hypercall_enabled){
+-		QEMU_PT_PRINTF(CORE_PREFIX, "Got CR3 address:\t\t%llx", run->hypercall.args[0]);
+-		pt_set_cr3(cpu, run->hypercall.args[0], false);
+-
+-		if (cpu->disassembler_word_width == 0) {
+-			if (run->hypercall.longmode) {
+-				QEMU_PT_PRINTF(CORE_PREFIX, "Auto-detected word width as 64bit (longmode=%d)", run->hypercall.longmode);
+-				cpu->disassembler_word_width = 64;
+-			} else {
+-				QEMU_PT_PRINTF(CORE_PREFIX, "Auto-detected word width as 32bit (longmode=%d)", run->hypercall.longmode);
+-				cpu->disassembler_word_width = 32;
+-			}
++	assert(hypercall_enabled);
++	QEMU_PT_PRINTF(CORE_PREFIX, "Got CR3 address:\t\t%llx", run->hypercall.args[0]);
++	pt_set_cr3(cpu, run->hypercall.args[0], false);
++
++	if (cpu->disassembler_word_width == 0) {
++		if (run->hypercall.longmode) {
++			QEMU_PT_PRINTF(CORE_PREFIX, "Auto-detected word width as 64bit (longmode=%d)", run->hypercall.longmode);
++			cpu->disassembler_word_width = 64;
++		} else {
++			QEMU_PT_PRINTF(CORE_PREFIX, "Auto-detected word width as 32bit (longmode=%d)", run->hypercall.longmode);
++			cpu->disassembler_word_width = 32;
+ 		}
+ 	}
+ }
+ 
+ void handle_hypercall_kafl_submit_panic(struct kvm_run *run, CPUState *cpu){
+-	if(hypercall_enabled){
+-		QEMU_PT_PRINTF(CORE_PREFIX, "Patching PANIC address:\t%llx, longmode=%x", run->hypercall.args[0], run->hypercall.longmode);
+-		if(notifiers_enabled){
+-			if (run->hypercall.longmode) {
+-				write_virtual_memory(run->hypercall.args[0], (uint8_t*)PANIC_PAYLOAD_64, PAYLOAD_BUFFER_SIZE, cpu);
+-			} else {
+-				write_virtual_memory(run->hypercall.args[0], (uint8_t*)PANIC_PAYLOAD_32, PAYLOAD_BUFFER_SIZE, cpu);
+-			}
++	assert(hypercall_enabled);
++	QEMU_PT_PRINTF(CORE_PREFIX, "Patching PANIC address:\t%llx, longmode=%x", run->hypercall.args[0], run->hypercall.longmode);
++	if(notifiers_enabled){
++		if (run->hypercall.longmode) {
++			write_virtual_memory(run->hypercall.args[0], (uint8_t*)PANIC_PAYLOAD_64, PAYLOAD_BUFFER_SIZE, cpu);
++		} else {
++			write_virtual_memory(run->hypercall.args[0], (uint8_t*)PANIC_PAYLOAD_32, PAYLOAD_BUFFER_SIZE, cpu);
+ 		}
+ 	}
+ }
+ 
+ void handle_hypercall_kafl_submit_kasan(struct kvm_run *run, CPUState *cpu){
+-	if(hypercall_enabled){
+-		QEMU_PT_PRINTF(CORE_PREFIX, "Patching kASAN address:\t%llx, longmode=%x", run->hypercall.args[0], run->hypercall.longmode);
+-		if(notifiers_enabled){
+-			if (run->hypercall.longmode){
+-				write_virtual_memory(run->hypercall.args[0], (uint8_t*)KASAN_PAYLOAD_64, PAYLOAD_BUFFER_SIZE, cpu);
+-			} else {
+-				write_virtual_memory(run->hypercall.args[0], (uint8_t*)KASAN_PAYLOAD_32, PAYLOAD_BUFFER_SIZE, cpu);
+-			}
++	assert(hypercall_enabled);
++	QEMU_PT_PRINTF(CORE_PREFIX, "Patching kASAN address:\t%llx, longmode=%x", run->hypercall.args[0], run->hypercall.longmode);
++	if(notifiers_enabled){
++		if (run->hypercall.longmode){
++			write_virtual_memory(run->hypercall.args[0], (uint8_t*)KASAN_PAYLOAD_64, PAYLOAD_BUFFER_SIZE, cpu);
++		} else {
++			write_virtual_memory(run->hypercall.args[0], (uint8_t*)KASAN_PAYLOAD_32, PAYLOAD_BUFFER_SIZE, cpu);
+ 		}
+ 	}
+ }
+ 
+ void handle_hypercall_kafl_panic(struct kvm_run *run, CPUState *cpu){
+-	if(hypercall_enabled){
+-		if(run->hypercall.args[0]){
+-			QEMU_PT_DEBUG(CORE_PREFIX, "Panic in user mode!");
+-		} else{
+-			QEMU_PT_DEBUG(CORE_PREFIX, "Panic in kernel mode!");
+-		}
+-		hypercall_snd_char(KAFL_PROTO_CRASH);
++	assert(hypercall_enabled);
++	if(run->hypercall.args[0]){
++		QEMU_PT_DEBUG(CORE_PREFIX, "Panic in user mode!");
++	} else{
++		QEMU_PT_DEBUG(CORE_PREFIX, "Panic in kernel mode!");
+ 	}
++	hypercall_snd_char(KAFL_PROTO_CRASH);
+ }
+ 
+ void handle_hypercall_kafl_timeout(struct kvm_run *run, CPUState *cpu){
+-	if(hypercall_enabled){
+-		QEMU_PT_DEBUG(CORE_PREFIX, "Timeout detected!");
+-		hypercall_snd_char(KAFL_PROTO_TIMEOUT);
+-	}
++	assert(hypercall_enabled);
++	QEMU_PT_DEBUG(CORE_PREFIX, "Timeout detected!");
++	hypercall_snd_char(KAFL_PROTO_TIMEOUT);
+ }
+ 
+ void handle_hypercall_kafl_kasan(struct kvm_run *run, CPUState *cpu){
+-	if(hypercall_enabled){
+-		if(run->hypercall.args[0]){
+-			QEMU_PT_DEBUG(CORE_PREFIX, "ASan notification in user mode!");
+-		} else{
+-			QEMU_PT_DEBUG(CORE_PREFIX, "ASan notification in kernel mode!");
+-		}
+-		hypercall_snd_char(KAFL_PROTO_KASAN);
++	assert(hypercall_enabled);
++	if(run->hypercall.args[0]){
++		QEMU_PT_DEBUG(CORE_PREFIX, "ASan notification in user mode!");
++	} else{
++		QEMU_PT_DEBUG(CORE_PREFIX, "ASan notification in kernel mode!");
+ 	}
++	hypercall_snd_char(KAFL_PROTO_KASAN);
+ }
+ 
+ void handle_hypercall_kafl_lock(struct kvm_run *run, CPUState *cpu){
+diff --git a/pt/hypercall.h b/pt/hypercall.h
+index e452bd76..7f8aadc7 100644
+--- a/pt/hypercall.h
++++ b/pt/hypercall.h
+@@ -128,7 +128,7 @@ void pt_setup_disable_create_snapshot(void);
+ 
+ bool handle_hypercall_kafl_next_payload(struct kvm_run *run, CPUState *cpu);
+ void hypercall_reset_hprintf_counter(void);
+-bool hypercall_snd_char(char val);
++void hypercall_snd_char(char val);
+ 
+ #ifdef CONFIG_REDQUEEN
+ 
+diff --git a/pt/interface.c b/pt/interface.c
+index f077be6d..486951fb 100644
+--- a/pt/interface.c
++++ b/pt/interface.c
+@@ -122,7 +122,10 @@ static void kafl_guest_receive(void *opaque, const uint8_t * buf, int size){
+ 			case KAFL_PROTO_COMMIT_FILTER:
+ 				hypercall_commit_filter();
+ 				break;
+-
++			/* fuzzer frontend has connected */
++			case KAFL_PROTO_CONNECT:
++				pt_setup_enable_hypercalls();
++				break;
+ 			/* finalize iteration (dump and decode PT data) in case of timeouts */
+ 			case KAFL_PROTO_FINALIZE:
+ 				synchronization_disable_pt(qemu_get_cpu(0));
+@@ -332,7 +335,7 @@ static void pci_kafl_guest_realize(DeviceState *dev, Error **errp){
+ 	}
+ 
+ 
+-	pt_setup_enable_hypercalls();
++	//pt_setup_enable_hypercalls();
+ 	asm_decoder_compile();
+ }
+ 
+diff --git a/pt/interface.h b/pt/interface.h
+index 10709c6d..ec1f6522 100644
+--- a/pt/interface.h
++++ b/pt/interface.h
+@@ -34,6 +34,7 @@
+ #define KAFL_PROTO_DISABLE_SAMPLING	'O'
+ #define KAFL_PROTO_COMMIT_FILTER	'T'
+ #define KAFL_PROTO_FINALIZE			'F'
++#define KAFL_PROTO_CONNECT			'Y'
+ 
+ #ifdef CONFIG_REDQUEEN
+ #define KAFL_PROTO_ENABLE_RQI_MODE	'A'
+-- 
+2.30.1
+
