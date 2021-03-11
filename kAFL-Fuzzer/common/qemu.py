@@ -142,7 +142,7 @@ class qemu:
         elif self.config.argument_values['bios']:
             self.cmd += " -bios " + self.config.argument_values['bios']
         else:
-            assert(False), "Must supply either -bios or -kernel or -vm_overlay/-vm_ram option"
+            assert(False), "Must supply either -bios or -kernel or -vm_dir option"
 
         if self.config.argument_values["macOS"]:
             self.cmd = self.cmd.replace("-nographic -net none",
