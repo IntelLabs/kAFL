@@ -1,0 +1,27 @@
+From b6db2af442aba1c060b7221d98af0386b87ee859 Mon Sep 17 00:00:00 2001
+From: Steffen Schulz <steffen.schulz@intel.com>
+Date: Thu, 11 Mar 2021 15:34:32 +0100
+Subject: [PATCH 18/19] fix lookup_area out-of-bounds
+
+---
+ pt/disassembler.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/pt/disassembler.c b/pt/disassembler.c
+index 582f6647..7f0645bf 100644
+--- a/pt/disassembler.c
++++ b/pt/disassembler.c
+@@ -505,8 +505,8 @@ disassembler_t* init_disassembler(CPUState *cpu, uint64_t min_addr, uint64_t max
+ 
+ #ifdef FAST_ARRAY_LOOKUP
+ 	assert((max_addr-min_addr) <= (128 << 20)); /* up to 128MB trace region (results in 512MB lookup table...) */
+-	lookup_area = malloc(sizeof(uint64_t) * (max_addr-min_addr));
+-	memset(lookup_area, 0x00, (sizeof(uint64_t) * (max_addr-min_addr)));
++	lookup_area = malloc(sizeof(uint64_t) * (max_addr-min_addr+1));
++	memset(lookup_area, 0x00, (sizeof(uint64_t) * (max_addr-min_addr+1)));
+ #else
+ 	res->map = kh_init(ADDR0);
+ #endif
+-- 
+2.30.1
+
