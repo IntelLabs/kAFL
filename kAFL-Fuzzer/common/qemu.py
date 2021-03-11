@@ -645,6 +645,9 @@ class qemu:
             self.crashed = True
         elif value == 2:
             log_qemu("Timeout detected!", self.qemu_id)
+            # might produce better bitmap for timeout events
+            #self.__debug_send(qemu_protocol.FINALIZE)
+            #self.__debug_recv_expect(qemu_protocol.FINALIZE)
             self.timeout = True
         elif value == 3:
             log_qemu("Kasan detected!", self.qemu_id)
