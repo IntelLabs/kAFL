@@ -1,0 +1,74 @@
+From 4d9cfcef2b0115ece43253974802d3923333cb1f Mon Sep 17 00:00:00 2001
+From: Steffen Schulz <steffen.schulz@intel.com>
+Date: Thu, 11 Mar 2021 01:07:29 +0100
+Subject: [PATCH 17/19] fix limit_check
+
+---
+ pt/disassembler.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/pt/disassembler.c b/pt/disassembler.c
+index 10424662..582f6647 100644
+--- a/pt/disassembler.c
++++ b/pt/disassembler.c
+@@ -22,7 +22,11 @@
+ #define MODRM_REG(x)		(x << 3)
+ #define MODRM_AND			0b00111000
+ 
+-#define limit_check(prev, next, limit) (!((limit >= prev) & (limit <= next)))
++static bool limit_check(uint64_t bb_start, uint64_t bb_end, uint64_t limit_exit, uint64_t entry) {
++	bool covers_exit = (bb_start <= limit_exit) && (limit_exit <= bb_end);
++	bool hit_exit = (limit_exit == entry);
++	return !covers_exit || hit_exit;
++}
+ #define out_of_bounds(self, addr) ((addr < self->min_addr) | (addr > self->max_addr))
+ 
+ #define FAST_ARRAY_LOOKUP
+@@ -592,7 +596,7 @@ void inform_disassembler_target_ip(disassembler_t* self, uint64_t target_ip){
+ 
+ 	obj = get_obj(self, entry_point);
+ 
+-	if (!obj || !limit_check(entry_point, obj->cofi.ins_addr, limit)){
++	if (!obj){
+ 		check_return("1");
+ 	}
+ 
+@@ -626,7 +630,7 @@ void inform_disassembler_target_ip(disassembler_t* self, uint64_t target_ip){
+ 						}
+ 						obj = obj->cofi_target_ptr;
+ 
+-						if (!obj || !limit_check(last_obj->cofi.target_addr, obj->cofi.ins_addr, limit)){
++						if (!obj || !limit_check(last_obj->cofi.target_addr, obj->cofi.ins_addr, limit, entry_point)){
+ 							check_return("2");
+ 						}
+ 						break;
+@@ -647,7 +651,7 @@ void inform_disassembler_target_ip(disassembler_t* self, uint64_t target_ip){
+     					}
+ 						obj = obj->cofi_ptr;
+ 
+-						if(!obj || !limit_check(last_obj->cofi.ins_addr, obj->cofi.ins_addr, limit)){
++						if(!obj || !limit_check(last_obj->cofi.ins_addr, obj->cofi.ins_addr, limit, entry_point)){
+ 							check_return("3");
+ 						}
+ 						break;
+@@ -662,7 +666,7 @@ void inform_disassembler_target_ip(disassembler_t* self, uint64_t target_ip){
+ 				}
+ 				obj = obj->cofi_target_ptr;
+ 
+-				if(!obj || !limit_check(last_obj->cofi.target_addr, obj->cofi.ins_addr, limit)){
++				if(!obj || !limit_check(last_obj->cofi.target_addr, obj->cofi.ins_addr, limit, entry_point)){
+ 					check_return("4");
+ 				}
+ 				break;
+@@ -697,7 +701,7 @@ void inform_disassembler_target_ip(disassembler_t* self, uint64_t target_ip){
+ 			case NO_COFI_TYPE:
+ 				WRITE_SAMPLE_DECODED_DETAILED("(5)\t%lx\n",obj->cofi.ins_addr);
+ 
+-				if(!(obj->cofi_ptr) || !limit_check(obj->cofi.ins_addr, obj->cofi.ins_addr, limit)){
++				if(!(obj->cofi_ptr) || !limit_check(obj->cofi.ins_addr, obj->cofi.ins_addr, limit, entry_point)){
+ 					check_return("(5)");
+ 				}
+ 				obj = obj->cofi_ptr;
+-- 
+2.30.1
+
