@@ -30,7 +30,7 @@ along with QEMU-PT.  If not, see <http://www.gnu.org/licenses/>.
 #define SIZE_MAX ((size_t) - 1)
 #endif
 
-#define TMP_SIZE                        (64<<10)
+#define LINE_SIZE						(1024)
 #define MOD_NAME_SIZE                   (256)
 
 static inline uint64_t get_address(char* identifier)
@@ -63,60 +63,41 @@ static inline uint64_t get_address(char* identifier)
 }
 
 int main(int argc, char** argv){
-  char key[] = "(OE)";
-  char key2[] = "(O)";
-  char data[TMP_SIZE];
+  char line[LINE_SIZE];
   char module_name[MOD_NAME_SIZE];
   uint64_t start;
   uint64_t offset;
   char * pch;
   int counter;
   int pos = 0;
+  int tokens = 1;
+  int errno = 0;
 
-	void* info_buffer = mmap((void*)NULL, INFO_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	memset(info_buffer, 0xff, INFO_SIZE);
+  void* info_buffer = mmap((void*)NULL, INFO_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  memset(info_buffer, 0xff, INFO_SIZE);
 
-  FILE* f = fopen("/proc/modules", "r");
-  fread(data, 1, TMP_SIZE, f);
-  fclose(f);
-
-  counter = 0;
-  int i;
-  for(i = 0; i < strlen(data); i++){
-    if (data[i] == '\n'){
-      counter++;
-    }
-  }
 
   pos += sprintf(info_buffer + pos, "kAFL Linux x86-64 Kernel Addresses (%d Modules)\n\n", counter);
-  printf("kAFL Linux x86-64 Kernel Addresses (%d Modules)\n\n", counter);
   pos += sprintf(info_buffer + pos, "START-ADDRESS      END-ADDRESS\t\tDRIVER\n");
-  printf("START-ADDRESS      END-ADDRESS\tDRIVER\n");
-  
-  pch = strtok(data, " \n");
-  counter = 0;
-  while (pch != NULL)
-  {
-    if(strcmp(key, pch) && strcmp(key2, pch)){
-      switch((counter++) % 6){
-        case 0:
-          strncpy(module_name, pch, MOD_NAME_SIZE);
-          break;
-        case 1:
-          offset = strtoull(pch, NULL, 10);
-          break;
-        case 5:
-          start = strtoull(pch, NULL, 16);
+
+  FILE* f = fopen("/proc/modules", "r");
+
+  while (fgets(line, LINE_SIZE, f)) {
+	  tokens = sscanf(line, "%s %Lu %*u %*s %*s %Lx %*s", module_name, &offset, &start);
+	  if (tokens==3)
           pos += sprintf(info_buffer + pos, "0x%016lx-0x%016lx\t%s\n", start, start+offset, module_name);
-          printf("0x%016lx\t0x%016lx\t%s\n", start, start+offset, module_name);
-          break;
-      }
-    }
-    pch = strtok (NULL, " \n");
+	  else
+		  //printf("got %d tokens, error: %d\n", n, errno);
+		  continue;
   }
 
-  pos += sprintf(info_buffer + pos, "0x%016lx-0x%016lx\t%s\n\n", get_address("T startup_64\n"), get_address("r __param_str_debug\n"), "Kernel Core");
+  fclose(f);
 
+  pos += sprintf(info_buffer + pos, "0x%016lx-0x%016lx\t%s\n\n",
+		  get_address("T startup_64\n"),
+		  get_address("r __param_str_debug\n"), "Kernel Core");
+
+  //printf(">>>\n%s\n<<<\n", info_buffer);
   kAFL_hypercall(HYPERCALL_KAFL_INFO, (uint64_t)info_buffer);
   return 0;
 }

@@ -31,28 +31,6 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
 	gcc src/fuzzer/fs_fuzzer.c -I ../ -o bin/fuzzer/ntfs -D NTFS
 	printf "\tCompiling VFAT fuzzer...\n"
 	gcc src/fuzzer/fs_fuzzer.c -I ../ -o bin/fuzzer/vfat -D VFAT
-	printf "\tCompiling BTRFS fuzzer...\n"
-	gcc src/fuzzer/fs_fuzzer.c -I ../ -o bin/fuzzer/btrfs -D BTRFS
-	printf "\tCompiling XFS fuzzer...\n"
-	gcc src/fuzzer/fs_fuzzer.c -I ../ -o bin/fuzzer/xfs -D XFS
-	printf "\tCompiling HFS fuzzer...\n"
-	gcc src/fuzzer/fs_fuzzer.c -I ../ -o bin/fuzzer/hfs -D HFS
-    printf "\tCompiling HFSPLUS fuzzer...\n"
-    gcc src/fuzzer/fs_fuzzer.c -I ../ -o bin/fuzzer/hfsplus -D HFSPLUS
-	printf "\tCompiling ISOFS fuzzer...\n"
-	gcc src/fuzzer/fs_fuzzer.c -I ../ -o bin/fuzzer/isofs -D ISOFS
-	printf "\tCompiling QNX fuzzer...\n"
-	gcc src/fuzzer/fs_fuzzer.c -I ../ -o bin/fuzzer/qnx -D QNX
-	printf "\tCompiling FAT fuzzer...\n"
-	gcc src/fuzzer/fs_fuzzer.c -I ../ -o bin/fuzzer/fat -D FAT
-	printf "\tCompiling JFS fuzzer...\n"
-	gcc src/fuzzer/fs_fuzzer.c -I ../ -o bin/fuzzer/jfs -D JFS
-	printf "\tCompiling GFS2 fuzzer...\n"
-	gcc src/fuzzer/fs_fuzzer.c -I ../ -o bin/fuzzer/gfs2 -D GFS2
-	printf "\tCompiling GFS2META fuzzer...\n"
-	gcc src/fuzzer/fs_fuzzer.c -I ../ -o bin/fuzzer/gfs2meta -D GFS2META
-	printf "\tCompiling REISERFS fuzzer...\n"
-	gcc src/fuzzer/fs_fuzzer.c -I ../ -o bin/fuzzer/reiserfs -D REISERFS
 else
 	printf "\tError: Need to run Linux to compile these components! Skipping..!\n"
 fi
