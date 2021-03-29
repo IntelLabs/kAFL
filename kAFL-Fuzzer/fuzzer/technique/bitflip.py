@@ -25,6 +25,7 @@ def mutate_seq_walking_bits(data, func, skip_null=False, effector_map=None):
 
 
 def mutate_seq_two_walking_bits(data, func, skip_null=False, effector_map=None):
+    if len(data) == 0: return
 
     for i in range(len(data)-1):
 
@@ -66,6 +67,7 @@ def mutate_seq_two_walking_bits(data, func, skip_null=False, effector_map=None):
 
 
 def mutate_seq_four_walking_bits(data, func, skip_null=False, effector_map=None):
+    if len(data) == 0: return
 
     for i in range(len(data)-1):
 
