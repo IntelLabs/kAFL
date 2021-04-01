@@ -21,13 +21,10 @@ MSG_BUSY = 5
 
 
 class ServerConnection:
-
     def __init__(self, config):
-
         Listener.fileno = lambda self: self._listener._socket.fileno()
-
         self.address = config.argument_values["work_dir"] + "/slave_socket"
-        self.listener = Listener(self.address, 'AF_UNIX')
+        self.listener = Listener(self.address, 'AF_UNIX', backlog=1000)
         self.clients = [self.listener]
 
     def wait(self, timeout=None):
@@ -58,6 +55,7 @@ class ServerConnection:
 
     def send_busy(self, client):
         client.send_bytes(msgpack.packb({"type": MSG_BUSY}, use_bin_type=True))
+
 
 class ClientConnection:
     def __init__(self, id, config):
