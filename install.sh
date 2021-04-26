@@ -86,7 +86,8 @@ system_deps()
 	echo "[*] Installing essentials tools ..."
 	sudo apt-get install git make gcc bc libssl-dev pax-utils libelf-dev \
 		libgraphviz-dev gnuplot ruby libgtk-3-dev libc6-dev flex bison \
-		python3 python3-pip python3-all-dev python3-setuptools python3-wheel -y
+		python3 python3-pip python3-all-dev python3-setuptools python3-wheel \
+		python3-dateutil -y
 
 	echo "[*] Installing build dependencies for QEMU ..."
 	sudo apt-get build-dep qemu-system-x86 -y

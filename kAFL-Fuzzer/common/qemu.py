@@ -74,7 +74,6 @@ class qemu:
                     " -device kafl,chardev=kafl_interface" + \
                     ",workdir=" + self.config.argument_values['work_dir'] + \
                     ",worker_id=" + self.qemu_id + \
-                    ",sharedir=/tmp/" + \
                     ",bitmap_size=" + str(self.bitmap_size)
 
         if self.config.argument_values['dump_pt']:
@@ -124,7 +123,7 @@ class qemu:
 
         # Lauch either as VM snapshot, direct kernel/initrd boot, or -bios boot
         if self.config.argument_values['vm_image']:
-            self.cmd += " -drive " + self.config.argument_values['vm_image']
+            self.cmd += " -drive file=" + self.config.argument_values['vm_image']
         elif self.config.argument_values['kernel']:
             self.cmd += " -kernel " + self.config.argument_values['kernel']
             if self.config.argument_values['initrd']:
@@ -297,7 +296,7 @@ class qemu:
     def run_qemu(self):
         self.control.send(b'x')
         self.control.recv(1)
-    
+
     def __qemu_handshake(self):
 
         if self.config.argument_values['agent']:
@@ -314,6 +313,10 @@ class qemu:
         while self.qemu_aux_buffer.get_state() != 3:
             print("[Qemu %s] Waiting for target to enter fuzz mode.." % self.qemu_id)
             self.run_qemu()
+            result = self.qemu_aux_buffer.get_result()
+            if result.hprintf:
+                msg = strdump(self.qemu_aux_buffer.get_misc_buf()[:-1], verbatim=True)
+                print_hprintf(msg)
 
         log_qemu("Qemu is ready.", self.qemu_id)
         print("[Qemu %02d] Qemu is ready." % int(self.qemu_id))
