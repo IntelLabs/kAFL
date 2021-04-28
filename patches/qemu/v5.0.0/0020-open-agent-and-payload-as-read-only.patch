@@ -1,0 +1,145 @@
+From 82ef6825a802babe91735897e3fbc0193981f8d3 Mon Sep 17 00:00:00 2001
+From: Roman Lozko <lozko.roma@gmail.com>
+Date: Wed, 28 Apr 2021 15:38:49 +0300
+Subject: [PATCH] open agent and payload as read-only
+
+---
+ pt/hypercall.c | 10 ++++++----
+ pt/hypercall.h |  2 +-
+ pt/interface.c | 20 +++++++++++---------
+ 3 files changed, 18 insertions(+), 14 deletions(-)
+
+diff --git a/pt/hypercall.c b/pt/hypercall.c
+index 92a264e6..5efa2d33 100644
+--- a/pt/hypercall.c
++++ b/pt/hypercall.c
+@@ -43,6 +43,7 @@ bool hypercall_enabled = false;
+ void* payload_buffer = NULL;
+ void* payload_buffer_guest = NULL;
+ void* program_buffer = NULL;
++size_t program_size = 0;
+ char info_buffer[INFO_SIZE];
+ char hprintf_buffer[HPRINTF_SIZE];
+ void* argv = NULL;
+@@ -216,8 +217,9 @@ void hypercall_commit_filter(void){
+ bool setup_snapshot_once = false;
+ 
+ 
+-void pt_setup_program(void* ptr){
++void pt_setup_program(void* ptr, size_t size){
+ 	program_buffer = ptr;
++	program_size = size;
+ }
+ 
+ void pt_setup_payload(void* ptr){
+@@ -282,7 +284,7 @@ void handle_hypercall_get_program(struct kvm_run *run, CPUState *cpu){
+ 	assert(hypercall_enabled);
+ 	if(program_buffer){
+ 		QEMU_PT_PRINTF(CORE_PREFIX, "Got program address:\t%llx", run->hypercall.args[0]);
+-		write_virtual_memory((uint64_t)run->hypercall.args[0], program_buffer, PROGRAM_SIZE, cpu);
++		write_virtual_memory((uint64_t)run->hypercall.args[0], program_buffer, program_size, cpu);
+ 	}
+ }
+ 
+@@ -515,14 +517,14 @@ bool handle_hypercall_kafl_hook(struct kvm_run *run, CPUState *cpu){
+ }
+ 
+ void pt_enable_rqi(CPUState *cpu){
+-	((uint8_t*) payload_buffer)[PAYLOAD_SIZE-1] = 1;
++	// ((uint8_t*) payload_buffer)[PAYLOAD_SIZE-1] = 1;
+ 	cpu->redqueen_enable_pending = true;
+ }
+ 
+ void pt_disable_rqi(CPUState *cpu){
+ 	cpu->redqueen_disable_pending = true;
+   cpu->redqueen_instrumentation_mode = REDQUEEN_NO_INSTRUMENTATION;
+-  	((uint8_t*) payload_buffer)[PAYLOAD_SIZE-1] = 0;
++  	// ((uint8_t*) payload_buffer)[PAYLOAD_SIZE-1] = 0;
+ 
+ }
+ 
+diff --git a/pt/hypercall.h b/pt/hypercall.h
+index 7f8aadc7..449c1697 100644
+--- a/pt/hypercall.h
++++ b/pt/hypercall.h
+@@ -76,7 +76,7 @@ typedef struct{
+  */
+ #define PRINTK_PAYLOAD "\x0F\x01\xC1\xC3"
+ 
+-void pt_setup_program(void* ptr);
++void pt_setup_program(void* ptr, size_t size);
+ void pt_setup_payload(void* ptr);
+ void pt_setup_snd_handler(void (*tmp)(char, void*), void* tmp_s);
+ void pt_setup_ip_filters(uint8_t filter_id, uint64_t start, uint64_t end, void* filter_bitmap, void* tfilter_bitmap);
+diff --git a/pt/interface.c b/pt/interface.c
+index 5aa57e2c..ed5d7eae 100644
+--- a/pt/interface.c
++++ b/pt/interface.c
+@@ -210,27 +210,27 @@ static int kafl_guest_create_memory_bar(kafl_mem_state *s, int region_num, uint6
+ 	int fd;
+ 	struct stat st;
+ 	
+-	fd = open(file, O_CREAT|O_RDWR, S_IRWXU|S_IRWXG|S_IRWXO);
+-	assert(ftruncate(fd, bar_size) == 0);
++	while (access(file, F_OK) != 0) {
++		usleep(1000);
++	}
++	fd = open(file, O_RDONLY);
+ 	stat(file, &st);
+ 	QEMU_PT_DEBUG(INTERFACE_PREFIX, "new shm file: (max size: %lx) %lx", bar_size, st.st_size);
+ 	
+ 	assert(bar_size >= st.st_size);
+-	ptr = mmap(0, bar_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
++	ptr = mmap(0, bar_size, PROT_READ, MAP_SHARED, fd, 0);
+ 	if (ptr == MAP_FAILED) {
+ 		error_setg_errno(errp, errno, "Failed to mmap memory");
+ 		return -1;
+ 	}
+ 
+ 	switch(region_num){
+-		case 1:	pt_setup_program((void*)ptr);
++		case 1:	pt_setup_program((void*)ptr, st.st_size);
+ 				break;
+ 		case 2:	pt_setup_payload((void*)ptr);
+ 				break;
+ 	}
+ 
+-	pt_setup_snd_handler(&send_char, s);
+-
+ 	return 0;
+ }
+ 
+@@ -275,6 +275,8 @@ static void pci_kafl_guest_realize(DeviceState *dev, Error **errp){
+ 	kafl_mem_state *s = KAFLMEM(dev);
+ 	void* tmp = NULL;
+ 
++	pt_setup_snd_handler(&send_char, s);
++
+ 	void* tfilter = kafl_guest_setup_filter_bitmap(s, (char*) "/dev/shm/kafl_tfilter", DEFAULT_EDGE_FILTER_SIZE);
+ 
+ 	if(s->bitmap_size <= 0){
+@@ -292,8 +294,6 @@ static void pci_kafl_guest_realize(DeviceState *dev, Error **errp){
+ 	}
+ #endif
+ 	
+-	if(&s->chr)
+-		qemu_chr_fe_set_handlers(&s->chr, kafl_guest_can_receive, kafl_guest_receive, kafl_guest_event, NULL, s, NULL, true);
+ 	if(s->bitmap_file)
+ 		kafl_guest_setup_bitmap(s, kafl_bitmap_size, errp);
+ 
+@@ -334,9 +334,11 @@ static void pci_kafl_guest_realize(DeviceState *dev, Error **errp){
+     assert(false);
+ 	}
+ 
+-
+ 	//pt_setup_enable_hypercalls();
+ 	asm_decoder_compile();
++
++	if(&s->chr)
++		qemu_chr_fe_set_handlers(&s->chr, kafl_guest_can_receive, kafl_guest_receive, kafl_guest_event, NULL, s, NULL, true);
+ }
+ 
+ static Property kafl_guest_properties[] = {
+-- 
+2.25.1
+

@@ -168,6 +168,8 @@ class qemu:
                 break
             c += 1
 
+        self.__set_agent()
+
     def __debug_hprintf(self):
         try:
             if self.debug_counter < 512:
@@ -352,23 +354,8 @@ class qemu:
     # Asynchronous exit by slave instance. Note this may be called multiple times
     # while we were in the middle of shutdown(), start(), send_payload(), ..
     def async_exit(self):
-        if self.exiting:
-            sys.exit(0)
-
         self.exiting = True
         self.shutdown()
-
-        for tmp_file in [
-                self.payload_filename,
-                self.tracedump_filename,
-                self.control_filename,
-                self.binary_filename,
-                self.bitmap_filename]:
-            try:
-                os.remove(tmp_file)
-            except:
-                pass
-
 
     def shutdown(self):
         log_qemu("Shutting down Qemu after %d execs.." % self.persistent_runs, self.qemu_id)
@@ -387,10 +374,8 @@ class qemu:
             pass
 
         if self.process.returncode is None:
-            try:
-                self.process.kill()
-            except:
-                pass
+            print("Killing QEMU", self.qemu_id)
+            self.process.kill()
 
         log_qemu("Qemu exit code: %s" % str(self.process.returncode), self.qemu_id)
         header = "\n=================<Qemu %s Console Output>==================\n" % self.qemu_id
@@ -407,7 +392,7 @@ class qemu:
         try:
             # TODO: exec_res keeps from_buffer() reference to kafl_shm
             self.kafl_shm.close()
-        except BufferError as e:
+        except (AttributeError, BufferError):
             pass
 
         try:
@@ -425,55 +410,99 @@ class qemu:
         except:
             pass
 
-        return self.process.returncode
+        for tmp_file in [
+            self.payload_filename,
+            self.tracedump_filename,
+            self.control_filename,
+            # self.binary_filename,
+            self.bitmap_filename,
+        ]:
+            try:
+                os.remove(tmp_file)
+            except FileNotFoundError:
+                pass
+
+        retcode = self.process.returncode
+        self.process = None
+        return retcode
 
     def __set_agent(self):
-        agent_bin = self.config.argument_values['agent']
-        bin = read_binary_file(agent_bin)
-        assert (len(bin) <= self.agent_size)
-        atomic_write(self.binary_filename, bin)
+        agent_bin = self.config.argument_values.get('agent', None)
+        if agent_bin is not None:
+            bin_ = read_binary_file(agent_bin)
+        else:
+            bin_ = b''
+        assert (len(bin_) <= self.agent_size)
+        try:
+            with open(self.binary_filename, 'xb') as f:
+                f.truncate(self.agent_size)
+                f.seek(0)
+                f.write(bin_)
+        except FileExistsError:
+            pass
 
     def start(self):
 
         if self.exiting:
             return False
 
-        self.persistent_runs = 0
-        self.handshake_stage_1 = True
-        self.handshake_stage_2 = True
+        if self.process is not None:
+            print_fail("Trying to launch Qemu second time?")
+            raise Exception
 
-        if self.qemu_id == "0" or self.qemu_id == "1337": ## 1337 is debug instance!
-            log_qemu("Launching virtual machine...CMD:\n" + ' '.join(self.cmd), self.qemu_id)
-        else:
-            log_qemu("Launching virtual machine...", self.qemu_id)
+        max_attempts = 10
+        for attempt in range(max_attempts):
+            time.sleep(attempt + 10 * random.random())
 
+            self.persistent_runs = 0
+            self.handshake_stage_1 = True
+            self.handshake_stage_2 = True
 
-        # Launch Qemu. stderr to stdout, stdout is logged on VM exit
-        # os.setpgrp() prevents signals from being propagated to Qemu, instead allowing an
-        # organized shutdown via async_exit()
-        self.process = subprocess.Popen(self.cmd,
+            if self.qemu_id == "0" or self.qemu_id == "1337":   # 1337 is debug instance!
+                log_qemu("Launching virtual machine...CMD:\n" + ' '.join(self.cmd), self.qemu_id)
+            else:
+                log_qemu("Launching virtual machine...", self.qemu_id)
+
+            self.kafl_shm_f = os.open(self.bitmap_filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
+            self.fs_shm_f = os.open(self.payload_filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
+
+            os.ftruncate(self.kafl_shm_f, self.bitmap_size)
+            os.ftruncate(self.fs_shm_f, self.payload_size)
+
+            # Launch Qemu. stderr to stdout, stdout is logged on VM exit
+            # os.setpgrp() prevents signals from being propagated to Qemu, instead allowing an
+            # organized shutdown via async_exit()
+            self.process = subprocess.Popen(
+                self.cmd,
                 preexec_fn=os.setpgrp,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT)
+                stderr=subprocess.STDOUT
+            )
+            log_qemu("... launched PID %d" % self.process.pid, self.qemu_id)
 
-        try:
-            self.__qemu_connect()
-            self.__qemu_handshake()
-        except (OSError, BrokenPipeError) as e:
-            if not self.exiting:
-                print_fail("Failed to launch Qemu, please see logs. Error: " + str(e))
-                log_qemu("Fatal error: Failed to launch Qemu: " + str(e), self.qemu_id)
+            try:
+                self.__qemu_connect()
+                self.__qemu_handshake()
+                break
+            except socket.timeout:
+                print_warning("Timeout occured while performing Qemu %s handshake on attempt %d" % (self.qemu_id, attempt + 1))
                 self.shutdown()
+            except (OSError, BrokenPipeError) as e:
+                self.shutdown()
+                if not self.exiting:
+                    traceback.print_exc()
+                    print_fail("Failed to launch Qemu, please see logs. Error: " + str(e))
+                    log_qemu("Fatal error: Failed to launch Qemu: " + str(e), self.qemu_id)
+                else:
+                    return False
+        else:
+            print_fail("Failed to launch instance " + self.qemu_id)
             return False
 
         return True
 
     def __qemu_handshake(self):
-
-        if self.config.argument_values['agent']:
-            self.__set_agent()
-
         log_qemu("Handshake: Send kAFL Connect", self.qemu_id)
         self.__debug_send(qemu_protocol.CONNECT)
 
@@ -490,7 +519,6 @@ class qemu:
         #    print("[Slave %d] Waiting for Qemu handshake..." % self.qemu_id)
         #    ready = select.select([self.control], [], [], 1)
 
-        self.handshake_stage_1 = False
         self.__debug_recv_expect(qemu_protocol.ACQUIRE + qemu_protocol.PT_TRASHED)
         log_qemu("Stage 2 handshake done [READY]", self.qemu_id)
         self.handshake_stage_2 = False
@@ -498,28 +526,22 @@ class qemu:
     def __qemu_connect(self):
         # Note: setblocking() disables the timeout! settimeout() will automatically set blocking!
         self.control = socket.socket(socket.AF_UNIX)
-        self.control.settimeout(None)
-        self.control.setblocking(1)
+        self.control.settimeout(1000)
 
-        # TODO: Don't try forever, set some timeout..
-        while True:
+        for attempt in range(45):
+            time.sleep(attempt * 0.01)      # 9.9 seconds max wait total
             try:
                 self.control.connect(self.control_filename)
                 break
-            except socket_error:
-                if self.process.returncode is not None:
-                    raise
-
-        self.kafl_shm_f     = os.open(self.bitmap_filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
-        self.fs_shm_f       = os.open(self.payload_filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
+            except FileNotFoundError:
+                pass
+        else:
+            print_fail("Qemu %s failed to create control socket" % self.qemu_id)
 
         open(self.tracedump_filename, "wb").close()
 
-        with open(self.binary_filename, 'bw') as f:
-            os.ftruncate(f.fileno(), self.agent_size)
-
-        os.ftruncate(self.kafl_shm_f, self.bitmap_size)
-        os.ftruncate(self.fs_shm_f, self.payload_size)
+        # with open(self.binary_filename, 'bw') as f:
+        #     os.ftruncate(f.fileno(), self.agent_size)
 
         self.kafl_shm = mmap.mmap(self.kafl_shm_f, 0)
         self.c_bitmap = (ctypes.c_uint8 * self.bitmap_size).from_buffer(self.kafl_shm)
@@ -529,11 +551,10 @@ class qemu:
 
     # Fully stop/start Qemu instance to store logs + possibly recover
     def restart(self):
-
         self.shutdown()
         # TODO: Need to wait here or else the next instance dies in set_payload()
         # Perhaps Qemu should do proper munmap()/close() on exit?
-        time.sleep(0.1)
+        # time.sleep(1)
         return self.start()
 
     # Reset Qemu after crash/timeout - can skip if target has own forkserver
@@ -564,7 +585,7 @@ class qemu:
     # TODO: document protocol and meaning/effect of each message
     def check_recv(self, timeout_detection=True):
         if timeout_detection and not self.config.argument_values['forkserver']:
-            ready = select.select([self.control], [], [], 0.25)
+            ready = select.select([self.control], [], [], 1)
             if not ready[0]:
                 return 2
         else:
@@ -616,12 +637,11 @@ class qemu:
         return result
 
     def send_payload(self, apply_patches=True, timeout_detection=True, max_iterations=10):
-
         if (self.debug_mode):
             log_qemu("Send payload..", self.qemu_id)
 
         if self.exiting:
-            sys.exit(0)
+            sys.exit(-1)
 
         self.persistent_runs += 1
         start_time = time.time()
