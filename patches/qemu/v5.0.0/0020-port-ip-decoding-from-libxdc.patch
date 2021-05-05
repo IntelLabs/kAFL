@@ -1,0 +1,152 @@
+From dd36e8ca3e6a3d1cde84f94d6dfc444c1662c97e Mon Sep 17 00:00:00 2001
+From: Joe <joe.user@invalid.local>
+Date: Wed, 5 May 2021 21:58:48 +0300
+Subject: [PATCH] port ip decoding from libxdc
+
+---
+ pt/decoder.c | 67 ++++++++++++++++++++--------------------------------
+ pt/decoder.h |  1 -
+ 2 files changed, 26 insertions(+), 42 deletions(-)
+
+diff --git a/pt/decoder.c b/pt/decoder.c
+index f03e06aa..a755471a 100644
+--- a/pt/decoder.c
++++ b/pt/decoder.c
+@@ -156,7 +156,6 @@ decoder_t* pt_decoder_init(CPUState *cpu, uint64_t min_addr, uint64_t max_addr,
+ #endif
+ 	decoder_t* res = malloc(sizeof(decoder_t));
+ 	res->last_tip = 0;
+-	res->last_tip_tmp = 0;
+ 	res->fup_bind_pending = false;
+ #ifdef DECODER_LOG
+ 	flush_log(res);
+@@ -190,7 +189,6 @@ void pt_decoder_destroy(decoder_t* self){
+ 
+ void pt_decoder_flush(decoder_t* self){
+ 	self->last_tip = 0;
+-	self->last_tip_tmp = 0;
+ 	self->fup_bind_pending = false;
+ #ifdef DECODER_LOG
+ 	flush_log(self);
+@@ -310,41 +308,27 @@ static const int ipp_len[] = {
+ };
+ 
+ static inline uint64_t get_ip_val(uint8_t **pp, uint64_t *last_ip){
+-	uint8_t *p = *pp;
+-	uint8_t ipc = (*p++ >> PT_PKT_TIP_SHIFT) & PT_PKT_TIP_MASK; // ip compression mode
+-
+-	if ( ipc == 5 || ipc > 6 )
+-		return 0;
+-
+-	uint8_t len = ipp_len[ipc]; // ip packet length
+-
+-	if ( !len )
+-	{
+-		*pp = p;
+-		return *last_ip;
+-	}
+-
+-	uint64_t val;
+-	uint8_t idx;
+-
+-	for (val = 0, idx = 0; idx < len; ++idx) {
+-		uint64_t byte = *p++;
+-
+-		byte <<= (idx * 8);
+-		val |= byte;
+-	}
+-
+-	// extend mask from last ip if this is short here
+-	if ( ipc < 3 )
+-		val |= *last_ip & (0xFFFFFFFFFFFFFFFF << (ipc*16));
+-
+-	// sign extend
+-	if (val & (1ull << 47))
+-		val = ((int64_t)(val << (64-48))) >> (64-48);
+-
+-	*last_ip = val;
+-	*pp = p;
+-	return *last_ip;
++    const uint8_t type = (*(*pp)++ >> 5);
++    uint64_t aligned_last_ip, aligned_pp;
++    memcpy(&aligned_pp, *pp, sizeof(uint64_t));
++    memcpy(&aligned_last_ip, last_ip, sizeof(uint64_t));
++
++    if (unlikely(type == 0)) {
++        return 0;
++    }
++
++    const uint8_t new_bits = 0xFF40FF30302010FFull >> (type * 8);
++    if (unlikely(type == 3)) {
++        aligned_last_ip = (int64_t)(aligned_pp << 16) >> 16;
++    } else {
++        const uint8_t old_bits = sizeof(aligned_last_ip) * 8 - new_bits;   // always less than 64
++        const uint64_t new_mask = (~0ull) >> old_bits;
++        const uint64_t old_mask = ~new_mask;
++        aligned_last_ip = (aligned_last_ip & old_mask) | (aligned_pp & new_mask);
++    }
++    memcpy(last_ip, &aligned_last_ip, sizeof(uint64_t));
++    *pp += new_bits >> 3;
++    return aligned_last_ip;
+ }
+ 
+ static inline uint64_t get_val(uint8_t **pp, uint8_t len){
+@@ -374,7 +358,7 @@ static void tip_handler(decoder_t* self, uint8_t** p, uint8_t** end){
+ 		disasm(self);
+ 	}
+ 
+-	self->last_tip = get_ip_val(p, &self->last_tip_tmp);
++	get_ip_val(p, &self->last_tip);
+ 	WRITE_SAMPLE_DECODED_DETAILED("TIP    \t%lx\n", self->last_tip);
+ 	decoder_handle_tip(self->decoder_state, self->last_tip, self->decoder_state_result);
+ 	disasm(self);
+@@ -390,7 +374,7 @@ static void tip_pge_handler(decoder_t* self, uint8_t** p, uint8_t** end){
+ 		disasm(self);
+ 	}
+ 
+-	self->last_tip = get_ip_val(p, &self->last_tip_tmp);
++	get_ip_val(p, &self->last_tip);
+ 	WRITE_SAMPLE_DECODED_DETAILED("PGE    \t%lx\n", self->last_tip);
+ 	decoder_handle_pge(self->decoder_state, self->last_tip, self->decoder_state_result);
+ 	disasm(self);
+@@ -412,7 +396,7 @@ static void tip_pgd_handler(decoder_t* self, uint8_t** p, uint8_t** end){
+ 		disasm(self);
+ 	}
+ 
+-	self->last_tip = get_ip_val(p, &self->last_tip_tmp);
++	get_ip_val(p, &self->last_tip);
+ 	WRITE_SAMPLE_DECODED_DETAILED("PGD    \t%lx\n", self->last_tip);
+ 	decoder_handle_pgd(self->decoder_state, self->last_tip, self->decoder_state_result);
+ 	disasm(self);
+@@ -429,7 +413,7 @@ static void tip_pgd_handler(decoder_t* self, uint8_t** p, uint8_t** end){
+ }
+ 
+ static void tip_fup_handler(decoder_t* self, uint8_t** p, uint8_t** end){
+-	self->last_tip = get_ip_val(p, &self->last_tip_tmp);
++	get_ip_val(p, &self->last_tip);
+ 	self->fup_bind_pending = true;
+ #ifdef DECODER_LOG
+ 	self->log.tip_fup++;
+@@ -565,6 +549,7 @@ static inline void pip_handler(decoder_t* self, uint8_t** p){
+ 							#endif
+ 							break;
+ 						case PT_PKT_PSB_BYTE1:
++							self->last_tip = 0;
+ 							p += PT_PKT_PSB_LEN;
+ 							WRITE_SAMPLE_DECODED_DETAILED("PSB\n");
+ 							#ifdef DECODER_LOG
+diff --git a/pt/decoder.h b/pt/decoder.h
+index f36e704d..44468c03 100644
+--- a/pt/decoder.h
++++ b/pt/decoder.h
+@@ -57,7 +57,6 @@ typedef struct decoder_s{
+ 	uint64_t max_addr;
+ 	void (*handler)(uint64_t);
+ 	uint64_t last_tip;
+-	uint64_t last_tip_tmp;
+ 	bool fup_bind_pending;
+ 	disassembler_t* disassembler_state;
+ 	tnt_cache_t* tnt_cache_state;
+-- 
+2.25.1
+
