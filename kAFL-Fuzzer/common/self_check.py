@@ -96,7 +96,7 @@ def vmx_pt_get_addrn(verbose=True):
     KVM_VMX_PT_GET_ADDRN = KVMIO << (8) | 0xe9
 
     try:
-        fd = open("/dev/dell", "wb")
+        fd = open("/dev/kvm", "wb")
     except:
         if verbose:
             print(FAIL + ERROR_PREFIX + "KVM-PT is not loaded!" + ENDC)
@@ -139,9 +139,9 @@ def check_vmx_pt():
     KVM_VMX_PT_SUPPORTED = KVMIO << (8) | 0xe4
 
     try:
-        fd = open("/dev/dell", "wb")
+        fd = open("/dev/kvm", "wb")
     except:
-        print(FAIL + ERROR_PREFIX + "Unable to access /dev/dell. Check permissions and ensure dell.ko is loaded." + ENDC)
+        print(FAIL + ERROR_PREFIX + "Unable to access /dev/kvm. Check permissions and ensure kvm.ko is loaded." + ENDC)
         return False
 
     try:
@@ -169,7 +169,7 @@ def check_apple_osk(config):
 def check_apple_ignore_msrs(config):
     if config.argument_values["macOS"]:
         try:
-            f = open("/sys/module/dell/parameters/ignore_msrs")
+            f = open("/sys/module/kvm/parameters/ignore_msrs")
             if not 'Y' in f.read(1):
                 print(
                     FAIL + ERROR_PREFIX + "KVM-PT is not properly configured! Please execute the following command:" \
