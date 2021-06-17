@@ -128,8 +128,7 @@ class MasterProcess:
             node.set_new_bits(new_bits, write=False)
             self.queue.insert_input(node, bitmap)
         elif self.debug_mode:
-            if node_struct["info"]["exit_reason"] != "regular":
-                logger.info("Payload found to be boring, not saved (exit=%s)" % node_struct["info"]["exit_reason"])
+            logger.debug("Received duplicate payload with exit=%s, discarding." % node_struct["info"]["exit_reason"])
             for i in range(len(bitmap_array)):
                 if backup_data[i] != new_data[i]:
                     assert(False), "Bitmap mangled at {} {} {}".format(i, repr(backup_data[i]), repr(new_data[i]))

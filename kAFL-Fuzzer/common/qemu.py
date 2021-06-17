@@ -322,8 +322,7 @@ class qemu:
             self.run_qemu()
             result = self.qemu_aux_buffer.get_result()
             if result.hprintf:
-                msg = strdump(self.qemu_aux_buffer.get_misc_buf()[:-1], verbatim=True)
-                print_hprintf(msg)
+                self.handle_hprintf()
 
         logger.debug("%s Handshake done." % self)
 
@@ -354,7 +353,8 @@ class qemu:
         self.kafl_shm_f     = os.open(self.bitmap_filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
         self.fs_shm_f       = os.open(self.payload_filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
 
-        open(self.tracedump_filename, "wb").close()
+        if self.config.argument_values['dump_pt']:
+            open(self.tracedump_filename, "wb").close()
 
         with open(self.binary_filename, 'bw') as f:
             os.ftruncate(f.fileno(), self.agent_size)
