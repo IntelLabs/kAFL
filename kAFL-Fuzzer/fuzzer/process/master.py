@@ -38,6 +38,7 @@ class MasterProcess:
         self.statistics = MasterStatistics(self.config)
         self.queue = InputQueue(self.config, self.statistics)
         self.bitmap_storage = BitmapStorage(config, config.config_values['BITMAP_SHM_SIZE'], "master", read_only=False)
+        self.num_slaves = self.config.argument_values['p']
 
         redqueen_global_config(
                 redq_hammering=self.config.argument_values['hammer_jmp_tables'],
@@ -64,10 +65,10 @@ class MasterProcess:
             return self.comm.send_node(conn, {"type": "node", "nid": node.get_id()})
 
         # No work in queue. Tell slave to wait a little or attempt blind fuzzing.
-        # If we see a lot of busy events, check the bitmap and warn on coverage issues.
+        # If all the slaves are waiting, check if we are getting any coverage..
         self.comm.send_busy(conn)
         self.busy_events +=1
-        if self.busy_events >= 10:
+        if self.busy_events >= self.num_slaves:
             self.busy_events = 0
             main_bitmap = self.bitmap_storage.get_bitmap_for_node_type("regular").c_bitmap
             if mmh3.hash(main_bitmap) == self.empty_hash:
