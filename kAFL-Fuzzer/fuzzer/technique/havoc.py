@@ -19,7 +19,7 @@ def load_dict(file_name):
     for line in f:
         if not line.startswith("#"):
             try:
-                dict_entries.append((line.split("=\"")[1].split("\"\n")[0]).decode("string_escape"))
+                dict_entries.append((line.split("=\"")[1].split("\"\n")[0]).encode('latin1').decode('unicode-escape').encode('latin1'))
             except:
                 pass
     f.close()
