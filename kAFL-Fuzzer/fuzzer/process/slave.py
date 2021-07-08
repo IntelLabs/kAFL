@@ -70,8 +70,8 @@ class SlaveProcess:
     def __init__(self, slave_id, config, connection, auto_reload=False):
         self.config = config
         self.slave_id = slave_id
-        self.q = qemu(self.slave_id, self.config,
-                      debug_mode=config.argument_values['debug'])
+        self.debug_mode = config.argument_values['debug']
+        self.q = qemu(self.slave_id, self.config, debug_mode=self.debug_mode)
         self.statistics = SlaveStatistics(self.slave_id, self.config)
         self.logic = FuzzingStateLogic(self, self.config)
         self.conn = connection
@@ -177,7 +177,7 @@ class SlaveProcess:
             return True, runtime_avg/num
 
         logger.warn("%s Funky input received %d/%d confirmations. Rejecting.." % (self, confirmations, validations))
-        if self.config.argument_values['log_file']:
+        if self.config.argument_values['debug']:
             self.store_funky(data)
         return False, runtime_avg/num
 
@@ -258,8 +258,11 @@ class SlaveProcess:
             if retry > 2:
                 # TODO if it reliably kills qemu, perhaps log to master for harvesting..
                 logger.error("%s Aborting due to repeated SHM/socket error." % self)
-                logger.debug("%s Payload: %s" % (self, repr(data)))
-                raise
+                if self.debug_mode:
+                    logger.debug("%s Payload: %s" % (self, repr(data)))
+                    raise
+                sys.exit(0)
+
             logger.warn("%s SHM/socket error (retry %d)" % (self, retry))
             self.statistics.event_reload("shm/socket error")
             if not self.q.restart():

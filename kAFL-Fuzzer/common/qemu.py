@@ -381,12 +381,10 @@ class qemu:
     # Fully stop/start Qemu instance to store logs + possibly recover
     def restart(self):
 
+        # Nyx backend does not tend to die anymore so this is a NOP
+        # To enable recovery again, new Qemu instances must respect the snapshot
+        # settings and avoid overwriting a possibly existing snapshot
         return True
-        self.shutdown()
-        # TODO: Need to wait here or else the next instance dies in set_payload()
-        # Perhaps Qemu should do proper munmap()/close() on exit?
-        time.sleep(0.1)
-        return self.start()
 
     # Reset Qemu after crash/timeout - can skip if target has own forkserver
     def reload(self):
