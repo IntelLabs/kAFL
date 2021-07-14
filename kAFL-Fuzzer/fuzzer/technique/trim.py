@@ -86,7 +86,7 @@ def perform_extend(payload, old_node, send_handler, max_len):
     for _ in range(2*MAX_ROUNDS):
         try:
             new_res, is_new = send_handler(payload + bytes(padding), label="stream_extend")
-        except:
+        except Exception:
             print("Round: %d, lengths: %d + %d = %d, maxlen=%d, upper=%d, lower=%d" %(
                 _, len(payload), padding, padding+len(payload), max_len, upper, lower))
 

@@ -439,5 +439,5 @@ def start(config):
                 break
 
         logger.info("Done. Check logs for details.")
-        logger.info(Any remaining qemu instances should be GC'ed on exit: %s" % os.system("pgrep qemu-system"))
+        logger.info("Any remaining qemu instances should be GC'ed on exit: %s" % os.system("pgrep qemu-system"))
     return 0

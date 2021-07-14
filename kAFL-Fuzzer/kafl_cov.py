@@ -67,7 +67,7 @@ class TraceParser:
 
         return {'bbs': bbs, 'edges': edges}
 
-    def parse_trace_list(self, input_list):
+    def parse_trace_list(self, nproc, input_list):
         trace_files = list()
         timestamps = list()
 
@@ -77,7 +77,7 @@ class TraceParser:
                 trace_files.append(trace_file)
                 timestamps.append(timestamp)
 
-        with mp.Pool() as pool:
+        with mp.Pool(nproc) as pool:
             self.trace_results = zip(timestamps,
                                      pool.map(TraceParser.parse_trace_file, trace_files))
 
@@ -239,7 +239,7 @@ def graceful_exit(workers):
             else:
                 workers.remove(w)
 
-def generate_traces(config, input_list):
+def generate_traces(config, nproc, input_list):
 
     trace_dir = config.argument_values["input"] + "/traces/"
 
@@ -261,7 +261,6 @@ def generate_traces(config, input_list):
         else:
             input_files.append(input_path)
 
-    nproc = os.cpu_count()
     chunksize=ceil(len(input_files)/nproc)
     offset = 0
     workers = list()
@@ -419,15 +418,18 @@ def main():
 
     null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
 
+    nproc = min(config.argument_values["p"], os.cpu_count())
+    logger.info("Using %d/%d cores..." % (nproc, os.cpu_count()))
+
     logger.info("Scanning target data_dir »%s«..." % data_dir)
     input_list = get_inputs_by_time(data_dir)
-    trace_dir = generate_traces(config, input_list)
+    trace_dir = generate_traces(config, nproc, input_list)
 
     if not trace_dir:
         return -1
 
     trace_parser = TraceParser(trace_dir)
-    trace_parser.parse_trace_list(input_list)
+    trace_parser.parse_trace_list(nproc, input_list)
     trace_parser.gen_reports()
 
 if __name__ == "__main__":
