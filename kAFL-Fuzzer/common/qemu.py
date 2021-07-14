@@ -98,7 +98,7 @@ class qemu:
         #if self.config.argument_values['kernel'] or self.config.argument_values['bios']:
         #    self.cmd += ",disable_snapshot=True"
 
-        for i in range(1):
+        for i in range(4):
             key = "ip" + str(i)
             if key in self.config.argument_values and self.config.argument_values[key]:
                 range_a = hex(self.config.argument_values[key][0]).replace("L", "")
