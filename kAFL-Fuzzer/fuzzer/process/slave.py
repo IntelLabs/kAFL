@@ -173,7 +173,7 @@ class SlaveProcess:
         if confirmations >= 0.75*validations:
             return True, runtime_avg/num
 
-        logger.warn("%s Funky input received %d/%d confirmations. Rejecting.." % (self, confirmations, validations))
+        logger.debug("%s Funky input received %d/%d confirmations. Rejecting.." % (self, confirmations, validations))
         if self.config.argument_values['debug']:
             self.store_funky(data)
         return False, runtime_avg/num
@@ -310,7 +310,7 @@ class SlaveProcess:
                     exec_res, is_new = self.execute(data, info, validate_timeouts=False)
                     self.q.set_timeout(dyn_timeout)
                     if is_new and exec_res.exit_reason != "timeout":
-                        logger.warn("timeout checker found non-timeout with runtime %f >= %f!" % (exec_res.performance, dyn_timeout))
+                        logger.debug("Timeout checker found non-timeout with runtime %f >= %f!" % (exec_res.performance, dyn_timeout))
                     # regular version of this payload is added to reg bitmap, so we can bail out here
                     return exec_res, is_new
             if crash or stable:
