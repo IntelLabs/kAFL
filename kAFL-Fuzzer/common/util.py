@@ -48,6 +48,7 @@ def atomic_write(filename, data):
     # rename() is atomic only on same filesystem so the tempfile must be in same directory
     with tempfile.NamedTemporaryFile(dir=os.path.dirname(filename), delete=False) as f:
         f.write(data)
+    os.chmod(f.name, 0o644)
     os.rename(f.name, filename)
 
 def read_binary_file(filename):
