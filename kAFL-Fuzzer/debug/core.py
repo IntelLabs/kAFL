@@ -16,7 +16,7 @@ from common.config import DebugConfiguration
 from common.log import init_logger, logger
 from common.qemu import qemu
 from common.self_check import post_self_check
-from common.util import prepare_working_dir, read_binary_file
+from common.util import prepare_working_dir, read_binary_file, qemu_sweep
 from fuzzer.technique.redqueen import parser
 from fuzzer.technique.redqueen.hash_fix import HashFixer
 from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
@@ -427,17 +427,12 @@ def start(config):
         elif (mode == "verify"):        verify_dbg(config, qemu_verbose=True)
         else:
             logger.error("Unknown debug mode. Exit")
+        logger.info("Done. Check logs for details.")
+    except KeyboardInterrupt:
+        logger.info("Received Ctrl-C, aborting...")
     except Exception as e:
         raise e
-    finally:
-        # cleanup
-        #os.system("stty sane")
-        for i in range(512):
-            if os.path.exists("/tmp/kAFL_printf.txt." + str(i)):
-                os.remove("/tmp/kAFL_printf.txt." + str(i))
-            else:
-                break
 
-        logger.info("Done. Check logs for details.")
-        logger.info("Any remaining qemu instances should be GC'ed on exit: %s" % os.system("pgrep qemu-system"))
+    qemu_sweep("Any remaining qemu instances should be GC'ed on exit:")
+
     return 0

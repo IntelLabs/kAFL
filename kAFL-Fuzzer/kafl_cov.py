@@ -32,7 +32,7 @@ from common.config import DebugConfiguration
 from common.self_check import self_check, post_self_check
 import common.color
 from common.log import init_logger, logger
-from common.util import prepare_working_dir, read_binary_file
+from common.util import prepare_working_dir, read_binary_file, qemu_sweep
 from common.qemu import qemu
 from common.execution_result import ExecutionResult
 from fuzzer.technique.helper import rand
@@ -434,3 +434,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    qemu_sweep("Detected potential qemu zombies, please kill -9:")

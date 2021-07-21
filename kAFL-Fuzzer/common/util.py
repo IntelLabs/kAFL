@@ -9,6 +9,8 @@ import shutil
 import sys
 import tempfile
 import string
+import getpass
+import psutil
 from shutil import copyfile
 
 from common import color
@@ -21,6 +23,20 @@ class Singleton(type):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
+
+
+# print any qemu-like processes owned by this user
+def qemu_sweep(msg):
+    def get_qemu_processes():
+        for proc in psutil.process_iter(['pid', 'name', 'username']):
+            if proc.info['username'] == getpass.getuser():
+                if 'qemu' in proc.info['name']:
+                    yield (proc.info['pid'])
+
+    pids = [ p for p in get_qemu_processes() ]
+
+    if (len(pids) > 0):
+        logger.warn(msg + " " + repr(pids))
 
 # pretty-printed hexdump
 def hexdump(src, length=16):

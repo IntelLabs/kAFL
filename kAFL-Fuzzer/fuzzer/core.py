@@ -15,21 +15,13 @@ Prepare the kAFL workdir and copy any provided seeds to be picked up by the sche
 
 import multiprocessing
 import time
-import pgrep
 import sys
 
 from common.log import init_logger, logger
 from common.self_check import post_self_check
-from common.util import prepare_working_dir, copy_seed_files
+from common.util import prepare_working_dir, copy_seed_files, qemu_sweep
 from fuzzer.process.master import MasterProcess
 from fuzzer.process.slave import slave_loader
-
-def qemu_sweep():
-    pids = pgrep.pgrep("qemu")
-
-    if (len(pids) > 0):
-        logger.warn("Detected potential qemu zombies, please kill -9: " + repr(pids))
-
 
 def graceful_exit(slaves):
     for s in slaves:
@@ -90,5 +82,5 @@ def start(config):
         graceful_exit(slaves)
 
     time.sleep(0.2)
-    qemu_sweep()
+    qemu_sweep("Detected potential qemu zombies, please kill -9:")
     sys.exit(0)
