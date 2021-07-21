@@ -34,6 +34,7 @@ class MasterStatistics:
                 "num_funky": 0,
                 "num_reload": 0,
                 "num_timeout": 0,
+                "num_slow": 0,
                 "max_bb_cov" : 0,
                 "paths_total": 0,
                 "paths_pending": 0,
@@ -153,6 +154,7 @@ class MasterStatistics:
         sum_funky = 0
         sum_reload = 0
         sum_timeout = 0
+        sum_slow = 0
         max_bb_cov = 0
         try:
             for slave_id in range(0, self.num_slaves):
@@ -160,6 +162,7 @@ class MasterStatistics:
                 sum_funky  += self.read_slave_stats(slave_id).get("num_funky", 0)
                 sum_reload += self.read_slave_stats(slave_id).get("num_reload", 0)
                 sum_timeout += self.read_slave_stats(slave_id).get("num_timeout", 0)
+                sum_slow    += self.read_slave_stats(slave_id).get("num_slow", 0)
                 max_bb_cov = max(max_bb_cov,
                                  self.read_slave_stats(slave_id).get("bb_seen", 0))
         except:
@@ -168,6 +171,7 @@ class MasterStatistics:
         self.data["num_funky"]   = sum_funky
         self.data["num_reload"]  = sum_reload
         self.data["num_timeout"] = sum_timeout
+        self.data["num_slow"]    = sum_slow
         self.data["max_bb_cov"]  = max_bb_cov
 
     def event_node_update(self, node, update):
@@ -246,6 +250,7 @@ class SlaveStatistics:
             "num_reload": 0,
             "num_funky": 0,
             "num_timeout": 0,
+            "num_slow": 0,
             "executions_redqueen": 0,
             "node_id": 0,
         }
@@ -271,6 +276,8 @@ class SlaveStatistics:
         self.data["num_reload"] += 1
         if reason == "timeout":
             self.data["num_timeout"] += 1
+        if reason == "slow":
+            self.data["num_slow"] += 1
         self.maybe_write_stats()
 
     def event_funky(self):

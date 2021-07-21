@@ -74,6 +74,7 @@ class SlaveProcess:
         self.conn = connection
         self.payload_size_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 5
         self.timeout_limit_max = 4 # in seconds. TODO: make configurable
+        self.validate_timeouts = False # make configurable
 
         self.bitmap_storage = BitmapStorage(self.config, self.config.config_values['BITMAP_SHM_SIZE'], "master")
 
@@ -87,7 +88,7 @@ class SlaveProcess:
         self.conn.send_ready()
 
     def handle_busy(self):
-        busy_timeout = 1
+        busy_timeout = 4
         kickstart = False
 
         if kickstart: # spend busy cycle by feeding random strings?
@@ -106,8 +107,8 @@ class SlaveProcess:
         meta_data = QueueNode.get_metadata(msg["task"]["nid"])
         payload = QueueNode.get_payload(meta_data["info"]["exit_reason"], meta_data["id"])
 
-        ## update default timeout in Qemu instance
-        t_dyn = 500/1000/1000 + 2 * meta_data["info"]["performance"]
+        # fixme: determine globally based on all seen regulars
+        t_dyn = 1/500 + 1.2 * meta_data["info"]["performance"]
         self.q.set_timeout(min(self.timeout_limit_max, t_dyn))
 
         results, new_payload = self.logic.process_node(payload, meta_data)
@@ -271,7 +272,7 @@ class SlaveProcess:
         return self.__execute(data, retry=retry+1)
 
 
-    def execute(self, data, info, validate_timeouts=True):
+    def execute(self, data, info, hard_timeout=False):
 
         if len(data) > self.payload_size_limit:
             data = data[:self.payload_size_limit]
@@ -298,25 +299,26 @@ class SlaveProcess:
                 if not stable:
                     # TODO: auto-throttle persistent runs based on funky rate?
                     self.statistics.event_funky()
-            if validate_timeouts and exec_res.exit_reason == "timeout":
-                # re-run timeout payload with max timeout to ensure it is a real timeout.
-                # can be quite slow, so we only validate timeouts that also show new edges in reg bitmap
+            if exec_res.exit_reason == "timeout" and not hard_timeout:
+                # re-run payload with max timeout
+                # can be quite slow, so we only do this if prior run has some new edges or validate_timeouts=True.
+                # t_dyn should grow over time and eventually include slower inputs up to max timeout
                 maybe_new_regular = self.bitmap_storage.should_send_to_master(exec_res, "regular")
-                if maybe_new_regular: ## validate all the timeouts..?
-                    #print_warning("Validating timeout node")
+                if self.validate_timeouts or maybe_new_regular:
                     dyn_timeout = self.q.get_timeout()
-                    # cleanup qemu state, increment timeout exec counter
-                    #if crash:
-                    #    self.statistics.event_reload(exec_res.exit_reason)
-                    #    self.q.reload()
                     self.q.set_timeout(self.timeout_limit_max)
                     # if still new, register the payload as regular or (true) timeout
-                    exec_res, is_new = self.execute(data, info, validate_timeouts=False)
+                    exec_res, is_new = self.execute(data, info, hard_timeout=True)
                     self.q.set_timeout(dyn_timeout)
                     if is_new and exec_res.exit_reason != "timeout":
                         logger.debug("Timeout checker found non-timeout with runtime %f >= %f!" % (exec_res.performance, dyn_timeout))
-                    # regular version of this payload is added to reg bitmap, so we can bail out here
+                    else:
+                        # uselessly spend time validating a soft-timeout
+                        # log it so user may adjust soft-timeout handling
+                        self.statistics.event_reload("slow")
+                    # sub-call to execute() has submitted the payload if relevant, so we can just return its result here
                     return exec_res, is_new
+
             if crash or stable:
                 self.__send_to_master(data, exec_res, info)
 
