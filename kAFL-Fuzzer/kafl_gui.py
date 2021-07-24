@@ -183,6 +183,10 @@ class GuiDrawer:
         self.current_slave_id = 0
         self.stdscr = stdscr
 
+        self.fix_rows = 22
+        self.hex_rows = 12
+        self.min_slave_rows = 4
+
         # Fenster und Hintergrundfarben
         curses.start_color()
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
@@ -205,8 +209,20 @@ class GuiDrawer:
         self.cpu_watcher.start()
 
 
-    def draw(self):
+    def draw(self, cur_rows=None):
         d = self.data
+
+        # size-limited display: try w/o hexdump, then limit slaves list
+        cur_slave_rows = d.num_slaves()
+        cur_hex_rows = self.hex_rows
+
+        if cur_rows < self.fix_rows + self.hex_rows + d.num_slaves():
+            cur_hex_rows = 0
+            if cur_rows < self.fix_rows + d.num_slaves():
+                cur_slave_rows = cur_rows - self.fix_rows
+
+        assert(cur_slave_rows >= min(self.min_slave_rows, d.num_slaves()))
+
         self.gui.print_title_line("kAFL v0.2")
         self.gui.print_sep_line()
         self.gui.print_info_line([
@@ -280,7 +296,9 @@ class GuiDrawer:
             (11, "Fin", pnum(d.normal_fin()))], prefix="Nrm: ")
         #self.gui.print_sep_line()
         self.gui.print_thin_line()
-        for i in range(0, d.num_slaves()):
+        slaves_start = min(d.num_slaves() - cur_slave_rows, self.current_slave_id)
+        slaves_end   = min(d.num_slaves(), self.current_slave_id + cur_slave_rows)
+        for i in range(slaves_start, slaves_end):
             hl = " "
             if i == self.current_slave_id:
                 hl = ">"
@@ -318,8 +336,9 @@ class GuiDrawer:
                 (10, "Score",   pnum(d.node_score(nid))),
                 (14, "Fuzzed",    atime(d.node_time(nid)))])
             self.gui.print_thin_line()
-            self.gui.print_hexdump(d.node_payload(nid), max_rows=12)
-            self.gui.print_thin_line()
+            if cur_hex_rows:
+                self.gui.print_hexdump(d.node_payload(nid), max_rows=12)
+                self.gui.print_thin_line()
         else:
             self.gui.print_info_line([
                 (12, "Parent", "  N/A"),
@@ -328,7 +347,9 @@ class GuiDrawer:
                 (12, "Bits",   "  N/A"),
                 (12, "Exit",   " ")])
             self.gui.print_thin_line()
-            self.gui.print_hexdump(b"importing...", max_rows=12)
+            if cur_hex_rows:
+                self.gui.print_hexdump(b"importing...", max_rows=12)
+                self.gui.print_thin_line()
         #self.gui.print_title_line("Log")
         self.gui.refresh()
 
@@ -352,15 +373,17 @@ class GuiDrawer:
                 continue
 
             self.gui_mutex.acquire()
+
+            self.gui.clear()
+            min_rows = self.fix_rows + self.min_slave_rows
+            min_cols = 82
+            cur_rows, cur_cols = self.stdscr.getmaxyx()
+
             try:
-                    self.draw()
+                self.draw(cur_rows)
             except:
-                self.gui.clear()
-                min_rows = 34 + self.data.num_slaves()
-                min_cols = 82
-                rows, cols = self.stdscr.getmaxyx()
-                if rows < min_rows or cols < min_cols:
-                    print("Terminal too small? (found: %dx%d)" % (rows, cols));
+                if cur_cols < min_cols or cur_rows < min_rows:
+                    print("Terminal too small? (found: %dx%d)" % (cur_rows, cur_cols));
                     self.gui.refresh()
                 else:
                     raise
