@@ -234,7 +234,7 @@ class SlaveProcess:
 
         try:
             self.q.set_payload(data)
-            exec_res = self.q.execute_in_trace_mode(timeout_detection=False)
+            exec_res = self.q.execute_in_trace_mode(trace_timeout=0)
 
             with open(trace_file_in, 'rb') as f_in:
                 with lz4.LZ4FrameFile(trace_file_out + ".lz4", 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
