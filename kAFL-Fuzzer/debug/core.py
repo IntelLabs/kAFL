@@ -69,9 +69,10 @@ def gdb_session(config, qemu_verbose=True, notifiers=True):
 
     #from pprint import pprint
     payload_file = config.argument_values["input"]
+    resume = config.argument_values["resume"]
 
     config.argument_values["gdbserver"] = True
-    q = qemu(1337, config, notifiers=notifiers)
+    q = qemu(1337, config, notifiers=notifiers, resume=resume)
 
     logger.info("Starting Qemu + GDB with payload %s" % payload_file)
     logger.info("Connect with gdb to release guest from reset (localhost:1234)")
@@ -87,21 +88,24 @@ def gdb_session(config, qemu_verbose=True, notifiers=True):
 
 def execute_once(config, qemu_verbose=False, notifiers=True):
     payload_file = config.argument_values["input"]
-    logger.info("Execute payload %s.. " % payload_file)
-    zero_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
+    resume = config.argument_values["resume"]
+    null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
 
-    q = qemu(1337, config, debug_mode=False, notifiers=notifiers)
+    logger.info("Execute payload %s.. " % payload_file)
+
+    q = qemu(1337, config, debug_mode=False, notifiers=notifiers, resume=resume)
     assert q.start(), "Failed to start Qemu?"
 
     q.set_payload(read_binary_file(payload_file))
     #q.send_payload() ## XXX first run has different trace?!
     result = q.send_payload()
+
+    print("Exit reason: %s" % result.exit_reason)
+
     current_hash = result.hash()
-    if zero_hash == current_hash:
-        logger.info("Feedback Hash: " + str(current_hash))
-        logger.warn("Zero hash found!")
-    else:
-        logger.info("Feedback Hash: " + str(current_hash))
+    logger.info("Feedback Hash: %08x" % current_hash)
+    if null_hash == current_hash:
+        logger.warn("Null hash returned!")
 
     q.shutdown()
     return 0
@@ -110,8 +114,10 @@ def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
     logger.info("Starting debug execution...(%d rounds)" % execs)
 
     payload_file = config.argument_values["input"]
+    resume = config.argument_values["resume"]
     null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
-    q = qemu(1337, config, debug_mode=True, notifiers=notifiers)
+
+    q = qemu(1337, config, debug_mode=True, notifiers=notifiers, resume=resume)
     assert q.start(), "Failed to start Qemu?"
 
     start = time.time()
@@ -123,13 +129,13 @@ def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
         # a = str(q.send_payload())
         # hexdump(a)
         result = q.send_payload()
+
         current_hash = result.hash()
+        current_hash = result.hash()
+        logger.info("Feedback Hash: %08x" % current_hash)
         if null_hash == current_hash:
-            logger.info("Feedback Hash: " + str(current_hash))
-            logger.warn("Zero hash found!")
-        else:
-            logger.info("Feedback Hash: " + str(current_hash))
-            #log_debug("Full hexdump:\n" + hexdump(result.copy_to_array()))
+            logger.warn("Null hash returned!")
+
         if result.is_crash():
             q.reload()
 
@@ -139,19 +145,19 @@ def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
 
     return 0
 
-def execution_exited_abnormally(qemu):
-    return qemu.crashed or qemu.timeout or qemu.kasan
-
 def debug_non_det(config, max_execs=0):
     logger.info("Starting non-deterministic...")
 
     delay = 0
     payload_file = config.argument_values["input"]
+    resume = config.argument_values["resume"]
+    null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
+
     assert os.path.isfile(payload_file), "Provided -input argument must be a file."
     assert "ip0" in config.argument_values, "Must set -ip0 range in order to obtain PT traces."
-    
     payload = read_binary_file(payload_file)
-    q = qemu(1337, config, debug_mode=False)
+
+    q = qemu(1337, config, debug_mode=False, resume=resume)
     assert q.start(), "Failed to launch Qemu."
 
     q.set_timeout(0)
@@ -162,7 +168,6 @@ def debug_non_det(config, max_execs=0):
         trace_dir  = config.argument_values["work_dir"] + "/noise/"
         os.makedirs(trace_dir)
 
-    null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
 
     hash_value = None
     first_hash = None

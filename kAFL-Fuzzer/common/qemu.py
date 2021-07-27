@@ -25,7 +25,7 @@ from common.qemu_aux_buffer import qemu_aux_buffer
 
 class qemu:
 
-    def __init__(self, qid, config, debug_mode=False, notifiers=True):
+    def __init__(self, qid, config, debug_mode=False, notifiers=True, resume=False):
 
         self.debug_mode = debug_mode
         self.agent_size = config.config_values['AGENT_MAX_SIZE']
@@ -91,9 +91,6 @@ class qemu:
         if not notifiers:
             self.cmd += ",crash_notifier=False"
 
-        #if self.config.argument_values['R']:
-        #    self.cmd += ",reload_mode=False"
-
         # qemu snapshots only work in VM mode (disk+ram image)
         #if self.config.argument_values['kernel'] or self.config.argument_values['bios']:
         #    self.cmd += ",disable_snapshot=True"
@@ -150,8 +147,7 @@ class qemu:
 
         self.fast_vm_reload = True
         if self.fast_vm_reload:
-            if qid == 0 or qid == 1337:
-                #self.cmd = self.cmd.replace("-display none ", "-vnc :0 ")
+            if qid == 0 or qid == 1337 and not resume:
                 if self.config.argument_values["vm_snapshot"]:
                     self.cmd += " -fast_vm_reload path=%s,load=off,pre_path=%s " % (
                             work_dir + "/snapshot/",
