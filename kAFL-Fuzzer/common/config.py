@@ -99,6 +99,8 @@ def add_args_general(parser):
                         required=True, help='path to the output/working directory.')
     parser.add_argument('--purge', required=False, help='purge the working directory at startup.',
                         action='store_true', default=False)
+    parser.add_argument('--resume', required=False, help='use VM snapshot from existing workdir (for cov/gdb)',
+                        action='store_true', default=False)
     parser.add_argument('-p', required=False, metavar='<num>', type=int, default=1,
                         help='number of parallel Qemu instances.')
     parser.add_argument('-v', '--verbose', required=False, action='store_true', default=False,

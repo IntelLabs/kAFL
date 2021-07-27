@@ -85,26 +85,31 @@ def prepare_working_dir(config):
 
     work_dir   = config.argument_values["work_dir"]
     purge      = config.argument_values['purge']
-
-    if os.path.exists(work_dir) and not purge:
-        return False
+    resume     = config.argument_values['resume']
 
     folders = ["/corpus/regular", "/corpus/crash",
                "/corpus/kasan", "/corpus/timeout",
                "/metadata", "/bitmaps", "/imports", "/snapshot"]
 
-    shutil.rmtree(work_dir, ignore_errors=True)
+    # refuse to work on existing dir unless --resume or --purge are supplied
+    if os.path.exists(work_dir):
+        if not purge and not resume:
+            return False
 
-    project_name = work_dir.split("/")[-1]
-    for path in glob.glob("/dev/shm/kafl_%s_*" % project_name):
-        os.remove(path)
+    if purge:
+        shutil.rmtree(work_dir, ignore_errors=True)
 
-    if os.path.exists("/dev/shm/kafl_tfilter"):
-        os.remove("/dev/shm/kafl_tfilter")
+        project_name = work_dir.split("/")[-1]
+        for path in glob.glob("/dev/shm/kafl_%s_*" % project_name):
+            os.remove(path)
 
-    for folder in folders:
-        os.makedirs(work_dir + folder)
+        if os.path.exists("/dev/shm/kafl_tfilter"):
+            os.remove("/dev/shm/kafl_tfilter")
 
+        for folder in folders:
+            os.makedirs(work_dir + folder)
+
+    # ensure these exist (flags may have changed on --resume)
     open(work_dir + "/page_cache.lock", "wb").close()
     open(work_dir + "/page_cache.dump", "wb").close()
     open(work_dir + "/page_cache.addr", "wb").close()
