@@ -218,7 +218,7 @@ class SlaveProcess:
         info["time"] = time.time()
         info["exit_reason"] = exec_res.exit_reason
         info["performance"] = exec_res.performance
-        info["hash"] = "%08x" % exec_res.hash()
+        info["hash"]        = exec_res.hash()
         info["starved"]     = exec_res.starved
         if self.conn is not None:
             self.conn.send_new_input(data, exec_res.copy_to_array(), info)

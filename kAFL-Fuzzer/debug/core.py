@@ -117,7 +117,7 @@ def execute_once(config, qemu_verbose=False, notifiers=True):
     print("Exit reason: %s" % result.exit_reason)
 
     current_hash = result.hash()
-    logger.info("Feedback Hash: %08x" % current_hash)
+    logger.info("Feedback Hash: " + current_hash)
     if null_hash == current_hash:
         logger.warn("Null hash returned!")
 
@@ -154,8 +154,7 @@ def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
         result = q.send_payload()
 
         current_hash = result.hash()
-        current_hash = result.hash()
-        logger.info("Feedback Hash: %08x" % current_hash)
+        logger.info("Feedback Hash: " + current_hash)
         if null_hash == current_hash:
             logger.warn("Null hash returned!")
 
@@ -218,8 +217,8 @@ def debug_non_det(config, max_execs=0):
         first_hash = exec_res.hash()
         hashes[first_hash] = 1
 
-        logger.info("Null Hash:  %08x" % null_hash)
-        logger.info("First Hash: %08x" % first_hash)
+        logger.info("Null Hash:  " + null_hash)
+        logger.info("First Hash: " + first_hash)
 
         if store_traces:
             shutil.copyfile(trace_out, trace_dir + "/trace_%s_%s.txt" % (os.path.basename(payload_file),first_hash))
@@ -283,9 +282,9 @@ def debug_non_det(config, max_execs=0):
     stdout.write("\n")
     for h in hashes.keys():
         if h == first_hash:
-            logger.info("* %08x: %03d" % (h, hashes[h]))
+            logger.info("* %s: %03d" % (h, hashes[h]))
         else:
-            logger.info("  %08x: %03d" % (h, hashes[h]))
+            logger.info("  %s: %03d" % (h, hashes[h]))
 
     return 0
 

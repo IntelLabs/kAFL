@@ -19,7 +19,8 @@ class ExecutionResult:
 
     @staticmethod
     def get_null_hash(bitmap_size):
-        return mmh3.hash(("\x00" * bitmap_size), signed=False)
+        # corresponds to libxdc_bitmap_get_hash()
+        return "%016x" % mmh3.hash64(bytes(bitmap_size), seed=0xaaaaaaaa, x64arch=True, signed=False)[0]
 
     def __init__(self, cbuffer, bitmap_size, exit_reason, performance):
         self.bitmap_size = bitmap_size
@@ -51,11 +52,16 @@ class ExecutionResult:
     def copy_to_array(self):
         return bytearray(self.cbuffer)
 
-    def hash(self):
-        return mmh3.hash(self.cbuffer, signed=False)
+    def hash(self, pre_lut=False):
+        # libxdc_bitmap_get_hash() is computed prior to apply_lut()
+        # For debug, set pre_lut=True to get a compatible hash or die trying
+        if self.lut_applied:
+            assert not pre_lut, "Request pre-LUT hash but LUT has been applied already."
+        else:
+            self.apply_lut()
+        return "%016x" % mmh3.hash64(self.cbuffer, seed=0xaaaaaaaa, x64arch=True, signed=False)[0]
 
     def apply_lut(self):
-        assert not self.lut_applied
-        GlobalBitmap.apply_lut(self)
-        assert self.lut_applied
+        if not self.lut_applied:
+            GlobalBitmap.apply_lut(self)
         return self
