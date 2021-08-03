@@ -96,9 +96,23 @@ def execute_once(config, qemu_verbose=False, notifiers=True):
     q = qemu(1337, config, debug_mode=False, notifiers=notifiers, resume=resume)
     assert q.start(), "Failed to start Qemu?"
 
-    q.set_payload(read_binary_file(payload_file))
+    store_traces = config.argument_values["trace"]
+    if store_traces:
+        trace_out = config.argument_values["work_dir"] + "/redqueen_workdir_1337/pt_trace_results.txt"
+        trace_dir  = config.argument_values["work_dir"] + "/traces/"
+
+    payload = read_binary_file(payload_file)
+
+    payload_size_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 8
+    if len(payload) > payload_size_limit:
+        payload = payload[:payload_size_limit]
+
+    q.set_payload(payload)
     #q.send_payload() ## XXX first run has different trace?!
-    result = q.send_payload()
+    if store_traces:
+        result = q.execute_in_trace_mode()
+    else:
+        result = q.send_payload()
 
     print("Exit reason: %s" % result.exit_reason)
 
@@ -106,6 +120,9 @@ def execute_once(config, qemu_verbose=False, notifiers=True):
     logger.info("Feedback Hash: %08x" % current_hash)
     if null_hash == current_hash:
         logger.warn("Null hash returned!")
+
+    if store_traces:
+        shutil.copyfile(trace_out, trace_dir + "/trace_%s_%s.txt" % (os.path.basename(payload_file),current_hash))
 
     q.shutdown()
     return 0
@@ -120,11 +137,17 @@ def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
     q = qemu(1337, config, debug_mode=True, notifiers=notifiers, resume=resume)
     assert q.start(), "Failed to start Qemu?"
 
+    payload = read_binary_file(payload_file)
+    payload_size_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 8
+
+    if len(payload) > payload_size_limit:
+        payload = payload[:payload_size_limit]
+
     start = time.time()
     for i in range(execs):
         logger.info("Launching payload %d/%d.." % (i+1,execs))
         if i % 3 == 0:
-            q.set_payload(read_binary_file(payload_file))
+            q.set_payload(payload)
         # time.sleep(0.01 * rand.int(0, 9))
         # a = str(q.send_payload())
         # hexdump(a)
@@ -166,8 +189,12 @@ def debug_non_det(config, max_execs=0):
     if store_traces:
         trace_out = config.argument_values["work_dir"] + "/redqueen_workdir_1337/pt_trace_results.txt"
         trace_dir  = config.argument_values["work_dir"] + "/noise/"
-        os.makedirs(trace_dir)
+        os.makedirs(trace_dir, exist_ok=True)
 
+    payload_size_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 8
+
+    if len(payload) > payload_size_limit:
+        payload = payload[:payload_size_limit]
 
     hash_value = None
     first_hash = None
@@ -181,7 +208,7 @@ def debug_non_det(config, max_execs=0):
         #else:
         #    exec_res = q.send_payload()
 
-        ##time.sleep(delay)
+        time.sleep(delay)
 
         if store_traces: 
             exec_res = q.execute_in_trace_mode()
@@ -195,17 +222,20 @@ def debug_non_det(config, max_execs=0):
         logger.info("First Hash: %08x" % first_hash)
 
         if store_traces:
-            shutil.copyfile(trace_out, trace_dir + "/trace_%08x.txt" % first_hash)
+            shutil.copyfile(trace_out, trace_dir + "/trace_%s_%s.txt" % (os.path.basename(payload_file),first_hash))
 
         total = 1
         hash_mismatch = 0
         time.sleep(delay)
         while max_execs == 0 or total <= max_execs:
-            mismatch_r = 0
             start = time.time()
             execs = 0
             while (time.time() - start < REFRESH):
-                #time.sleep(0.0002 * rand.int(10))
+                # restart Qemu every time?
+                #q.async_exit()
+                #q = qemu(0, config, debug_mode=False, resume=resume)
+                #assert q.start(), "Failed to launch Qemu."
+                #q.set_timeout(3)
                 q.set_payload(payload)
                 time.sleep(delay)
                 if store_traces: 
@@ -223,28 +253,28 @@ def debug_non_det(config, max_execs=0):
                     hashes[hash_value] = hashes[hash_value] + 1
                 else:
                     hashes[hash_value] = 1
-                    mismatch_r += 1
                     if store_traces:
-                        shutil.copyfile(trace_out, trace_dir + "/trace_%08x.txt" % hash_value)
+                        shutil.copyfile(trace_out, trace_dir + "/trace_%s_%s.txt" % (os.path.basename(payload_file), hash_value))
+                if hash_value != first_hash:
+                    hash_mismatch += 1
                 execs += 1
             end = time.time()
             total += execs
-            hash_mismatch += mismatch_r
             accuracy = (total - hash_mismatch)*100 / total
             stdout.write(common.color.FLUSH_LINE + "Performance: " + str(
                 format(((execs * 1.0) / (end - start)), '.0f')) + "  t/s\tTotal: " + str(total) + "\tMismatch: ")
             if (len(hashes) != 1):
-                stdout.write(common.color.FAIL + str(hash_mismatch) + common.color.ENDC + " (+%d)\tAccuracy: %.2f%%" % (mismatch_r, accuracy))
+                stdout.write(common.color.FAIL + str(hash_mismatch) + common.color.ENDC + "\tAccuracy: %.2f%%" % (accuracy))
                 stdout.write("\t\tHashes:\t" + str(len(hashes.keys())) + " (" + str(
                     format(((len(hashes.keys()) * 1.0) / total) * 100.00, '.2f')) + "%)")
             else:
-                stdout.write(common.color.OKGREEN + str(hash_mismatch) + common.color.ENDC + " (+%d)\tAccuracy: %.2f%%" % (mismatch_r, accuracy))
+                stdout.write(common.color.OKGREEN + str(hash_mismatch) + common.color.ENDC + "\tAccuracy: %.2f%%" % (accuracy))
                 #stdout.write(common.color.OKGREEN + str(hash_mismatch) + common.color.ENDC + " (+" + str(
                 #    mismatch_r) + ")\tRatio: " + str(format(((hash_mismatch * 1.0) / total) * 100.00, '.2f')) + "%")
             stdout.flush()
 
     except Exception as e:
-        raise
+        logger.warn(repr(e))
     except KeyboardInterrupt:
         pass
     finally:
@@ -443,6 +473,7 @@ def start(config):
     except Exception as e:
         raise e
 
+    time.sleep(0.2) # Qemu can take a moment to exit
     qemu_sweep("Any remaining qemu instances should be GC'ed on exit:")
 
     return 0
