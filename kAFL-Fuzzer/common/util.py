@@ -115,10 +115,10 @@ def prepare_working_dir(config):
     open(work_dir + "/page_cache.addr", "wb").close()
 
     if config.argument_values.get('funky', False):
-        os.makedirs(work_dir + "/funky/")
+        os.makedirs(work_dir + "/funky/", exist_ok=True)
 
     if config.argument_values.get('trace', False):
-        os.makedirs(work_dir + "/traces/")
+        os.makedirs(work_dir + "/traces/", exist_ok=True)
 
     return True
 
