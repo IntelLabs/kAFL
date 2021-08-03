@@ -93,6 +93,7 @@ class InputQueue:
         node.update_metadata(results)
         if new_payload:
             node.set_payload(new_payload)
+            node.node_struct["info"]["trimmed"] = True
         node.set_free()
         self.maybe_pushback_to_cycle(node)
 

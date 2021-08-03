@@ -230,6 +230,9 @@ class SlaveProcess:
 
         logger.info("%s Tracing payload_%05d.." % (self, info['id']))
 
+        if len(data) > self.payload_size_limit:
+            data = data[:self.payload_size_limit]
+
         try:
             self.q.set_payload(data)
             exec_res = self.q.execute_in_trace_mode(trace_timeout=0)
