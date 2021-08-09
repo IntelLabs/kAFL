@@ -23,6 +23,8 @@ import lz4.frame as lz4
 import re
 import signal
 import multiprocessing as mp
+import subprocess
+import tempfile
 
 from tqdm import trange, tqdm
 from operator import itemgetter
@@ -60,8 +62,8 @@ class TraceParser:
         bbs = set()
         edges = dict()
         with lz4.LZ4FrameFile(trace_file, 'rb') as f:
-            for m in re.finditer("([\da-f]+),([\da-f]+),([\da-f]+)", f.read().decode()):
-                edges["%s,%s" % (m.group(1), m.group(2))] = int(m.group(3),16)
+            for m in re.finditer("([\da-f]+),([\da-f]+)", f.read().decode()):
+                edges["%s,%s" % (m.group(1), m.group(2))] = 1
                 bbs.add(m.group(1))
                 bbs.add(m.group(2))
 
@@ -250,24 +252,21 @@ def generate_traces(config, nproc, input_list):
 
     start = time.time()
 
-    if not os.path.exists(trace_dir):
-        os.makedirs(trace_dir)
+    os.makedirs(trace_dir, exist_ok=True)
 
-    input_files = list()
+    work_queue = list()
     for input_path, _, _ in input_list:
         trace_file = trace_dir + os.path.basename(input_path) + ".lz4"
-        if os.path.exists(trace_file):
-            logger.info("Skip input with existing trace: %s" % input_path)
-        else:
-            input_files.append(input_path)
+        dump_file = trace_dir + os.path.basename(input_path) + ".dump"
+        work_queue.append((input_path, dump_file, trace_file))
 
-    chunksize=ceil(len(input_files)/nproc)
+    chunksize=ceil(len(work_queue)/nproc)
     offset = 0
     workers = list()
 
     try:
         for pid in range(nproc):
-            sublist = input_files[offset:offset+chunksize]
+            sublist = work_queue[offset:offset+chunksize]
             offset += chunksize
             if len(sublist) > 0:
                 worker = mp.Process(target=generate_traces_worker, args=(config, pid, sublist))
@@ -292,17 +291,28 @@ def generate_traces(config, nproc, input_list):
     logger.info("\n\nDone. Time taken: %.2fs\n" % (end - start))
     return trace_dir
 
-def generate_traces_worker(config, pid, input_list):
+def generate_traces_worker(config, pid, work_queue):
+
+    dump_mode = True;
 
     def sigterm_handler(signal, frame):
         if q:
             q.async_exit()
         sys.exit(0)
 
-    # override config - workdir root should be tempdir!
     pname = mp.current_process().name
-    config.argument_values['work_dir'] += "_%s" % pname
-    config.argument_values['purge'] = True
+    pnum =   mp.current_process()._identity[0]
+
+    if config.argument_values['resume']:
+        # spawn worker in same workdir, picking up snapshot + page_cache
+        config.argument_values['purge'] = False # not needed?
+        qemu_id = int(pnum) # get unique qemu ID != {0,1337}
+    else:
+        # spawn worker in separate workdir, booting a new VM state
+        config.argument_values['work_dir'] += "_%s" % pname
+        config.argument_values['purge'] = True # not needed?
+        qemu_id = 1337 # debug instance
+
     prepare_working_dir(config)
 
     work_dir = config.argument_values['work_dir']
@@ -311,49 +321,82 @@ def generate_traces_worker(config, pid, input_list):
     signal.signal(signal.SIGTERM, sigterm_handler)
     os.setpgrp()
 
-    q = qemu(1337, config, debug_mode=False)
+    # FIXME: really ugly switch between -trace and -dump_pt
+    if dump_mode:
+        print("Tracing in '-dump_pt' mode..")
+        # new dump_pt mode - translate to edge trace in separate step
+        config.argument_values['dump_pt'] = True
+        config.argument_values['trace'] = False
+    else:
+        # traditional -trace mode - more noisy and no bitmap to check
+        print("Tracing in legacy '-trace' mode..")
+        config.argument_values['dump_pt'] = False
+        config.argument_values['trace'] = True
+
+    q = qemu(qemu_id, config, debug_mode=False)
     if not q.start():
         logger.error("%s: Could not start Qemu. Exit." % pname)
         return None
 
-    pbar = tqdm(total=len(input_list), desc=pname, dynamic_ncols=True, smoothing=0.1, position=pid+1)
+    pbar = tqdm(total=len(work_queue), desc=pname, dynamic_ncols=True, smoothing=0.1, position=pid+1)
+
+    f = tempfile.NamedTemporaryFile(delete=False)
+    tmpfile = f.name
+    f.close()
 
     try:
-        q.set_timeout(4)
-        for input_path in input_list:
-            trace_file = trace_dir + os.path.basename(input_path) + ".lz4"
-            if os.path.exists(trace_file):
-                #printf("Skipping %s.." % os.path.basename(input_path))
-                pbar.update()
-                continue
-            #print("Processing %s.." % os.path.basename(input_path))
-            if simple_trace_run(q, read_binary_file(input_path)):
-                with open(work_dir + "/redqueen_workdir_1337/pt_trace_results.txt", 'rb') as f_in:
-                    with lz4.LZ4FrameFile(trace_file, 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
-                        shutil.copyfileobj(f_in, f_out)
+        for input_path, dump_file, trace_file in work_queue:
+            print("\nProcessing %s.." % os.path.basename(input_path))
+
+            if dump_mode:
+                if not os.path.exists(dump_file):
+                    qemu_file = work_dir + "/pt_trace_dump_%d" % qemu_id
+                    if simple_trace_run(q, read_binary_file(input_path), q.send_payload):
+                        shutil.move(qemu_file, dump_file)
+
+                if not os.path.exists(trace_file):
+                    cmd = [ "/home/steffens/nyx/libxdc/build/ptdump_static",
+                            work_dir + "/page_cache", dump_file, tmpfile ]
+                    for i in range(2):
+                        key = "ip" + str(i)
+                        if key in config.argument_values and config.argument_values[key]:
+                            ip_start = hex(config.argument_values[key][0]).replace("L", "")
+                            ip_end = hex(config.argument_values[key][1]).replace("L", "")
+                            cmd += [ ip_start, ip_end ]
+                    subprocess.run(cmd, timeout=60)
+
+                    with open(tmpfile, 'rb') as f_in:
+                        with lz4.LZ4FrameFile(trace_file, 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
+                            shutil.copyfileobj(f_in, f_out)
+
+            else:
+                if not os.path.exists(trace_file):
+                    qemu_file = work_dir + "/redqueen_workdir_%d/pt_trace_results.txt" % qemu_id
+                    if simple_trace_run(q, read_binary_file(input_path), q.execute_in_trace_mode):
+                        with open(qemu_file, 'rb') as f_in:
+                            with lz4.LZ4FrameFile(trace_file, 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
+                                shutil.copyfileobj(f_in, f_out)
             pbar.update()
-    except:
+    except Exception:
         q.async_exit()
         raise
+    finally:
+        os.unlink(tmpfile)
     q.shutdown()
 
 
-def simple_trace_run(q, payload):
+def simple_trace_run(q, payload, send_func):
     global null_hash
     q.set_payload(payload)
-    exec_res = q.execute_in_trace_mode()
+    exec_res = send_func()
 
     if not exec_res:
-        #print("Failed to execute. Continuing anyway...\n")
+        print("Failed to execute. Continuing anyway...\n")
         assert(q.restart())
         return None
 
     if exec_res.is_crash():
         q.reload()
-
-    if exec_res.hash() == null_hash:
-        q.restart()
-        exec_res = q.execute_in_trace_mode()
 
     return exec_res
 
