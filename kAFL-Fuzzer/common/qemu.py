@@ -48,8 +48,6 @@ class qemu:
 
         self.qemu_aux_buffer_filename = work_dir + "/aux_buffer_%d" % self.qemu_id
 
-        self.tracedump_filename = "/dev/shm/kafl_%s_pt_trace_dump_%d" % (project_name, self.qemu_id)
-
         self.binary_filename = work_dir + "/program"
         self.bitmap_filename = work_dir + "/bitmap_%d" % self.qemu_id
         self.payload_filename = work_dir + "/payload_%d" % self.qemu_id
@@ -244,7 +242,6 @@ class qemu:
 
         for tmp_file in [
                 self.payload_filename,
-                self.tracedump_filename,
                 self.control_filename,
                 self.binary_filename,
                 self.bitmap_filename]:
@@ -352,9 +349,6 @@ class qemu:
 
         self.kafl_shm_f     = os.open(self.bitmap_filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
         self.fs_shm_f       = os.open(self.payload_filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
-
-        if self.config.argument_values['dump_pt']:
-            open(self.tracedump_filename, "wb").close()
 
         with open(self.binary_filename, 'bw') as f:
             os.ftruncate(f.fileno(), self.agent_size)
