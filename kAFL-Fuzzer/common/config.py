@@ -154,6 +154,10 @@ def add_args_fuzzer(parser):
                         type=int, required=False, default=None)
     parser.add_argument('-abort_exec', metavar='<n>', help="exit after max executions",
                         type=int, required=False, default=None)
+    parser.add_argument('-ts', '--t_soft', required=False, metavar='<s>', help="soft timeout for Qemu execution (in seconds)",
+                        type=float, default=1/1000)
+    parser.add_argument('-tc', '--t_check', required=False, help="enable timeout validation (can be slow)",
+                        action='store_true', default=False)
 
 # Qemu/Slave-specific launch options
 def add_args_qemu(parser):
@@ -209,6 +213,8 @@ def add_args_qemu(parser):
                         action='store_true', default=False)
     parser.add_argument('--log_hprintf', required=False, help="log hprintf output to seperate files (not console)",
                         action='store_true', default=False)
+    parser.add_argument('-t', '--timeout', required=False, metavar='<s>', help="hard timeout for Qemu executions (seconds)",
+                        type=float, default=4)
 
 
 class FullPath(argparse.Action):

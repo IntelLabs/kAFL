@@ -96,6 +96,7 @@ def execute_once(config, qemu_verbose=False, notifiers=True):
     q = qemu(1337, config, debug_mode=False, notifiers=notifiers, resume=resume)
     assert q.start(), "Failed to start Qemu?"
 
+
     store_traces = config.argument_values["trace"]
     if store_traces:
         trace_out = config.argument_values["work_dir"] + "/redqueen_workdir_1337/pt_trace_results.txt"
@@ -234,7 +235,6 @@ def debug_non_det(config, max_execs=0):
                 #q.async_exit()
                 #q = qemu(0, config, debug_mode=False, resume=resume)
                 #assert q.start(), "Failed to launch Qemu."
-                #q.set_timeout(3)
                 q.set_payload(payload)
                 time.sleep(delay)
                 if store_traces: 

@@ -73,8 +73,9 @@ class SlaveProcess:
         self.logic = FuzzingStateLogic(self, self.config)
         self.conn = connection
         self.payload_size_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 5
-        self.timeout_limit_max = 4 # in seconds. TODO: make configurable
-        self.validate_timeouts = False # make configurable
+        self.t_hard = config.argument_values['timeout']
+        self.t_soft = config.argument_values['t_soft']
+        self.t_check = config.argument_values['t_check']
 
         self.bitmap_storage = BitmapStorage(self.config, self.config.config_values['BITMAP_SHM_SIZE'], "master")
 
@@ -84,6 +85,7 @@ class SlaveProcess:
     def handle_import(self, msg):
         meta_data = {"state": {"name": "import"}, "id": 0}
         payload = msg["task"]["payload"]
+        self.q.set_timeout(self.t_hard)
         self.logic.process_node(payload, meta_data)
         self.conn.send_ready()
 
@@ -97,6 +99,7 @@ class SlaveProcess:
             while (time.time() - start_time) < busy_timeout:
                 meta_data = {"state": {"name": "import"}, "id": 0}
                 payload = rand.bytes(rand.int(32))
+                self.q.set_timeout(self.t_hard)
                 self.logic.process_node(payload, meta_data)
         else:
             logger.warn("%s No ready work items, waiting..." % self)
@@ -108,8 +111,8 @@ class SlaveProcess:
         payload = QueueNode.get_payload(meta_data["info"]["exit_reason"], meta_data["id"])
 
         # fixme: determine globally based on all seen regulars
-        t_dyn = 1/500 + 1.2 * meta_data["info"]["performance"]
-        self.q.set_timeout(min(self.timeout_limit_max, t_dyn))
+        t_dyn = self.t_soft + 1.2 * meta_data["info"]["performance"]
+        self.q.set_timeout(min(self.t_hard, t_dyn))
 
         results, new_payload = self.logic.process_node(payload, meta_data)
         if new_payload:
@@ -301,12 +304,12 @@ class SlaveProcess:
                     self.statistics.event_funky()
             if exec_res.exit_reason == "timeout" and not hard_timeout:
                 # re-run payload with max timeout
-                # can be quite slow, so we only do this if prior run has some new edges or validate_timeouts=True.
+                # can be quite slow, so we only do this if prior run has some new edges or t_check=True.
                 # t_dyn should grow over time and eventually include slower inputs up to max timeout
                 maybe_new_regular = self.bitmap_storage.should_send_to_master(exec_res, "regular")
-                if self.validate_timeouts or maybe_new_regular:
+                if self.t_check or maybe_new_regular:
                     dyn_timeout = self.q.get_timeout()
-                    self.q.set_timeout(self.timeout_limit_max)
+                    self.q.set_timeout(self.t_hard)
                     # if still new, register the payload as regular or (true) timeout
                     exec_res, is_new = self.execute(data, info, hard_timeout=True)
                     self.q.set_timeout(dyn_timeout)
