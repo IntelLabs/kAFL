@@ -109,11 +109,6 @@ def prepare_working_dir(config):
         for folder in folders:
             os.makedirs(work_dir + folder)
 
-    # ensure these exist (flags may have changed on --resume)
-    open(work_dir + "/page_cache.lock", "wb").close()
-    open(work_dir + "/page_cache.dump", "wb").close()
-    open(work_dir + "/page_cache.addr", "wb").close()
-
     if config.argument_values.get('funky', False):
         os.makedirs(work_dir + "/funky/", exist_ok=True)
 
