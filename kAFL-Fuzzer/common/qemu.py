@@ -184,17 +184,6 @@ class qemu:
         self.exiting = True
         self.shutdown()
 
-        for tmp_file in [
-                self.payload_filename,
-                self.tracedump_filename,
-                self.control_filename,
-                self.binary_filename,
-                self.bitmap_filename]:
-            try:
-                os.remove(tmp_file)
-            except:
-                pass
-
 
     def shutdown(self):
         logger.info("%s Shutting down Qemu after %d execs.." % (self, self.persistent_runs))
@@ -252,6 +241,18 @@ class qemu:
             os.close(self.fs_shm_f)
         except:
             pass
+
+        for tmp_file in [
+                self.payload_filename,
+                self.tracedump_filename,
+                self.control_filename,
+                self.binary_filename,
+                self.bitmap_filename]:
+            try:
+                os.remove(tmp_file)
+            except:
+                pass
+
 
         return self.process.returncode
 
