@@ -156,9 +156,12 @@ class qemu:
                     self.cmd += " -fast_vm_reload path=%s,load=off " % (
                             work_dir + "/snapshot/")
             else:
-                self.cmd += " -fast_vm_reload path=%s,load=on " % (
+                # TDX: all VMs perform regular boot & race for snapshot lock
+                self.cmd += " -fast_vm_reload path=%s,load=off " % (
                              work_dir + "/snapshot/")
-                time.sleep(1) # fixes some page_cache race bugs?!
+                # starting many qemu instances at once causes random crashes
+                if qid != 1337:
+                    time.sleep(0.1*qid)
 
         # split cmd into list of arguments for Popen(), replace BOOTPARAM as single element
         self.cmd = [_f for _f in self.cmd.split(" ") if _f]
