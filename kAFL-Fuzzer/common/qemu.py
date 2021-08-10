@@ -241,6 +241,7 @@ class qemu:
             pass
 
         for tmp_file in [
+                self.qemu_aux_buffer_filename,
                 self.payload_filename,
                 self.control_filename,
                 self.binary_filename,
@@ -250,7 +251,7 @@ class qemu:
             except:
                 pass
 
-
+        self.redqueen_workdir.rmtree()
         return self.process.returncode
 
     def __set_agent(self):

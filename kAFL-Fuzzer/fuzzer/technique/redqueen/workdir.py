@@ -20,6 +20,9 @@ class RedqueenWorkdir:
             shutil.rmtree(self.base_path)
         os.makedirs(self.base_path)
 
+    def rmtree(self):
+        shutil.rmtree(self.base_path, ignore_errors=True)
+
     def redqueen(self):
         return self.base_path + "/redqueen_results.txt"
 
