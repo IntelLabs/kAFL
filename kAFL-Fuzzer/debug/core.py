@@ -154,38 +154,43 @@ def debug_non_det(config, max_execs=0):
     q = qemu(1337, config, debug_mode=False)
     assert q.start(), "Failed to launch Qemu."
 
+    q.set_timeout(0)
+
     store_traces = config.argument_values["trace"]
     if store_traces:
         trace_out = config.argument_values["work_dir"] + "/redqueen_workdir_1337/pt_trace_results.txt"
         trace_dir  = config.argument_values["work_dir"] + "/noise/"
         os.makedirs(trace_dir)
 
+    null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
+
     hash_value = None
-    default_hash = None
+    first_hash = None
     hashes = dict()
     try:
         q.set_payload(payload)
 
         ## XXX first run has different trace?!
+        #if store_traces: 
+        #    exec_res = q.execute_in_trace_mode()
+        #else:
+        #    exec_res = q.send_payload()
+
+        ##time.sleep(delay)
+
         if store_traces: 
             exec_res = q.execute_in_trace_mode()
         else:
             exec_res = q.send_payload()
 
-        #time.sleep(delay)
+        first_hash = exec_res.hash()
+        hashes[first_hash] = 1
 
-        if store_traces: 
-            exec_res = q.execute_in_trace_mode()
-        else:
-            exec_res = q.send_payload()
-
-        default_hash = exec_res.hash()
-        hashes[default_hash] = 1
-
-        logger.info("Default Hash: " + str(default_hash))
+        logger.info("Null Hash:  %08x" % null_hash)
+        logger.info("First Hash: %08x" % first_hash)
 
         if store_traces:
-            shutil.copyfile(trace_out, trace_dir + "/trace_%08x.txt" % default_hash)
+            shutil.copyfile(trace_out, trace_dir + "/trace_%08x.txt" % first_hash)
 
         total = 1
         hash_mismatch = 0
@@ -209,28 +214,28 @@ def debug_non_det(config, max_execs=0):
 
                 time.sleep(delay)
                 hash_value = exec_res.hash()
-                if hash_value != default_hash:
-                    mismatch_r += 1
                 if hash_value in hashes:
                     hashes[hash_value] = hashes[hash_value] + 1
                 else:
                     hashes[hash_value] = 1
+                    mismatch_r += 1
                     if store_traces:
                         shutil.copyfile(trace_out, trace_dir + "/trace_%08x.txt" % hash_value)
                 execs += 1
             end = time.time()
             total += execs
             hash_mismatch += mismatch_r
+            accuracy = (total - hash_mismatch)*100 / total
             stdout.write(common.color.FLUSH_LINE + "Performance: " + str(
                 format(((execs * 1.0) / (end - start)), '.0f')) + "  t/s\tTotal: " + str(total) + "\tMismatch: ")
             if (len(hashes) != 1):
-                stdout.write(common.color.FAIL + str(hash_mismatch) + common.color.ENDC + " (+" + str(
-                    mismatch_r) + ")\tRatio: " + str(format(((hash_mismatch * 1.0) / total) * 100.00, '.2f')) + "%")
+                stdout.write(common.color.FAIL + str(hash_mismatch) + common.color.ENDC + " (+%d)\tAccuracy: %.2f%%" % (mismatch_r, accuracy))
                 stdout.write("\t\tHashes:\t" + str(len(hashes.keys())) + " (" + str(
                     format(((len(hashes.keys()) * 1.0) / total) * 100.00, '.2f')) + "%)")
             else:
-                stdout.write(common.color.OKGREEN + str(hash_mismatch) + common.color.ENDC + " (+" + str(
-                    mismatch_r) + ")\tRatio: " + str(format(((hash_mismatch * 1.0) / total) * 100.00, '.2f')) + "%")
+                stdout.write(common.color.OKGREEN + str(hash_mismatch) + common.color.ENDC + " (+%d)\tAccuracy: %.2f%%" % (mismatch_r, accuracy))
+                #stdout.write(common.color.OKGREEN + str(hash_mismatch) + common.color.ENDC + " (+" + str(
+                #    mismatch_r) + ")\tRatio: " + str(format(((hash_mismatch * 1.0) / total) * 100.00, '.2f')) + "%")
             stdout.flush()
 
     except Exception as e:
@@ -242,7 +247,7 @@ def debug_non_det(config, max_execs=0):
 
     stdout.write("\n")
     for h in hashes.keys():
-        if h == default_hash:
+        if h == first_hash:
             logger.info("* %08x: %03d" % (h, hashes[h]))
         else:
             logger.info("  %08x: %03d" % (h, hashes[h]))
