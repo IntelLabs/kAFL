@@ -369,12 +369,12 @@ class GuiDrawer:
                 return
 
             if not redraw and not self.data.redraw:
-                time.sleep(0.05)
-                continue
+                time.sleep(0.1)
 
             self.gui_mutex.acquire()
 
-            self.gui.clear()
+            #self.gui.clear()
+            self.gui.refresh()
             min_rows = self.fix_rows + self.min_slave_rows
             min_cols = 82
             cur_rows, cur_cols = self.stdscr.getmaxyx()
