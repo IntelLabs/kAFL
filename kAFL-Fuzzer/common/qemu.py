@@ -314,7 +314,7 @@ class qemu:
             self.async_exit()
 
         while self.qemu_aux_buffer.get_state() != 3:
-            logger.info("%s Waiting for target to enter fuzz mode.." % self)
+            #logger.debug("%s Waiting for target to enter fuzz mode.." % self)
             self.run_qemu()
             result = self.qemu_aux_buffer.get_result()
             if result.hprintf:
@@ -365,7 +365,8 @@ class qemu:
         return True
 
     def handle_hprintf(self):
-        msg = strdump(self.qemu_aux_buffer.get_misc_buf()[:-1], verbatim=True)
+        msg = self.qemu_aux_buffer.get_misc_buf()
+        msg = msg[:-1].decode('latin-1', errors='backslashreplace')
 
         if self.hprintf_log:
             with open(self.hprintf_logfile, "a") as f:
