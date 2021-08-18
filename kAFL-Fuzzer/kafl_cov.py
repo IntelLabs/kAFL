@@ -192,7 +192,7 @@ def kafl_workdir_iterator(work_dir):
     # TODO: Tracing crashes/timeouts has minimal overall improvement ~1-2%
     # Probably want to make this optional, and only trace a small sample
     # of non-regular payloads by default?
-    for input_file in glob.glob(work_dir + "/corpus/[rctk]*/*"):
+    for input_file in glob.glob(work_dir + "/corpus/[rck]*/*"):
         if not input_file:
             return None
         input_id = os.path.basename(input_file).replace("payload_", "")
@@ -363,7 +363,7 @@ def generate_traces_worker(config, pid, work_queue):
                             ip_start = hex(config.argument_values[key][0]).replace("L", "")
                             ip_end = hex(config.argument_values[key][1]).replace("L", "")
                             cmd += [ ip_start, ip_end ]
-                    subprocess.run(cmd, timeout=60)
+                    subprocess.run(cmd, timeout=160)
 
                     with open(tmpfile, 'rb') as f_in:
                         with lz4.LZ4FrameFile(trace_file, 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
