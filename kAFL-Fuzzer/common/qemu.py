@@ -370,7 +370,7 @@ class qemu:
         if self.hprintf_log:
             with open(self.hprintf_logfile, "a") as f:
                 f.write(msg)
-        else:
+        elif not self.config.argument_values['quiet']:
             print_hprintf(msg)
 
 
