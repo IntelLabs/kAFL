@@ -330,10 +330,6 @@ class qemu:
         self.qemu_aux_buffer.set_reload_mode(True)
         self.qemu_aux_buffer.set_timeout(self.config.argument_values['timeout'])
 
-        # FIXME: run once to adopt aux_buffer config?
-        #        should not be required anymore..
-        #self.run_qemu()
-
         return
 
     def __qemu_connect(self):
