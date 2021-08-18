@@ -363,7 +363,13 @@ def generate_traces_worker(config, pid, work_queue):
                             ip_start = hex(config.argument_values[key][0]).replace("L", "")
                             ip_end = hex(config.argument_values[key][1]).replace("L", "")
                             cmd += [ ip_start, ip_end ]
-                    subprocess.run(cmd, timeout=160)
+
+                    try:
+                        subprocess.run(cmd, timeout=180)
+                    except subprocess.TimeoutExpired as e:
+                        print(e)
+                        continue
+
 
                     with open(tmpfile, 'rb') as f_in:
                         with lz4.LZ4FrameFile(trace_file, 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
