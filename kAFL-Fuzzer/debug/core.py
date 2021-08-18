@@ -243,7 +243,7 @@ def debug_non_det(config, max_execs=0):
                     exec_res = q.send_payload()
 
                 if exec_res.is_crash():
-                    logger.info("Crashed - restarting...")
+                    logger.info("\nExit reason `%s` - restarting..." % exec_res.exit_reason)
                     q.reload()
 
                 time.sleep(delay)
