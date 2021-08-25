@@ -77,7 +77,7 @@ class qemu:
                     ",worker_id=%d" % self.qemu_id + \
                     ",bitmap_size=" + str(self.bitmap_size)
 
-        if self.config.argument_values['dump_pt']:
+        if self.config.argument_values['trace']:
             self.cmd += ",dump_pt_trace"
 
         if self.config.argument_values['trace_cb']:

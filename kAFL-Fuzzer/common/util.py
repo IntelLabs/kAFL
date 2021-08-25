@@ -112,7 +112,8 @@ def prepare_working_dir(config):
     if config.argument_values.get('funky', False):
         os.makedirs(work_dir + "/funky/", exist_ok=True)
 
-    if config.argument_values.get('trace', False):
+    if (config.argument_values.get('trace', False) or
+        config.argument_values.get('trace_cb', False)):
         os.makedirs(work_dir + "/traces/", exist_ok=True)
 
     return True

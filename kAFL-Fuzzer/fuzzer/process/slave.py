@@ -148,13 +148,23 @@ class SlaveProcess:
             else:
                 raise ValueError("Unknown message type {}".format(msg))
 
-    def quick_validate(self, data, old_res, quiet=False):
+    def quick_validate(self, data, old_res, quiet=False, trace=False):
         # Validate in persistent mode. Faster but problematic for very funky targets
         self.statistics.event_exec()
         old_array = old_res.copy_to_array()
 
+        if trace:
+            self.q.set_trace_mode(True)
+            # give a little extra time in case payload is close to limit
+            dyn_timeout = self.q.get_timeout()
+            self.q.set_timeout(self.t_hard*2)
+
         new_res = self.__execute(data).apply_lut()
         new_array = new_res.copy_to_array()
+
+        if trace:
+            self.q.set_trace_mode(False)
+            self.q.set_timeout(dyn_timeout)
 
         if new_array == old_array:
             return True, new_res.performance
@@ -163,18 +173,23 @@ class SlaveProcess:
             logger.warn("%s Input validation failed! Target is funky?.." % self)
         return False, new_res.performance
 
-    def funky_validate(self, data, old_res):
+    def funky_validate(self, data, old_res, trace=False):
         # Validate in persistent mode with stochastic prop of funky results
 
         validations = 8
         confirmations = 0
         runtime_avg = 0
         num = 0
+        trace_round=False
+
         for num in range(validations):
-            stable, runtime = self.quick_validate(data, old_res, quiet=True)
+            stable, runtime = self.quick_validate(data, old_res, quiet=True, trace=trace_round)
             if stable:
                 confirmations += 1
                 runtime_avg += runtime
+
+            if confirmations >= 0.5*validations:
+                trace_round=trace
 
             if confirmations >= 0.75*validations:
                 return True, runtime_avg/num
@@ -306,18 +321,29 @@ class SlaveProcess:
         crash = exec_res.is_crash()
         stable = False
 
+        # -trace_cb causes slower execution and different bitmap computation
+        # if both -trace and -trace_cb is provided, we must delay tracing to calibration stage
+        trace_pt = self.config.argument_values['trace'] and not self.config.argument_values['trace_cb']
+
         # store crashes and any validated new behavior
         # do not validate timeouts and crashes at this point as they tend to be nondeterministic
         if is_new_input:
             if not crash:
                 assert exec_res.is_lut_applied()
+
                 if self.config.argument_values["funky"]:
-                    stable, runtime = self.funky_validate(data, exec_res)
+                    stable, runtime = self.funky_validate(data, exec_res, trace=trace_pt)
                     exec_res.performance = runtime
                 else:
-                    stable, runtime = self.quick_validate(data, exec_res)
+                    stable, runtime = self.quick_validate(data, exec_res, trace=trace_pt)
                     exec_res.performance = (exec_res.performance + runtime)/2
 
+                if trace_pt and stable:
+                    trace_in = "%s/pt_trace_dump_%d" % (self.work_dir, self.slave_id)
+                    if (os.path.exists(trace_in)):
+                        with tempfile.NamedTemporaryFile(delete=False,dir=self.work_dir + "/traces") as f:
+                            shutil.move(trace_in, f.name)
+                            info['pt_dump'] = f.name
                 if not stable:
                     # TODO: auto-throttle persistent runs based on funky rate?
                     self.statistics.event_funky()

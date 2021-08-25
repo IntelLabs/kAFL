@@ -13,6 +13,8 @@ import glob
 import os
 from pprint import pformat
 import mmh3
+import shutil
+import lz4.frame as lz4
 
 from common.log import logger
 from common.util import read_binary_file
@@ -31,6 +33,7 @@ class MasterProcess:
         self.config = config
         self.comm = ServerConnection(self.config)
         self.debug_mode = config.argument_values['debug']
+        self.work_dir = self.config.argument_values['work_dir']
 
         self.busy_events = 0
         self.empty_hash = mmh3.hash(("\x00" * self.config.config_values['BITMAP_SHM_SIZE']), signed=False)
@@ -52,7 +55,7 @@ class MasterProcess:
     def send_next_task(self, conn):
         # Inputs placed to imports/ folder have priority.
         # This can also be used to inject additional seeds at runtime.
-        imports = glob.glob(self.config.argument_values['work_dir'] + "/imports/*")
+        imports = glob.glob(self.work_dir + "/imports/*")
         if imports:
             path = imports.pop()
             logger.debug("Importing payload from %s" % path)
@@ -115,6 +118,16 @@ class MasterProcess:
             if n_limit < self.statistics.data['total_execs']:
                 raise SystemExit("Exit on max execs.")
 
+    def store_node(self, node, tmp_trace):
+        if tmp_trace and os.path.exists(tmp_trace):
+            trace_dump_out = "%s/traces/payload_%05d.dump" % (self.work_dir, node.get_id())
+            with open(tmp_trace, 'rb') as f_in:
+                with lz4.LZ4FrameFile(trace_dump_out + ".lz4", 'wb',
+                        compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+
+            os.remove(tmp_trace)
+
     def maybe_insert_node(self, payload, bitmap_array, node_struct):
         bitmap = ExecutionResult.bitmap_from_bytearray(bitmap_array, node_struct["info"]["exit_reason"],
                                                        node_struct["info"]["performance"])
@@ -122,12 +135,19 @@ class MasterProcess:
         backup_data = bitmap.copy_to_array()
         should_store, new_bytes, new_bits = self.bitmap_storage.should_store_in_queue(bitmap)
         new_data = bitmap.copy_to_array()
+        trace_dump_tmp = node_struct["info"].get("pt_dump", None)
         if should_store:
             node = QueueNode(payload, bitmap_array, node_struct, write=False)
             node.set_new_bytes(new_bytes, write=False)
             node.set_new_bits(new_bits, write=False)
             self.queue.insert_input(node, bitmap)
-        elif self.debug_mode:
+            self.store_node(node, trace_dump_tmp)
+            return
+
+        if trace_dump_tmp and os.path.exists(trace_dump_tmp):
+            os.remove(trace_dump_tmp)
+
+        if self.debug_mode:
             logger.debug("Received duplicate payload with exit=%s, discarding." % node_struct["info"]["exit_reason"])
             for i in range(len(bitmap_array)):
                 if backup_data[i] != new_data[i]:
