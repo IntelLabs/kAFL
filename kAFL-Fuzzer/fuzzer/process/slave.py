@@ -174,8 +174,8 @@ class SlaveProcess:
                 confirmations += 1
                 runtime_avg += runtime
 
-        if confirmations >= 0.75*validations:
-            return True, runtime_avg/num
+            if confirmations >= 0.75*validations:
+                return True, runtime_avg/num
 
         logger.debug("%s Funky input received %d/%d confirmations. Rejecting.." % (self, confirmations, validations))
         if self.config.argument_values['debug']:
