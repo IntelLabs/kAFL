@@ -183,7 +183,7 @@ class FuzzingStateLogic:
     def handle_initial(self, payload, metadata):
         time_initial_start = time.time()
 
-        if self.config.argument_values["trace"]:
+        if self.config.argument_values["trace_cb"]:
             self.stage_update_label("trace")
             self.slave.trace_payload(payload, metadata)
 

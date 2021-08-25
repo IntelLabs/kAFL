@@ -16,6 +16,7 @@ import time
 import signal
 import sys
 import shutil
+import tempfile
 
 import lz4.frame as lz4
 
@@ -72,6 +73,7 @@ class SlaveProcess:
         self.statistics = SlaveStatistics(self.slave_id, self.config)
         self.logic = FuzzingStateLogic(self, self.config)
         self.conn = connection
+        self.work_dir = self.config.argument_values['work_dir']
         self.payload_size_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 5
         self.t_hard = config.argument_values['timeout']
         self.t_soft = config.argument_values['t_soft']
@@ -187,7 +189,7 @@ class SlaveProcess:
         num_funky += 1
 
         # store funky input for further analysis 
-        funky_folder = self.config.argument_values['work_dir'] + "/funky/"
+        funky_folder = self.work_dir + "/funky/"
         atomic_write(funky_folder + "input_%02d_%05d" % (self.slave_id, num_funky), data)
 
     def validate_bits(self, data, old_node, default_info):
@@ -228,9 +230,12 @@ class SlaveProcess:
             self.conn.send_new_input(data, exec_res.copy_to_array(), info)
 
     def trace_payload(self, data, info):
-        trace_file_in = self.config.argument_values['work_dir'] + "/redqueen_workdir_%d/pt_trace_results.txt" % self.slave_id;
-        trace_folder = self.config.argument_values['work_dir'] + "/traces/"
-        trace_file_out = trace_folder + "payload_%05d" % info['id']
+        # Legacy implementation of -trace. This runs after a new found
+        # payload is scheduled for fuzzing again, which can be too late for stateful targets
+        trace_edge_in = self.work_dir + "/redqueen_workdir_%d/pt_trace_results.txt" % self.slave_id
+        trace_dump_in = self.work_dir + "/pt_trace_dump_%d" % self.slave_id
+        trace_edge_out = self.work_dir + "/traces/payload_%05d.lst" % info['id']
+        trace_dump_out = self.work_dir + "/traces/payload_%05d.bin" % info['id']
 
         logger.info("%s Tracing payload_%05d.." % (self, info['id']))
 
@@ -239,17 +244,31 @@ class SlaveProcess:
 
         try:
             self.q.set_payload(data)
-            exec_res = self.q.execute_in_trace_mode(trace_timeout=0)
+            old_timeout = self.q.get_timeout()
+            self.q.set_timeout(0)
+            self.q.set_trace_mode(True)
+            exec_res = self.q.send_payload()
 
-            with open(trace_file_in, 'rb') as f_in:
-                with lz4.LZ4FrameFile(trace_file_out + ".lz4", 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
-                    shutil.copyfileobj(f_in, f_out)
+            self.q.set_trace_mode(False)
+            self.q.set_timeout(old_timeout)
+
+            if (os.path.exists(trace_edge_in)):
+                with open(trace_edge_in, 'rb') as f_in:
+                    with lz4.LZ4FrameFile(trace_edge_out + ".lz4", 'wb',
+                            compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+
+            if (os.path.exists(trace_dump_in)):
+                with open(trace_dump_in, 'rb') as f_in:
+                    with lz4.LZ4FrameFile(trace_dump_out + ".lz4", 'wb',
+                            compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
+                        shutil.copyfileobj(f_in, f_out)
 
             if not exec_res.is_regular():
                 self.statistics.event_reload(exec_res.exit_reason)
                 self.q.reload()
         except Exception as e:
-            logger.info("%s Failed to produce trace %s: %s (skipping..)" % (self, trace_file_out, e))
+            logger.info("%s Failed to produce trace %s: %s (skipping..)" % (self, trace_edge_out, e))
             return None
 
         return exec_res

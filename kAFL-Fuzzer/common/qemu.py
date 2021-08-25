@@ -80,6 +80,9 @@ class qemu:
         if self.config.argument_values['dump_pt']:
             self.cmd += ",dump_pt_trace"
 
+        if self.config.argument_values['trace_cb']:
+            self.cmd += ",edge_cb_trace"
+
         if self.debug_mode:
             self.cmd += ",debug_mode"
 
@@ -502,25 +505,17 @@ class qemu:
         else:
             return "regular"
 
-    def execute_in_trace_mode(self, trace_timeout=None):
-        logger.debug("%s Performing trace iteration..." % self)
-        exec_res = None
-        try:
-            self.qemu_aux_buffer.set_trace_mode(True)
-            exec_res = self.send_payload()
-            self.qemu_aux_buffer.set_trace_mode(False)
-        except Exception as e:
-            logger.error("%s Trace execution failed: %s" % (self, str(e)))
-            return None
-
-        return exec_res
-
     def set_timeout(self, timeout):
         assert(self.qemu_aux_buffer)
         self.qemu_aux_buffer.set_timeout(timeout)
 
     def get_timeout(self):
         return self.qemu_aux_buffer.get_timeout()
+
+    def set_trace_mode(self, enable):
+        assert(self.qemu_aux_buffer)
+        self.qemu_aux_buffer.set_trace_mode(enable)
+
 
     def execute_in_redqueen_mode(self, payload):
         # execute once to ensure we have all pages - should not be required

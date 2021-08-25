@@ -200,7 +200,7 @@ def add_args_qemu(parser):
                         default="", type=str)
     parser.add_argument('-X', metavar='<type>', required=False, help='launch Qemu with -display <type>, e.g. vnc',
                         type=str, default=False)
-    parser.add_argument("-dump_pt", required=False, help='dump Intel PT traces to /dev/shm/', 
+    parser.add_argument("-trace_cb", required=False, help='enable tracing based on libxdc edge callback',
                         action='store_true', default=False)
 
     parser.add_argument('-forkserver', required=False, help='target has forkserver (skip Qemu resets)',
