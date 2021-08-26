@@ -118,14 +118,13 @@ class MasterProcess:
             if n_limit < self.statistics.data['total_execs']:
                 raise SystemExit("Exit on max execs.")
 
-    def store_node(self, node, tmp_trace):
+    def store_trace(self, node, tmp_trace):
         if tmp_trace and os.path.exists(tmp_trace):
-            trace_dump_out = "%s/traces/payload_%05d.dump" % (self.work_dir, node.get_id())
+            trace_dump_out = "%s/traces/fuzz_%05d.bin" % (self.work_dir, node.get_id())
             with open(tmp_trace, 'rb') as f_in:
                 with lz4.LZ4FrameFile(trace_dump_out + ".lz4", 'wb',
                         compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
                     shutil.copyfileobj(f_in, f_out)
-
             os.remove(tmp_trace)
 
     def maybe_insert_node(self, payload, bitmap_array, node_struct):
@@ -141,7 +140,7 @@ class MasterProcess:
             node.set_new_bytes(new_bytes, write=False)
             node.set_new_bits(new_bits, write=False)
             self.queue.insert_input(node, bitmap)
-            self.store_node(node, trace_dump_tmp)
+            self.store_trace(node, trace_dump_tmp)
             return
 
         if trace_dump_tmp and os.path.exists(trace_dump_tmp):

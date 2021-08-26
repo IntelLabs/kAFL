@@ -76,7 +76,9 @@ class TraceParser:
         timestamps = list()
 
         for input_file, nid, timestamp in input_list:
-            trace_file = self.trace_dir + os.path.basename(input_file) + ".lz4"
+            #trace_file = self.trace_dir + os.path.basename(input_file) + ".lz4"
+            #trace_file = "%s/cov_%05d.lst.lz4" % (trace_dir, nid)
+            trace_file = "%s/fuzz_%05d.lst.lz4" % (self.trace_dir, nid)
             if os.path.exists(trace_file):
                 trace_files.append(trace_file)
                 timestamps.append(timestamp)
@@ -255,9 +257,18 @@ def generate_traces(config, nproc, input_list):
     os.makedirs(trace_dir, exist_ok=True)
 
     work_queue = list()
-    for input_path, _, _ in input_list:
-        trace_file = trace_dir + os.path.basename(input_path) + ".lz4"
-        dump_file = trace_dir + os.path.basename(input_path) + ".dump"
+    for input_path, nid, _ in input_list:
+
+        # FIXME: should fully separate decode step to decide more flexibly which
+        # type of traces to decode all of these can be relevant: runtime 'fuzz',
+        # 'cov' (separate kafl_cov) or noise (additional traces generated from
+        # noisy targets)
+        # generate own cov_NNNNN.bin files for decoding
+        dump_file  = "%s/cov_%05d.bin.lz4" % (trace_dir, nid)
+        trace_file = "%s/cov_%05d.lst.lz4" % (trace_dir, nid)
+        # pickup existing fuzz_NNNNN.bin or generate them here for decoding
+        dump_file  = "%s/fuzz_%05d.bin.lz4" % (trace_dir, nid)
+        trace_file = "%s/fuzz_%05d.lst.lz4" % (trace_dir, nid)
         work_queue.append((input_path, dump_file, trace_file))
 
     chunksize=ceil(len(work_queue)/nproc)

@@ -245,12 +245,14 @@ class SlaveProcess:
             self.conn.send_new_input(data, exec_res.copy_to_array(), info)
 
     def trace_payload(self, data, info):
-        # Legacy implementation of -trace. This runs after a new found
-        # payload is scheduled for fuzzing again, which can be too late for stateful targets
+        # Legacy implementation of -trace (now -trace_cb) using libxdc_edge_callback hook.
+        # This is generally slower and produces different bitmaps so we execute it in
+        # a different phase as part of calibration stage.
+        # Optionally pickup pt_trace_dump* files as well in case both methods are enabled.
         trace_edge_in = self.work_dir + "/redqueen_workdir_%d/pt_trace_results.txt" % self.slave_id
         trace_dump_in = self.work_dir + "/pt_trace_dump_%d" % self.slave_id
-        trace_edge_out = self.work_dir + "/traces/payload_%05d.lst" % info['id']
-        trace_dump_out = self.work_dir + "/traces/payload_%05d.bin" % info['id']
+        trace_edge_out = self.work_dir + "/traces/fuzz_cb_%05d.lst" % info['id']
+        trace_dump_out = self.work_dir + "/traces/fuzz_cb_%05d.bin" % info['id']
 
         logger.info("%s Tracing payload_%05d.." % (self, info['id']))
 
