@@ -44,6 +44,8 @@ import csv
 
 null_hash = None
 
+PTDUMP_PATH = "/usr/local/bin/ptdump"
+
 class TraceParser:
 
     def __init__(self, trace_dir):
@@ -250,8 +252,6 @@ def generate_traces(config, nproc, input_list):
         logger.warn("No trace region configured!")
         return None
 
-    start = time.time()
-
     os.makedirs(trace_dir, exist_ok=True)
 
     work_queue = list()
@@ -287,8 +287,6 @@ def generate_traces(config, nproc, input_list):
     finally:
         graceful_exit(workers)
 
-    end = time.time()
-    logger.info("\n\nDone. Time taken: %.2fs\n" % (end - start))
     return trace_dir
 
 def generate_traces_worker(config, pid, work_queue):
@@ -323,15 +321,15 @@ def generate_traces_worker(config, pid, work_queue):
 
     # FIXME: really ugly switch between -trace and -dump_pt
     if dump_mode:
-        print("Tracing in '-dump_pt' mode..")
+        print("Tracing in '-trace' mode..")
         # new dump_pt mode - translate to edge trace in separate step
-        config.argument_values['dump_pt'] = True
-        config.argument_values['trace'] = False
+        config.argument_values['trace'] = True
+        config.argument_values['trace_cb'] = False
     else:
         # traditional -trace mode - more noisy and no bitmap to check
-        print("Tracing in legacy '-trace' mode..")
-        config.argument_values['dump_pt'] = False
-        config.argument_values['trace'] = True
+        print("Tracing in legacy '-trace_cb' mode..")
+        config.argument_values['trace'] = False
+        config.argument_values['trace_cb'] = True
 
     q = qemu(qemu_id, config, debug_mode=False)
     if not q.start():
@@ -349,36 +347,44 @@ def generate_traces_worker(config, pid, work_queue):
             print("\nProcessing %s.." % os.path.basename(input_path))
 
             if dump_mode:
+                # -trace mode (pt dump)
                 if not os.path.exists(dump_file):
                     qemu_file = work_dir + "/pt_trace_dump_%d" % qemu_id
                     if simple_trace_run(q, read_binary_file(input_path), q.send_payload):
-                        shutil.move(qemu_file, dump_file)
+                        with open(qemu_file, 'rb') as f_in:
+                            with lz4.LZ4FrameFile(dump_file, 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
+                                shutil.copyfileobj(f_in, f_out)
 
                 if not os.path.exists(trace_file):
-                    cmd = [ "/home/steffens/nyx/libxdc/build/ptdump_static",
-                            work_dir + "/page_cache", dump_file, tmpfile ]
-                    for i in range(2):
-                        key = "ip" + str(i)
-                        if key in config.argument_values and config.argument_values[key]:
-                            ip_start = hex(config.argument_values[key][0]).replace("L", "")
-                            ip_end = hex(config.argument_values[key][1]).replace("L", "")
-                            cmd += [ ip_start, ip_end ]
+                    with tempfile.NamedTemporaryFile(delete=False) as pt_tmp:
+                        with lz4.LZ4FrameFile(dump_file, 'rb') as pt_dump_lz4:
+                                shutil.copyfileobj(pt_dump_lz4, pt_tmp)
+                        pt_tmp.close()
 
-                    try:
-                        subprocess.run(cmd, timeout=180)
-                    except subprocess.TimeoutExpired as e:
-                        print(e)
-                        continue
+                        cmd = [ PTDUMP_PATH, work_dir + "/page_cache", pt_tmp.name, tmpfile ]
+                        for i in range(2):
+                            key = "ip" + str(i)
+                            if key in config.argument_values and config.argument_values[key]:
+                                ip_start = hex(config.argument_values[key][0]).replace("L", "")
+                                ip_end = hex(config.argument_values[key][1]).replace("L", "")
+                                cmd += [ ip_start, ip_end ]
 
+                        try:
+                            subprocess.run(cmd, timeout=180)
+                            os.unlink(pt_tmp.name)
+                        except subprocess.TimeoutExpired as e:
+                            print(e)
+                            continue
 
-                    with open(tmpfile, 'rb') as f_in:
-                        with lz4.LZ4FrameFile(trace_file, 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
-                            shutil.copyfileobj(f_in, f_out)
+                        with open(tmpfile, 'rb') as f_in:
+                            with lz4.LZ4FrameFile(trace_file, 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
+                                shutil.copyfileobj(f_in, f_out)
 
             else:
+                # -trace_cb mode (libxdc callback)
                 if not os.path.exists(trace_file):
                     qemu_file = work_dir + "/redqueen_workdir_%d/pt_trace_results.txt" % qemu_id
-                    if simple_trace_run(q, read_binary_file(input_path), q.execute_in_trace_mode):
+                    if simple_trace_run(q, read_binary_file(input_path), q.send_payload):
                         with open(qemu_file, 'rb') as f_in:
                             with lz4.LZ4FrameFile(trace_file, 'wb', compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
                                 shutil.copyfileobj(f_in, f_out)
@@ -394,7 +400,9 @@ def generate_traces_worker(config, pid, work_queue):
 def simple_trace_run(q, payload, send_func):
     global null_hash
     q.set_payload(payload)
+    q.set_trace_mode(True)
     exec_res = send_func()
+    q.set_trace_mode(False)
 
     if not exec_res:
         print("Failed to execute. Continuing anyway...\n")
@@ -472,13 +480,22 @@ def main():
 
     logger.info("Scanning target data_dir »%s«..." % data_dir)
     input_list = get_inputs_by_time(data_dir)
+
+    start = time.time()
+    logger.info("Generating traces...")
     trace_dir = generate_traces(config, nproc, input_list)
+    end = time.time()
+    logger.info("\n\nDone. Time taken: %.2fs\n" % (end - start))
 
     if not trace_dir:
         return -1
 
+    logger.info("Parsing traces...")
     trace_parser = TraceParser(trace_dir)
     trace_parser.parse_trace_list(nproc, input_list)
+    # TODO: store parsed traces here here and share class with other tools
+
+    # generate basic summary files
     trace_parser.gen_reports()
 
 if __name__ == "__main__":
