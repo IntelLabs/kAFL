@@ -89,32 +89,18 @@ def prepare_working_dir(config):
 
     folders = ["/corpus/regular", "/corpus/crash",
                "/corpus/kasan", "/corpus/timeout",
-               "/metadata", "/bitmaps", "/imports", "/snapshot"]
-
-    # refuse to work on existing dir unless --resume or --purge are supplied
-    if os.path.exists(work_dir):
-        if not purge and not resume:
-            return False
+               "/metadata", "/bitmaps", "/imports",
+               "/snapshot", "/funky", "/traces"]
 
     if purge:
         shutil.rmtree(work_dir, ignore_errors=True)
 
-        project_name = work_dir.split("/")[-1]
-        for path in glob.glob("/dev/shm/kafl_%s_*" % project_name):
-            os.remove(path)
-
-        if os.path.exists("/dev/shm/kafl_tfilter"):
-            os.remove("/dev/shm/kafl_tfilter")
-
+    try:
         for folder in folders:
-            os.makedirs(work_dir + folder)
-
-    if config.argument_values.get('funky', False):
-        os.makedirs(work_dir + "/funky/", exist_ok=True)
-
-    if (config.argument_values.get('trace', False) or
-        config.argument_values.get('trace_cb', False)):
-        os.makedirs(work_dir + "/traces/", exist_ok=True)
+            os.makedirs(work_dir + folder, exist_ok=resume)
+    except:
+        logger.error("Refuse to operate on existing work_dir without --purge or --resume")
+        return False
 
     return True
 
