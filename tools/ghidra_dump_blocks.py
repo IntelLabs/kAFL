@@ -45,12 +45,9 @@ print_missing = True
 # report blocks that are only reached implicitly (unconditional jmp/call)
 print_implicit = True
 # ignore funcitons with less than n blocks?
-ignore_threshold = 4
+ignore_threshold = -1
 # detailed log of edge scanning
 verbose = False
-
-# functions to exclude from cov total
-func_blacklist = []
 
 service = None
 if state.getTool():
@@ -259,6 +256,38 @@ def scan_by_edges(model, edges):
 
     return unmapped_edges
 
+def dump_blocks(verbose):
+    reached_map = dict()
+    blocks_map = dict()
+    reached_addr = set()
+    reached_blocks = 0
+
+    for block in blocklist:
+        reached_blocks += 1
+
+        addr = block.getFirstStartAddress()
+        func = str(getFunctionContaining(addr))
+
+        if func in blocks_map:
+            blocks_map[func] += 1
+        else:
+            blocks_map[func] = 1
+
+        if func in reached_map:
+            reached_map[func] += 1
+        else:
+            reached_map[func] = 1
+
+        reached_addr.update(block.getAddresses(True))
+
+        if verbose:
+            show_block(block)
+            return
+
+    for addr in reached_addr:
+        #print "0x%016x" % (addr.getUnsignedOffset())
+        print "reached: %s (%s)" % (addr.toString(), str(getFunctionContaining(addr)))
+
 def main():
 
     model = BasicBlockModel(getCurrentProgram())
@@ -277,95 +306,8 @@ def main():
     edges = read_edges("/tmp/edges_uniq.lst")
     unmapped_edges = scan_by_edges(model, edges)
 
-    ##
-    # Compute blocks reached/unreached by function
-    # While at it, also count the total number of base blocks
-    ##
-    BlockIter = model.getCodeBlocks(monitor)
-    total_blocks = 0
-    missing_blocks = 0
-    reached_blocks = 0
-    reached_map = dict() # map of reached blocks by function
-    blocks_map = dict()  # map of total blocks by function
-    while BlockIter.hasNext():
-        total_blocks += 1
-        block = BlockIter.next()
-        addr = block.getFirstStartAddress()
-        func = str(getFunctionContaining(addr))
+    dump_blocks(verbose)
 
-        if func in blocks_map:
-            blocks_map[func] += 1
-        else:
-            blocks_map[func] = 1
-
-        if func in func_blacklist:
-            if block in blocklist:
-                print "Block: addr=%s, name=%s func=%s, reached=%d" % (
-                      addr, id(block), func, (block in blocklist))
-            continue
-
-        if block in blocklist:
-            reached_blocks += 1
-            if func in reached_map:
-                reached_map[func] += 1
-            else:
-                reached_map[func] = 1
-        else:
-            missing_blocks +=1
-        #print "Block: addr=%s, name=%s func=%s, reached=%d" % (
-        #        addr, id(block), func, (block in blocklist))
-
-    ##
-    ## Summarize blocks reached/missed by function
-    ##
-    print
-    total_blocks_reachable=0
-    for func, blocks in sorted(reached_map.items(), key=lambda x: str(x[0]).lower):
-        total = blocks_map[func]
-        percent = blocks * 100 / total
-        total_blocks_reachable += total
-        if total > ignore_threshold:
-            print "Reached: %3d from %3d blocks (%3d%%) in %s" % (blocks, total, percent, func)
-
-    print
-    if print_missing:
-        for func, blocks in sorted(blocks_map.items(), key=lambda x: str(x[0]).lower):
-            if func in func_blacklist:
-                print "Ignore: %3d blocks in %s" % (blocks, func)
-                continue
-            if func not in reached_map and blocks > ignore_threshold:
-                print "Missed: %3d blocks in %s" % (blocks, func)
-
-    if print_implicit and len(implicit_blocks):
-        print "\nMarked %d implicitly reached blocks:\n\t%s" % (
-                len(implicit_blocks), ', '.join(str(x.name) for x in implicit_blocks))
-
-    ##
-    # Overall Summary
-    ##
-    blocks_ignored = 0
-    for func in func_blacklist:
-        if blocks_map.get(func):
-            blocks_ignored += blocks_map[func]
-    blocks_ignored = sum([blocks_map.get(func, 0) for func in func_blacklist])
-
-    filtered_blocks = reached_blocks + missing_blocks
-    block_cov = reached_blocks * 100 / filtered_blocks
-    func_cov = len(reached_map) * 100 / len(blocks_map)
-
-    print
-    print "Total blocks in file: %6d" % total_blocks
-    print "         blacklisted: %6d" % blocks_ignored
-    print "           remaining: %6d" % filtered_blocks
-    print
-    print "Total edges in trace: %6d" % len(edges)
-    print "Failed to map edges:  %6d" % unmapped_edges
-    print
-    print "Total reached funcs:  %6d / %6d (%d%%)" % (len(reached_map), len(blocks_map), func_cov)
-    print "Total reached blocks: %6d / %6d (%d%%)" % (reached_blocks, filtered_blocks, block_cov)
-    print " ..in reached funcs:  %6d / %6d (%d%%)" % (reached_blocks, total_blocks_reachable,
-                                                      100*reached_blocks/total_blocks_reachable)
-    print "  Blocks not reached: %6d" % missing_blocks
-    print
+    return
 
 main()
