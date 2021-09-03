@@ -62,6 +62,7 @@ def slave_loader(slave_id):
 
 
 num_funky = 0
+num_crashes = 0
 
 class SlaveProcess:
 
@@ -78,6 +79,8 @@ class SlaveProcess:
         self.t_hard = config.argument_values['timeout']
         self.t_soft = config.argument_values['t_soft']
         self.t_check = config.argument_values['t_check']
+        self.qemu_logfiles = {'hprintf': self.q.hprintf_logfile,
+                              'serial': self.q.serial_logfile}
 
         self.bitmap_storage = BitmapStorage(self.config, self.config.config_values['BITMAP_SHM_SIZE'], "master")
 
@@ -138,6 +141,11 @@ class SlaveProcess:
             except ConnectionResetError:
                 logger.error("%s Lost connection to master. Shutting down." % self)
                 return
+
+            if self.config.argument_values['log_crashes']:
+                # reset logs for each new seed/input
+                for _, logfile in self.qemu_logfiles.items():
+                    os.truncate(logfile,0)
 
             if msg["type"] == MSG_RUN_NODE:
                 self.handle_node(msg)
@@ -204,8 +212,20 @@ class SlaveProcess:
         num_funky += 1
 
         # store funky input for further analysis 
-        funky_folder = self.work_dir + "/funky/"
-        atomic_write(funky_folder + "input_%02d_%05d" % (self.slave_id, num_funky), data)
+        atomic_write(f"%s/funky/payload_%04x%02x" % (self.work_dir, num_funky, self.slave_id), data)
+
+
+    def __store_crashlogs(self, reason):
+        # collect any logs for *new* crash events
+        # no real payload IDs here since we don't know them yet
+        global num_crashes
+        num_crashes += 1
+
+        for logname, logfile in self.qemu_logfiles.items():
+            # qemu may keep the FD so we just copy + truncate here and on handle_node()
+            shutil.copy(logfile, "%s/logs/%s_%s_%04x%02x.log" % (
+                self.work_dir, reason[:5], logname, num_crashes, self.slave_id))
+            os.truncate(logfile,0)
 
     def validate_bits(self, data, old_node, default_info):
         new_bitmap, _ = self.execute(data, default_info)
@@ -368,6 +388,9 @@ class SlaveProcess:
                         self.statistics.event_reload("slow")
                     # sub-call to execute() has submitted the payload if relevant, so we can just return its result here
                     return exec_res, is_new
+
+            if crash and self.config.argument_values['log_crashes']:
+                self.__store_crashlogs(exec_res.exit_reason)
 
             if crash or stable:
                 self.__send_to_master(data, exec_res, info)

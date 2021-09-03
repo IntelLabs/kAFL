@@ -213,6 +213,8 @@ def add_args_qemu(parser):
                         action='store_true', default=False)
     parser.add_argument('--log_hprintf', required=False, help="log hprintf output to seperate files (not console)",
                         action='store_true', default=False)
+    parser.add_argument('--log_crashes', required=False, help="store hprintf log on crash/timeout (not console, not logs)",
+                        action='store_true', default=False)
     parser.add_argument('-t', '--timeout', required=False, metavar='<s>', help="hard timeout for Qemu executions (seconds)",
                         type=float, default=4)
 

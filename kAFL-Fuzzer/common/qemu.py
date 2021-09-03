@@ -54,7 +54,7 @@ class qemu:
         self.control_filename = work_dir + "/interface_%d" % self.qemu_id
         self.qemu_trace_log = work_dir + "/qemu_trace_%02d.log" % self.qemu_id
         self.serial_logfile = work_dir + "/serial_%02d.log" % self.qemu_id
-        self.hprintf_log = self.config.argument_values['log_hprintf']
+        self.hprintf_log = self.config.argument_values['log_hprintf'] or self.config.argument_values['log_crashes']
         self.hprintf_logfile = work_dir + "/hprintf_%02d.log" % self.qemu_id
 
         self.redqueen_workdir = RedqueenWorkdir(self.qemu_id, config)
