@@ -18,9 +18,10 @@ import time
 import inotify.adapters
 import glob
 import psutil
+import locale
+
 from common.util import read_binary_file
 from threading import Thread, Lock
-
 
 class Interface:
     def __init__(self, stdscr):
@@ -306,21 +307,21 @@ class GuiDrawer:
             if d.slave_is_stalled(i):
                 self.gui.print_info_line([(15, "", "[STALLED]"),
                                           (10, "node", "%5d" % d.slave_input_id(i)),
-                                          (15, "fav/lvl", "       -"),
-                                          (13, "exec/s",    "     -")],
+                                          (17, "fav/lvl", "        -"),
+                                          (12, "exec/s",    "    -")],
                                           prefix="%c Slave %2d" % (hl, i))
             elif nid not in [None, 0] and d.nodes.get(nid, None):
                 self.gui.print_info_line([(15, "", d.slave_stage(i)),
                                           (10, "node", "%5d" % d.slave_input_id(i)),
-                                          (15, "fav/lvl",  "%4d/%3d" % (d.node_fav_bits(nid),
+                                          (17, "fav/lvl",  "%5s/%3d" % (pnum(d.node_fav_bits(nid)),
                                                                         d.node_level(nid))),
-                                          (13, "exec/s", pnum(d.slave_execs_p_sec(i)))],
+                                          (12, "exec/s", pnum(d.slave_execs_p_sec(i)))],
                                           prefix="%c Slave %2d" % (hl, i))
             else:
                 self.gui.print_info_line([(15, "", d.slave_stage(i)),
                                           (10, "node",       "    -"),
-                                          (15, "fav/lvl", "       -"),
-                                          (13, "exec/s",    "     -")],
+                                          (17, "fav/lvl", "        -"),
+                                          (12, "exec/s",    "    -")],
                                           prefix="%c Slave %2d" % (hl, i))
 
         i = self.current_slave_id
@@ -331,8 +332,8 @@ class GuiDrawer:
         if nid not in [None, 0] and d.nodes.get(nid, None):
             self.gui.print_info_line([
                 (12, "Parent", "%5d" % d.node_parent_id(nid)),
-                (12, "Size",   pbyte(d.node_size(nid)) + "B"),
-                (12, "Perf",  "%.2fms" % (d.node_performance(nid)*1000)),
+                (11, "Size",   pbyte(d.node_size(nid)) + "B"),
+                (13, "Perf",  "%.2fms" % (d.node_performance(nid)*1000)),
                 (10, "Score",   pnum(d.node_score(nid))),
                 (14, "Fuzzed",    atime(d.node_time(nid)))])
             self.gui.print_thin_line()
@@ -785,17 +786,17 @@ def main(stdscr):
     gui = GuiDrawer(sys.argv[1], stdscr)
     gui.loop()
 
+if __name__ == "__main__":
 
-import locale
-locale.setlocale(locale.LC_ALL, '')
-code = locale.getpreferredencoding()
+    locale.setlocale(locale.LC_ALL, '')
+    code = locale.getpreferredencoding()
 
-if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
-    print("Usage: " + sys.argv[0] + " <kafl-workdir>")
-    sys.exit(1)
+    if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
+        print("Usage: " + sys.argv[0] + " <kafl-workdir>")
+        sys.exit(1)
 
-try:
-    curses.wrapper(main)
-except FileNotFoundError as e:
-    # Skip exception - typically just a fuzzer restart or wrong argv[1]
-    print("Error reading from workdir. Exit.")
+    try:
+        curses.wrapper(main)
+    except FileNotFoundError as e:
+        # ignore - typically just a fuzzer restart or wrong argv[1]
+        print("Error reading from workdir. Exit.")
