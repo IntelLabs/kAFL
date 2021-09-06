@@ -443,8 +443,18 @@ class GuiData:
         self.cores_virt = psutil.cpu_count(logical=True)
         self.stats = self.read_file("stats")
 
+        try:
+            self.config = self.read_file("config")
+            if not self.config:
+                raise FileNotFoundError("$workdir/config")
+            self.bitmap_size = self.config['BITMAP_SHM_SIZE']
+        except Exception:
+            # legacy fallback
+            self.bitmap_size = 64*1024
+
         if not self.stats:
             raise FileNotFoundError("$workdir/stats")
+
 
         print("Waiting for slaves to launch..")
         num_slaves = self.stats.get("num_slaves",0)
@@ -674,9 +684,6 @@ class GuiData:
     def fav_fin(self):
         return self.aggregated["fav_states"].get("final", 0)
 
-    def bitmap_size(self):
-        return 64 * 1024 # Fixme
-
     def bitmap_used(self):
         return self.stats["bytes_in_bitmap"]
 
@@ -687,7 +694,8 @@ class GuiData:
         return self.stats["paths_total"]
 
     def p_coll(self):
-        return 100.0 * float(self.bitmap_used()) / float(self.bitmap_size())
+        return 100.0 * float(self.bitmap_used()) / self.bitmap_size
+
 
     def slave_stage(self, i):
         method = self.slave_stats[i].get("method", None)
