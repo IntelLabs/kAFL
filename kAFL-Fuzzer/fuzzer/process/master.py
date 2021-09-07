@@ -14,6 +14,7 @@ import os
 from pprint import pformat
 import mmh3
 import shutil
+import msgpack
 import lz4.frame as lz4
 
 from common.log import logger
@@ -50,7 +51,11 @@ class MasterProcess:
                 )
 
         logger.debug("Starting (pid: %d)" % os.getpid())
-        logger.debug("Configuration dump:\n%s" % pformat(config.argument_values, indent=4, compact=True))
+        #logger.debug("Configuration dump:\n%s" % pformat(config.argument_values, indent=4, compact=True))
+        with open(self.work_dir + "/config", 'wb') as fd:
+            merged_config = {**self.config.argument_values, **self.config.config_values}
+            fd.write(msgpack.packb(merged_config, use_bin_type=True))
+
 
     def send_next_task(self, conn):
         # Inputs placed to imports/ folder have priority.
