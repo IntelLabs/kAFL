@@ -384,8 +384,6 @@ class qemu:
 
     # Reset Qemu after crash/timeout - can skip if target has own forkserver
     def reload(self):
-        # don't restart process 0 -> otherwise you'll corrupt the snapshot file 
-        return 
         if self.config.argument_values['forkserver']:
             return True
         else:
@@ -525,15 +523,15 @@ class qemu:
         return self.qemu_aux_buffer.get_timeout()
 
     def execute_in_redqueen_mode(self, payload):
-        # execute once to ensure we have all pages
+        # execute once to ensure we have all pages - should not be required
         old_timeout = self.qemu_aux_buffer.get_timeout()
         self.qemu_aux_buffer.set_timeout(0)
         self.set_payload(payload)
-        self.send_payload()
+        #self.send_payload()
 
         # execute in trace mode, then restore settings
         self.qemu_aux_buffer.set_redqueen_mode(True)
-        self.set_payload(payload) # ensure the payload is intact
+        #self.set_payload(payload) # ensure the payload is intact
         self.run_qemu()
 
         result = self.qemu_aux_buffer.get_result()
