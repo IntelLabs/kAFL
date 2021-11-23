@@ -385,6 +385,7 @@ def generate_traces_worker(config, pid, work_queue):
                             os.unlink(pt_tmp.name)
                         except subprocess.TimeoutExpired as e:
                             print(e)
+                            os.unlink(pt_tmp.name)
                             continue
 
                         with open(tmpfile, 'rb') as f_in:
