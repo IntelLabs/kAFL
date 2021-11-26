@@ -57,9 +57,13 @@ def start(config):
 
     init_logger(config)
 
-    if seed_dir and not copy_seed_files(work_dir, seed_dir):
-        logger.error("Error when importing seeds. Exit.")
-        return 1
+    if seed_dir:
+        if not copy_seed_files(work_dir, seed_dir):
+            logger.error("Error when importing seeds. Exit.")
+            return 1
+    else:
+        logger.warn("Warning: Launching without -seed_dir?")
+        time.sleep(1)
 
     # Without -ip0, Qemu will not active PT tracing and we turn into a blind fuzzer
     if not config.argument_values['ip0']:

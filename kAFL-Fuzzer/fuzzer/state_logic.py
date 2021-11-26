@@ -88,13 +88,19 @@ class FuzzingStateLogic:
 
         return ret
 
+    def process_import(self, payload, metadata):
+        self.init_stage_info(metadata)
+        self.handle_import(payload, metadata)
+
+    def process_kickstart(self, kick_len):
+        metadata = {"state": {"name": "kickstart"}, "id": 0}
+        self.init_stage_info(metadata)
+        self.handle_kickstart(kick_len, metadata)
+
     def process_node(self, payload, metadata):
         self.init_stage_info(metadata)
 
-        if metadata["state"]["name"] == "import":
-            self.handle_import(payload, metadata)
-            return None, None
-        elif metadata["state"]["name"] == "initial":
+        if metadata["state"]["name"] == "initial":
             new_payload = self.handle_initial(payload, metadata)
             return self.create_update({"name": "redq/grim"}, None), new_payload
         elif metadata["state"]["name"] == "redq/grim":
@@ -153,9 +159,7 @@ class FuzzingStateLogic:
         return info
 
     def handle_import(self, payload, metadata):
-        # TODO: We seem to have some corner case where PT feedback does not
-        # work and the seed has to be provided multiple times to actually
-        # (eventually) be recognized correctly..
+        # for funky targets, retry seed a couple times to avoid false negatives
         retries = 1
         if self.config.argument_values["funky"]:
             retries = 8
@@ -169,6 +173,13 @@ class FuzzingStateLogic:
         if not is_new:
             logger.debug("%s Imported payload produced no new coverage, skipping.." % self)
 
+    def handle_kickstart(self, kick_len, metadata):
+        # random injection loop to kickstart corpus with no seeds, or to scan/test a target
+        busy_timeout = 5
+        start_time = time.time()
+        while (time.time() - start_time) < busy_timeout:
+            payload = rand.bytes(kick_len)
+            self.execute(payload, label="kickstart")
 
     def handle_initial(self, payload, metadata):
         time_initial_start = time.time()

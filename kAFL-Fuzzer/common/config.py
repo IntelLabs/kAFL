@@ -158,6 +158,8 @@ def add_args_fuzzer(parser):
                         type=float, default=1/1000)
     parser.add_argument('-tc', '--t_check', required=False, help="enable timeout validation (can be slow)",
                         action='store_true', default=False)
+    parser.add_argument('--kickstart', metavar='<n>', help="kickstart fuzzing with size <n> random strings (default 256, 0 to disable)",
+                        type=int, required=False, default=256)
 
 # Qemu/Slave-specific launch options
 def add_args_qemu(parser):

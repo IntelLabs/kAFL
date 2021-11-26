@@ -91,23 +91,19 @@ class SlaveProcess:
         meta_data = {"state": {"name": "import"}, "id": 0}
         payload = msg["task"]["payload"]
         self.q.set_timeout(self.t_hard)
-        self.logic.process_node(payload, meta_data)
+        self.logic.process_import(payload, meta_data)
         self.conn.send_ready()
 
     def handle_busy(self):
         busy_timeout = 4
-        kickstart = False
+        kickstart = self.config.argument_values['kickstart']
 
-        if kickstart: # spend busy cycle by feeding random strings?
-            logger.warn("%s No ready work items, attempting random.." % self)
-            start_time = time.time()
-            while (time.time() - start_time) < busy_timeout:
-                meta_data = {"state": {"name": "import"}, "id": 0}
-                payload = rand.bytes(rand.int(32))
-                self.q.set_timeout(self.t_hard)
-                self.logic.process_node(payload, meta_data)
+        if kickstart:
+            logger.info("%s No inputs in queue, attempting kickstart[%d].." % (self, kickstart))
+            self.q.set_timeout(self.t_hard)
+            self.logic.process_kickstart(kickstart)
         else:
-            logger.warn("%s No ready work items, waiting..." % self)
+            logger.info("%s No inputs in queue, stalling.." % self)
             time.sleep(busy_timeout)
         self.conn.send_ready()
 
