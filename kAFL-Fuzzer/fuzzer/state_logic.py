@@ -121,7 +121,7 @@ class FuzzingStateLogic:
 
         self.stage_info["stage"] = stage
         self.stage_info["parent"] = nid
-        self.stage_info["method"] = "uncategorized"
+        self.stage_info["method"] = "fixme"
 
         self.stage_info_start_time = time.time()
         self.stage_info_execs = 0
@@ -138,16 +138,6 @@ class FuzzingStateLogic:
         self.redqueen_time = 0
 
         self.slave.statistics.event_stage(stage, nid)
-
-        msg = f"Launching {stage} stage on node {nid}"
-        if stage != "import":
-            fav_bits = len(metadata["fav_bits"])
-            speed = metadata["fav_factor"]
-            qinfo = f" (fav={fav_bits}, speed={speed})"
-        else:
-            qinfo = ""
-
-        logger.debug("%s%s%s" % (self, msg, qinfo))
 
     def stage_update_label(self, method):
         self.stage_info["method"] = method
