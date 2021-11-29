@@ -235,7 +235,7 @@ class GuiDrawer:
         self.gui.print_info_line([
             (16, "", ""),
             (16, "CurExec/s", pnum(d.execs_p_sec_cur())),
-            (16, "Funkiness", d.clever_funky()),
+            (16, "Funkiness", pfloat(d.relative_funky()) + "%"),
             #(16, "Reload/s", pnum(d.reload_p_sec()))])
             (16, "CPU Use", pnum(d.cpu_used()) + "%")])
             #(16, "", "")])
@@ -245,11 +245,6 @@ class GuiDrawer:
             (16, "AvgExec/s", pnum(d.execs_p_sec_avg())),
             (16, "Timeouts", pfloat(d.relative_timeouts()) + "%"),
             (16, "Mem Use", pfloat(d.ram_used()) + "%")])
-
-
-            #(16, "Avg.", pnum(d.execs_p_sec_avg()) + "/s"),
-            #(16, "Cur. Exec/s", pnum(d.execs_p_sec_cur()) + "/s"),
-            #(16, "Funky", pfloat(d.relative_funky()) + "%"),
         self.gui.print_thin_line()
         self.gui.print_info_line([
             (16, "Path Info", ""),
@@ -550,13 +545,6 @@ class GuiData:
             return 100.0*self.total_timeouts()/self.total_execs()
         except:
             return 0
-
-    def clever_funky(self):
-        rate = self.relative_funky()
-        if rate > 0.1:
-            return pfloat(rate) + "%"
-        else:
-            return pnum(self.total_funky())
 
     def total_funky(self):
         return self.stats.get("num_funky", 0)
