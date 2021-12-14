@@ -198,24 +198,30 @@ class GuiDrawer:
         d = self.data
         self.gui.print_title_line("kAFL v0.2")
         self.gui.print_sep_line()
-        #self.gui.print_info_line([(37, "Target", d.target()), (38, "Config", d.config())])
         self.gui.print_info_line([
             (16, "Runtime", ptime(d.runtime())),
             (16, "#Execs", pnum(d.total_execs())),
-            (16, "Exec/s", pnum(d.execs_p_sec_cur())),
+            (16, "Stability",  "%3d%%" % d.stability()),
             (16, "Slaves", "%d/%d" %
                 (d.num_slaves(), d.cpu_cores()))])
         self.gui.print_info_line([
-            (12, "Used", pnum(d.cpu_used()) + "%"),
-            (16, "User", pfloat(d.cpu_user()) + "%"),
-            (16, "Guest",  pfloat(d.cpu_vm()) + "%"),
-            (16, "Stability",  "%3d%%" % d.stability())], prefix="CPU ")
+            (16, "", ""),
+            (16, "CurExec/s", pnum(d.execs_p_sec_cur())),
+            (16, "Timeouts", pfloat(d.relative_timeouts()) + "%"),
+            #(16, "Reload/s", pnum(d.reload_p_sec()))])
+            (16, "CPU Use", pnum(d.cpu_used()) + "%")])
+            #(16, "", "")])
         self.gui.print_info_line([
-            (12, "Used", pfloat(d.ram_used()) + "%"),
-            (16, "Avail", pbyte(d.ram_avail())),
-            (16, "Total", pbyte(d.ram_total()) + "%"),
-            (16, "Reset/s", pnum(d.reload_p_sec()))], prefix="Mem ")
+            #(16, "", ""),
+            (16, "User", pfloat(d.cpu_user()) + "%"),
+            (16, "AvgExec/s", pnum(d.execs_p_sec_avg())),
+            (16, "Funky", d.clever_funky()),
+            (16, "Mem Use", pfloat(d.ram_used()) + "%")])
 
+
+            #(16, "Avg.", pnum(d.execs_p_sec_avg()) + "/s"),
+            #(16, "Cur. Exec/s", pnum(d.execs_p_sec_cur()) + "/s"),
+            #(16, "Funky", pfloat(d.relative_funky()) + "%"),
         self.gui.print_thin_line()
         self.gui.print_info_line([
             (16, "Path Info", ""),
@@ -223,22 +229,22 @@ class GuiDrawer:
             (36, "Findings", "")])
         self.gui.print_info_line([
             (16, " Total", pnum(d.paths_total())),
-            (16, " Edges", pnum(d.bitmap_used())),
+            (16, "", ""),
             (36, " Crash", "%6s (N/A) %10s" % (pnum((d.num_found("crash"))),
                                                  ptime(d.time_since("crash"))))])
         self.gui.print_info_line([
             (16, " Seeds", pnum(d.yield_imported())),
-            (16, " Blocks", pnum(d.bb_covered())),
+            (16, " Edges", pnum(d.bitmap_used())),
             (36, " AddSan", "%6s (N/A) %10s" % (pnum((d.num_found("kasan"))),
                                                  ptime(d.time_since("kasan"))))])
         self.gui.print_info_line([
             (16, " Favs", pnum(d.fav_total())),
-            (16, " p(col)", pfloat(d.p_coll()) + "%"),
+            (16, " Blocks", pnum(d.bb_covered())),
             (36, " Timeout", "%6s (N/A) %10s" % (pnum((d.num_found("timeout"))),
                                                  ptime(d.time_since("timeout"))))])
         self.gui.print_info_line([
             (16, " Norm", pnum(d.normal_total())),
-            (16, " Pending", pfloat(d.pending_fav()) + "%"),
+            (16, " p(col)", pfloat(d.p_coll()) + "%"),
             (36, " Regular", "%6s (N/A) %10s" % (pnum((d.num_found("regular"))),
                                                  ptime(d.time_since("regular"))))])
         self.gui.print_thin_line()
@@ -385,7 +391,6 @@ class GuiData:
 
     def __init__(self, workdir):
         self.workdir = workdir
-        self.execs_avg = 0
         self.slave_stats = list()
         self.load_initial()
         self.redraw = True
@@ -440,12 +445,6 @@ class GuiData:
                 self.aggregated["last_found"][node["info"]["exit_reason"]] = this_found
 
 
-    def target(self):
-        return "foo"
-
-    def config(self):
-        return "bar"
-
     def runtime(self):
         return max([x["run_time"] for x in self.slave_stats])
 
@@ -456,7 +455,8 @@ class GuiData:
         return self.total_execs()/self.runtime()
 
     def total_execs(self):
-        return self.stats.get("total_execs", 0)
+        # avoid div-by-zero
+        return max(0.0001,self.stats.get("total_execs"))
 
     def num_slaves(self):
         return len(self.slave_stats)
@@ -486,6 +486,31 @@ class GuiData:
 
     def total_reloads(self):
         return self.stats.get("num_reload", 0)
+
+    def total_timeouts(self):
+        return self.stats.get("num_timeout", 0)
+
+    def relative_timeouts(self):
+        try:
+            return self.total_timeouts()/self.total_execs()
+        except:
+            return 0
+
+    def clever_funky(self):
+        rate = self.relative_funky()
+        if rate > 0.1:
+            return pfloat(rate) + "%"
+        else:
+            return pnum(self.total_funky())
+
+    def total_funky(self):
+        return self.stats.get("num_funky", 0)
+
+    def relative_funky(self):
+        try:
+            return self.total_funky()/self.total_execs()
+        except:
+            return 0
 
     def reload_p_sec(self):
         return self.total_reloads()/self.runtime()

@@ -20,7 +20,7 @@ class MasterStatistics:
         self.plot_last = 0
         self.plot_thres = 5
         self.write_last = 0
-        self.write_thres = 0.3
+        self.write_thres = 0.5
         self.num_slaves = self.config.argument_values['p']
         self.work_dir = self.config.argument_values['work_dir']
         self.data = {
@@ -37,6 +37,7 @@ class MasterStatistics:
                 "max_level": 0,
                 "cycles": 0,
                 "bytes_in_bitmap": 0,
+                "bytes_worked": 0,
                 "yield": {},
                 "findings": {
                     "regular": 0,
@@ -160,7 +161,7 @@ class MasterStatistics:
                 self.data["cycles"],           # cycles
                 self.data["favs_pending"],     # favs pending
                 self.data["total_execs"],      # current total execs
-                self.data["bytes_in_bitmap"],  # unique edges % p(col)
+                self.data["bytes_in_bitmap"],  # unique edges (minus collisions)
                 ))
 
 
@@ -169,7 +170,7 @@ class SlaveStatistics:
         self.config = config
         self.filename = self.config.argument_values['work_dir'] + "/slave_stats_%d" % (slave_id)
         self.write_last = 0
-        self.write_thres = 0.3
+        self.write_thres = 0.5
         self.execs_new = 0
         self.data = {
             "start_time": time.time(),
