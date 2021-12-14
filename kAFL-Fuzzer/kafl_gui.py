@@ -396,7 +396,6 @@ class GuiData:
         self.redraw = True
 
     def load_initial(self):
-        print("Waiting for slaves to launch..")
         self.cpu = psutil.cpu_times_percent(interval=0.01, percpu=False)
         self.mem = psutil.virtual_memory()
         self.cores_phys = psutil.cpu_count(logical=False)
@@ -406,9 +405,14 @@ class GuiData:
         if not self.stats:
             raise FileNotFoundError("$workdir/stats")
 
+        print("Waiting for slaves to launch..")
         num_slaves = self.stats.get("num_slaves",0)
+        init_data = None
         for slave_id in range(0, num_slaves):
-            self.slave_stats.append(self.read_file("slave_stats_%d" % slave_id))
+            while init_data is None:
+                time.sleep(0.1)
+                init_data = self.read_file("slave_stats_%d" % slave_id)
+            self.slave_stats.append(init_data)
 
         # TODO frontend is using time.time() when we actually need time.clock(), plus perhaps the startup time/date
         self.starttime = min([x["start_time"] for x in self.slave_stats])
@@ -456,7 +460,7 @@ class GuiData:
 
     def total_execs(self):
         # avoid div-by-zero
-        return max(0.0001,self.stats.get("total_execs"))
+        return self.stats.get("total_execs")
 
     def num_slaves(self):
         return len(self.slave_stats)
@@ -476,13 +480,13 @@ class GuiData:
         return 0
 
     def stability(self):
-        # chance p() to survive 100 executions: ((total-crashes)/total)^100
-        n = self.total_execs()
-        if n == 0:
-            return 0
-        else:
+        try:
+            # chance p() to survive 100 executions: ((total-crashes)/total)^100
+            n = self.total_execs()
             c = self.total_reloads()
             return 100*((n-c)/n)**100
+        except ZeroDivisionError:
+            return 0
 
     def total_reloads(self):
         return self.stats.get("num_reload", 0)
@@ -492,7 +496,7 @@ class GuiData:
 
     def relative_timeouts(self):
         try:
-            return self.total_timeouts()/self.total_execs()
+            return 100.0*self.total_timeouts()/self.total_execs()
         except:
             return 0
 
@@ -509,7 +513,7 @@ class GuiData:
     def relative_funky(self):
         try:
             return self.total_funky()/self.total_execs()
-        except:
+        except ZeroDivisionError:
             return 0
 
     def reload_p_sec(self):
