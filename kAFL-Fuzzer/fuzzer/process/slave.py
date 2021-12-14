@@ -77,6 +77,7 @@ class SlaveProcess:
         self.logic = FuzzingStateLogic(self, self.config)
         self.conn = connection
         self.payload_size_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 5
+        self.timeout_limit_max = 4 # in seconds. TODO: make configurable
 
         self.bitmap_storage = BitmapStorage(self.config, self.config.config_values['BITMAP_SHM_SIZE'], "master")
 
@@ -105,6 +106,10 @@ class SlaveProcess:
     def handle_node(self, msg):
         meta_data = QueueNode.get_metadata(msg["task"]["nid"])
         payload = QueueNode.get_payload(meta_data["info"]["exit_reason"], meta_data["id"])
+
+        ## update default timeout in Qemu instance
+        t_dyn = 2 * meta_data["info"]["performance"]
+        self.q.set_timeout(min(self.timeout_limit_max, t_dyn))
 
         results, new_payload = self.logic.process_node(payload, meta_data)
         if new_payload:
@@ -149,28 +154,32 @@ class SlaveProcess:
         new_array = new_res.copy_to_array()
 
         if new_array == old_array:
-            return True
+            return True, new_res.performance
 
         if not quiet:
             log_slave("Input validation failed! Target is funky?..", self.slave_id)
-        return False
+        return False, new_res.performance
 
     def funky_validate(self, data, old_res):
         # Validate in persistent mode with stochastic prop of funky results
 
         validations = 8
         confirmations = 0
-        for _ in range(validations):
-            if self.quick_validate(data, old_res, quiet=True):
+        runtime_avg = 0
+        num = 0
+        for num in range(validations):
+            stable, runtime = self.quick_validate(data, old_res, quiet=True)
+            if stable:
                 confirmations += 1
+                runtime_avg += runtime
 
         if confirmations >= 0.8*validations:
-            return True
+            return True, runtime_avg/num
 
         log_slave("Funky input received %d/%d confirmations. Rejecting.." % (confirmations, validations), self.slave_id)
         if self.config.argument_values['v']:
             self.store_funky(data)
-        return False
+        return False, runtime_avg/num
 
     def store_funky(self, data):
         global num_funky
