@@ -106,7 +106,7 @@ class qemu_aux_buffer:
         assert(isinstance(timeout, (int, float)))
         self.current_timeout = timeout
         secs = int(timeout)
-        usec = int(1000*(timeout - secs))
+        usec = int(1000*1000*(timeout - secs))
         struct.pack_into("=BI", self.aux_buffer, CONFIG_OFFSET+1, secs, usec)
         self.set_config_buffer_changed()
 

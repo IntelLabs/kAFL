@@ -31,6 +31,7 @@ class qemu:
         self.agent_size = config.config_values['AGENT_MAX_SIZE']
         self.bitmap_size = config.config_values['BITMAP_SHM_SIZE']
         self.payload_size = config.config_values['PAYLOAD_SHM_SIZE']
+        self.timeout_min = 1e-6 # minimum valid timeout/runtime = 1usec
         self.config = config
         self.qemu_id = str(qid)
         self.alt_bitmap = bytearray(self.bitmap_size)
@@ -318,7 +319,7 @@ class qemu:
         self.qemu_aux_buffer.set_reload_mode(True)
         #self.qemu_aux_buffer.set_trace_mode(True)
         if not self.get_timeout():
-            self.set_timeout(4.5)
+            self.set_timeout(0.8)
 
         #self.run_qemu()
 
@@ -423,8 +424,17 @@ class qemu:
                 old_address = result.page_fault_addr
                 self.qemu_aux_buffer.dump_page(result.page_fault_addr)
 
-        runtime = result.runtime_sec + result.runtime_usec/1000000
-        #print("perf: %.3fms" % (result.runtime_sec*1000 + result.runtime_usec/1000))
+        if result.runtime_sec > 0:
+            # Qemu timer overflow when elapsing seconds
+            MAX_ULONG = 4294967295
+            fixed_usec = result.runtime_usec - MAX_ULONG
+            #print("perf: orig: <%d,%d> => %.3fms ??" % (result.runtime_sec, result.runtime_usec, result.runtime_sec*1000 + fixed_usec/1000))
+        else:
+            fixed_usec = result.runtime_usec
+            #print("perf: orig: <%d,%d> => %.3fms ??" % (result.runtime_sec, result.runtime_usec, result.runtime_sec*1000 + fixed_usec/1000))
+
+        #runtime = result.runtime_sec*1000 + fixed_usec/1000
+        runtime = max(self.timeout_min, result.runtime_sec + fixed_usec/1000000)
 
         # record highest seen BBs
         self.bb_seen = max(self.bb_seen, result.bb_cov)
@@ -497,7 +507,7 @@ class qemu:
     def execute_in_redqueen_mode(self, payload):
         # execute once to ensure we have all pages
         old_timeout = self.qemu_aux_buffer.get_timeout()
-        self.qemu_aux_buffer.set_timeout(old_timeout*5)
+        self.qemu_aux_buffer.set_timeout(0)
         self.set_payload(payload)
         self.send_payload()
 
