@@ -31,6 +31,7 @@ class qemu:
         self.agent_size = config.config_values['AGENT_MAX_SIZE']
         self.bitmap_size = config.config_values['BITMAP_SHM_SIZE']
         self.payload_size = config.config_values['PAYLOAD_SHM_SIZE']
+        self.payload_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 5
         self.timeout_min = 1e-6 # minimum valid timeout/runtime = 1usec
         self.config = config
         self.qemu_id = str(qid)
@@ -536,9 +537,12 @@ class qemu:
                 self.exit_reason(result), 0)
 
     def set_payload(self, payload):
+        # Ensure the payload fits into SHM. Caller has to cut off since they also report findings.
         # actual payload is limited to payload_size - sizeof(uint32) - sizeof(uint8)
-        if len(payload) > self.payload_size-5:
-            payload = payload[:self.payload_size-5]
+        assert(len(payload) <= self.payload_limit), "Payload size %d > SHM limit %d. Check size/shm config" % (len(payload),self.payload_limit)
+
+        #if len(payload) > self.payload_limit:
+        #    payload = payload[:self.payload_limit]
         try:
             struct.pack_into("=I", self.fs_shm, 0, len(payload))
             self.fs_shm.seek(4)

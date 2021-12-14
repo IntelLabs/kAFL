@@ -76,6 +76,7 @@ class SlaveProcess:
         self.statistics = SlaveStatistics(self.slave_id, self.config)
         self.logic = FuzzingStateLogic(self, self.config)
         self.conn = connection
+        self.payload_size_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 5
 
         self.bitmap_storage = BitmapStorage(self.config, self.config.config_values['BITMAP_SHM_SIZE'], "master")
 
@@ -198,6 +199,9 @@ class SlaveProcess:
 
     def execute_redqueen(self, data):
         self.statistics.event_exec_redqueen()
+
+        if len(data) > self.payload_size_limit:
+            data = data[:self.payload_size_limit]
         exec_res = self.q.execute_in_redqueen_mode(data)
         if not exec_res.is_regular():
             self.statistics.event_reload(exec_res.exit_reason)
@@ -256,6 +260,10 @@ class SlaveProcess:
 
 
     def execute(self, data, info):
+
+        if len(data) > self.payload_size_limit:
+            data = data[:self.payload_size_limit]
+
         exec_res = self.__execute(data)
         self.statistics.event_exec(bb_cov=self.q.bb_seen)
 
