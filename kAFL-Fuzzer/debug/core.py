@@ -89,12 +89,13 @@ def execute_once(config, qemu_verbose=False, notifiers=True):
 
     payload_file = config.argument_values["input"]
     log_debug("Execute payload %s.. " % payload_file)
-    zero_hash = mmh3.hash(("\x00" * config.config_values['BITMAP_SHM_SIZE']), signed=False)
+    zero_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
 
     q = qemu(1337, config, debug_mode=False, notifiers=notifiers)
     assert q.start(), "Failed to start Qemu?"
 
     q.set_payload(read_binary_file(payload_file))
+    #q.send_payload() ## XXX first run has different trace?!
     result = q.send_payload()
     current_hash = result.hash()
     if zero_hash == current_hash:
@@ -165,10 +166,19 @@ def debug_non_det(config, max_execs=0):
     hashes = dict()
     try:
         q.set_payload(payload)
-        time.sleep(delay)
-        if store_traces: q.send_enable_trace()
-        exec_res = q.send_payload()
-        if store_traces: q.send_disable_trace()
+
+        ## XXX first run has different trace?!
+        if store_traces: 
+            exec_res = q.execute_in_trace_mode()
+        else:
+            exec_res = q.send_payload()
+
+        #time.sleep(delay)
+
+        if store_traces: 
+            exec_res = q.execute_in_trace_mode()
+        else:
+            exec_res = q.send_payload()
 
         default_hash = exec_res.hash()
         hashes[default_hash] = 1
@@ -189,9 +199,10 @@ def debug_non_det(config, max_execs=0):
                 #time.sleep(0.0002 * rand.int(10))
                 q.set_payload(payload)
                 time.sleep(delay)
-                if store_traces: q.send_enable_trace()
-                exec_res = q.send_payload()
-                if store_traces: q.send_disable_trace()
+                if store_traces: 
+                    exec_res = q.execute_in_trace_mode()
+                else:
+                    exec_res = q.send_payload()
 
                 if exec_res.is_crash():
                     print("Crashed - restarting...")
@@ -409,7 +420,7 @@ def start(config):
                                         debug_non_det(config, max_execs)
         elif (mode == "benchmark"):     benchmark(config)
         elif (mode == "gdb"):           gdb_session(config, qemu_verbose=True)
-        elif (mode == "single"):        execute_once(config, max_execs)
+        elif (mode == "single"):        execute_once(config, qemu_verbose=False)
         elif (mode == "trace"):         debug_execution(config, max_execs)
         elif (mode == "trace-qemu"):    debug_execution(config, max_execs, qemu_verbose=True)
         elif (mode == "printk"):        debug_execution(config, 1, qemu_verbose=True, notifiers=False)
