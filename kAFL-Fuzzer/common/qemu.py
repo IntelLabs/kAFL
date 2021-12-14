@@ -408,7 +408,8 @@ class qemu:
 
             if result.hprintf:
                 msg = strdump(self.qemu_aux_buffer.get_misc_buf()[:-1], verbatim=True)
-                print_hprintf(msg)
+                print_hprintf(msg.rstrip())
+                log_qemu("hprintf:\n" + msg.rstrip(), self.qemu_id)
                 continue
 
             if result.success or result.crash_found or result.asan_found or result.timeout_found:
