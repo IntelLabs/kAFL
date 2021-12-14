@@ -193,7 +193,10 @@ def check_kafl_ini(rootdir):
 
 
 def check_qemu_version(config):
-    qemu_path = config.config_values["QEMU_KAFL_LOCATION"]
+    qemu_path = os.path.expandvars(
+                    os.path.expanduser(
+                        config.config_values["QEMU_KAFL_LOCATION"]))
+
     if not qemu_path or qemu_path == "":
         logger.error("Please set QEMU_KAFL_LOCATION in kafl.ini!")
         return False
@@ -216,13 +219,20 @@ def check_qemu_version(config):
     if not ("QEMU-PT" in output and "(kAFL)" in output):
         logger.error("Qemu executable at %s is missing the kAFL patch?" % qemu_path)
         return False
+
+    # store normalized + checked path
+    config.config_values["QEMU_KAFL_LOCATION"] = qemu_path
+
     return True
 
 def check_radamsa_location(config):
     if "radamsa" not in config.argument_values or not config.argument_values["radamsa"]:
         return True
 
-    radamsa_path = config.config_values["RADAMSA_LOCATION"]
+    radamsa_path = os.path.expandvars(
+                    os.path.expanduser(
+                        config.config_values["RADAMSA_LOCATION"]))
+
     if not radamsa_path or radamsa_path == "":
         logger.error("RADAMSA_LOCATION is not set in kafl.ini!")
         return False
@@ -230,6 +240,9 @@ def check_radamsa_location(config):
     if not os.path.exists(radamsa_path):
         logger.error("RADAMSA executable does not exist. Try ./install.sh radamsa")
         return False
+
+    # store normalized + checked path
+    config.config_values["RADAMSA_LOCATION"] = radamsa_path
 
     return True
 
