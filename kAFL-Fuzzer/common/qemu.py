@@ -109,6 +109,7 @@ class qemu:
         self.cmd += " -no-reboot"
 
         if self.config.argument_values['gdbserver']:
+            #self.cmd += " -trace events=/tmp/events"
             self.cmd += " -s -S"
 
         if self.config.argument_values['X']:
@@ -380,11 +381,21 @@ class qemu:
     def debug_payload(self):
 
         self.set_timeout(0)
+        #self.send_payload()
+        while True:
+            self.run_qemu()
+            result = self.qemu_aux_buffer.get_result()
+            if result.page_fault:
+                print_warning("Page fault encountered!")
+            if result.pt_overflow:
+                print_warning("PT trashed!")
+            if result.hprintf:
+                msg = strdump(self.qemu_aux_buffer.get_misc_buf()[:-1], verbatim=True)
+                print_hprintf(msg)
+                continue
+            if result.success or result.crash_found or result.asan_found or result.timeout_found:
+                break
 
-        self.send_payload()
-        #self.run_qemu()
-
-        result = self.qemu_aux_buffer.get_result()
         print("Result: %s\n" % self.exit_reason(result))
         #self.audit(result)
         return result

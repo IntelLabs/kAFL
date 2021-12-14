@@ -67,7 +67,7 @@ def benchmark(config):
 
 def gdb_session(config, qemu_verbose=True, notifiers=True):
 
-    import common.qemu_protocol as qemu_protocol
+    #from pprint import pprint
     payload_file = config.argument_values["input"]
 
     config.argument_values["gdbserver"] = True
@@ -75,11 +75,15 @@ def gdb_session(config, qemu_verbose=True, notifiers=True):
 
     print("Starting Qemu + GDB with payload %s" % payload_file)
     print("Connect with gdb to release guest from reset (localhost:1234)")
-    if q.start():
-        q.set_payload(read_binary_file(payload_file))
-        result = q.debug_payload(apply_patches=False)
-        print("Payload result: %s. Thank you for playing.." % qemu_protocol.CMDS[result])
-    q.shutdown()
+    try:
+        if q.start():
+            q.set_payload(read_binary_file(payload_file))
+            result = q.debug_payload()
+            print("Thank you for playing.")
+            #pprint(result._asdict())
+    finally:
+        print("Shutting down..")
+        q.async_exit()
 
 def execute_once(config, qemu_verbose=False, notifiers=True):
 
@@ -382,7 +386,7 @@ def verify_dbg(config, qemu_verbose=False):
 
 def start(config):
 
-    prepare_working_dir(config)
+    assert prepare_working_dir(config), "Failed to create work_dir %s" % config.argument_values["work_dir"]
 
     if not post_self_check(config):
         return -1
@@ -415,7 +419,7 @@ def start(config):
         else:
             print("Unknown debug mode. Exit");
     except Exception as e:
-        raise
+        raise e
     finally:
         # cleanup
         #os.system("stty sane")
