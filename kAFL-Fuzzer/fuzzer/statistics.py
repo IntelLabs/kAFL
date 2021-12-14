@@ -194,6 +194,7 @@ class SlaveStatistics:
 
     def event_method(self, method):
         self.data["method"] = method
+        self.maybe_write_stats()
 
     def event_exec(self, bb_cov=0):
         if self.data["bb_seen"] < bb_cov:
