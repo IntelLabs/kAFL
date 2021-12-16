@@ -107,7 +107,7 @@ class Graph:
         t_str=('{:02}:{:02}:{:02}'.format(int(t_hours), int(t_mins), int(t_secs)))
 
         # score as used by new scheduler/queue sorting
-        score = node.get("score",0)
+        score = node.get("fav_factor",0)
         if stage in ["final"]:
             score = score/node.get("state_time_havoc",1)
 
@@ -120,9 +120,9 @@ class Graph:
         elif exit == "kasan": color = "orange"
         elif exit == "timeout": color = "grey"
 
-        print("%s: Found %3d from %3d using %s [%s] (favs=%d, stage=%s, exit=%s, lvl=%d, perf=%.3f, score=%.2f, t=%.2f)" %
+        print("%s: Found %3d from %3d using %s [%s] (favs=%d, stage=%s, exit=%s, lvl=%d, perf=%.3f, score=%.1f, l=%3.1fK, t=%dmin)" %
                 (t_str, node_id, parent, method[:12].ljust(12), sample[:42].ljust(42),
-                    len(favs), stage[:8], exit[:1].title(), level, perf*1000, score, node.get("state_time_havoc",0)))
+                    len(favs), stage[:8], exit[:1].title(), level, perf*1000, score, plen/1024, node.get("attention_secs",0)//60))
 
         self.dot.add_node(node["id"], label="%s\n[id=%02d, score=%2.2f]\n%s" % (sample[:12], node_id, score, exit), color=color)
         self.dot.add_edge(parent, node["id"], headlabel=method, arrowhead='open')

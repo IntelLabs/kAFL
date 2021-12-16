@@ -713,7 +713,7 @@ class GuiData:
         return self.nodes[nid]["performance"]
 
     def node_score(self, nid):
-        return self.nodes[nid]["score"]
+        return self.nodes[nid]["fav_factor"]
 
     def node_time(self, nid):
         return self.nodes[nid]["attention_secs"]

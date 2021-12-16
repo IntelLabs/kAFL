@@ -106,10 +106,11 @@ class InputQueue:
 
         self.id_to_node[node.get_id()] = node
 
-        # only nodes with new bytes have a chance to become a favorite
-        if len(node.get_new_bytes()) > 0:
-            self.update_best_input_for_bitmap_entry(node, bitmap)  # TODO improve performance!
-            self.maybe_pushback_to_cycle(node)
+        # only regular nodes with new bytes can become favorites
+        if node.get_exit_reason() == "regular":
+            if len(node.get_new_bytes()) > 0:
+                self.update_best_input_for_bitmap_entry(node, bitmap)  # TODO improve performance!
+                self.maybe_pushback_to_cycle(node)
 
         self.statistics.event_node_new(node)
 
@@ -133,10 +134,11 @@ class InputQueue:
             if overwrite:
                 self.bitmap_index_to_fav_node[index] = (new_node, val)
                 new_node.add_fav_bit(index, write=False)
-                changed_nodes.add(new_node)
+                #changed_nodes.add(new_node)
                 if old_node:
                     old_node.remove_fav_bit(index, write=False)
                     changed_nodes.add(old_node)
                     self.statistics.event_node_remove_fav_bit(old_node)
         for node in changed_nodes:
+            node.set_fav_factor(self.scheduler.score_impact(node), write=False)
             node.update_file()
