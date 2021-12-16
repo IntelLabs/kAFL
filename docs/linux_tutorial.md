@@ -1,5 +1,10 @@
-Refer to TUTORIAL.Installation.md first. Make sure that all necessary components
+# Getting Started with Linux Fuzzing
+
+Refer to installation.md first. Make sure that all necessary components
 are installed on your VM host.
+
+Based on legacy kAFL guide. Running on newer distributions may require minor
+fixes to provided sample code.
 
 ## Preparing a Linux VM Image
 
@@ -190,5 +195,8 @@ echo "abcdefg1234567890" > $SEEDS/seed
 	-ip0 0xffffffffc0002000-0xffffffffc000a000 -v
 ```
 
-The view fuzzing progress, troubleshooting and making sense of the work dir outputs, continue with the main guide (_TBD_, see [README.md](https://github.com/IntelLabs/kAFL#visibility--debug) and [TUTORIAL.Windows_fuzzing.md](https://github.com/IntelLabs/kAFL/blob/master/doc/TUTORIAL.Windows_fuzzing.md#troubleshooting)
+The view fuzzing progress, troubleshooting and making sense of the work dir
+outputs, continue with the main guide (_TBD_).
+See also: [README.md](kAFL#visibility--debug) and [Windows
+Troubleshooting](docs/Windows_tutorial.md#troubleshooting)
 

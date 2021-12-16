@@ -1,6 +1,8 @@
-Refer to TUTORIAL.Installation.md first.
+# Getting Started with Windows Fuzzing
 
-Based on README.kAFL.md. Tested on Ubuntu 20.04.
+Refer to installation.md first.
+
+Based on legacy kAFL guide. Tested on Ubuntu 20.04.
 
 ## Preparing Windows VM
 

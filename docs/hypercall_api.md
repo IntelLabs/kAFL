@@ -66,7 +66,7 @@ control and start injecting inputs at any point in VM guest execution.
 - `GET_HOST_CONFIG` can be used to query kAFL/Qemu configuration, e.g. size of the payload buffer.
 
 - `REQ_STREAM_DATA` fetches a named binary buffer from the host. Qemu fetches
-  the data from correspondingly named files in the [sharedir folder](doc/README.Linux_sharedir.md)
+  the data from correspondingly named files in the [sharedir folder](docs/sharedir_tutorial.md)
 
 - `DUMP_FILE` can be used to send binary buffers that will be stored as files in
   $WORK_DIR/dump/. Supply NULL or a valid mkstemp() template as filename to

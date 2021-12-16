@@ -1,4 +1,16 @@
-# Using Nyx htools+sharedir for Kernel Fuzzing
+# Using Nyx htools+sharedir for OS Fuzzing
+
+The new `sharedir` option replaces the previous `agent` option, which is now
+deprecated.  The agent was previously required to be a single binary resulting
+in all kind of fancy packaging approaches. With the sharedir option, the
+'loader' can be a simple shell script which in turn loads additional components
+using `hget` from Nyx htools package.
+
+To make this completely scriptable without changing the target image, we use
+a fixed `loader.sh` integrated in the image, and the first loaded component is
+an `agent.sh` which is actually a second stage loader that contains the bulk of
+the harness preparation logic.
+
 
 ## Create Linux VM Image
 
@@ -25,10 +37,6 @@ update-grub
 
 ## Deploy Loader Script
 
-With Nyx `sharedir` concept, the fixed `loader` component has been reduced to
-a shell script `loader.sh` and `hget` tool. Further components can by loaded
-dynamically using a secondary shell script dubbed `agent.sh`.
-
 1. Mount VM image
 
 ```
@@ -41,10 +49,10 @@ mount /dev/nbd0p1 /mnt/
 2. Deploy loader components
 
 ```
-cd ~/nyx
+cd ~/kafl
 mkdir /mnt/fuzz
-cp ~/nyx/target/linux_x86_64/loader.sh /mnt/fuzz/
-cp ~/nyx/target/linux_x86_64/bin/htools/hget /mnt/fuzz/
+cp ~/kafl/targets/linux_x86_64/loader.sh /mnt/fuzz/
+cp ~/kafl/targets/linux_x86_64/bin/htools/hget /mnt/fuzz/
 chmod a+x /mnt/fuzz/*
 ```
 
@@ -73,11 +81,11 @@ qemu-nbd -d /dev/nbd0
 
 ```
 mkdir ~/sharedir
-cp ~/nyx/target/linux_x86_64/bin/htools/* ~/sharedir/
-cp tests/test_cases/simple/linux_x86-64/kafl_vuln_test.ko ~/sharedir/
-cp targets/linux_x86_64/bin/fuzzer/kafl_vuln_test ~/sharedir/
-cp targets/linux_x86_64/bin/fuzzer/hprintf_test ~/sharedir/
-cp ~/nyx/target/linux_x86_64/agent.sh ~/sharedir/
+cp ~/kafl/target/linux_x86_64/bin/htools/* ~/sharedir/
+cp ~/kafl/tests/test_cases/simple/linux_x86-64/kafl_vuln_test.ko ~/sharedir/
+cp ~/kafl/targets/linux_x86_64/bin/fuzzer/kafl_vuln_test ~/sharedir/
+cp ~/kafl/targets/linux_x86_64/bin/fuzzer/hprintf_test ~/sharedir/
+cp ~/kafl/targets/linux_x86_64/agent.sh ~/sharedir/
 ```
 
 Review `loader.sh` and `agent.sh` to understand the startup flow. The main
@@ -112,7 +120,7 @@ Review the source code for usage and setting further/custom filter ranges.
 
 
 ```
-python3 kAFL-Fuzzer/kafl_fuzz.py \
+python3 ~/kafl/kafl_fuzz.py \
 	--purge -p 1 -D -redqueen \
 	-vm_image $TARGET/image.qcow2 \
 	-mem 512 \
