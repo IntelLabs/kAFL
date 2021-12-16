@@ -97,6 +97,7 @@ class qemu:
                     " -device kafl,chardev=kafl_interface" + \
                     ",workdir=" + self.config.argument_values['work_dir'] + \
                     ",worker_id=" + self.qemu_id + \
+                    ",sharedir=/tmp/" + \
                     ",bitmap_size=" + str(self.bitmap_size)
 
         if self.config.argument_values['dump_pt']:
@@ -168,14 +169,9 @@ class qemu:
             #self.cmd += " -cpu kvm64-v1" #,+vmx
 
         self.fast_vm_reload = True
-        #self.fast_vm_reload = qid != 1337 or self.config.argument_values['vm_snapshot']
-        #self.fast_vm_reload = True # qid != 1337 or self.config.argument_values.has_key("vm_snapshot")
-
-
         if self.fast_vm_reload:
             if qid == 0 or qid == 1337:
                 #self.cmd = self.cmd.replace("-display none ", "-vnc :0 ")
-                #self.fast_vm_reload = False
                 if self.config.argument_values["vm_snapshot"]:
                     self.cmd += " -fast_vm_reload path=%s,load=off,pre_path=%s " % (
                             self.config.argument_values['work_dir'] + "/snapshot/",
@@ -183,8 +179,6 @@ class qemu:
                 else:
                     self.cmd += " -fast_vm_reload path=%s,load=off " % (
                             self.config.argument_values['work_dir'] + "/snapshot/")
-                    #self.handshake_stage_1 = False
-                #self.handshake_stage_2 = False
             else:
                 self.cmd += " -fast_vm_reload path=%s,load=on " % (
                              self.config.argument_values['work_dir'] + "/snapshot/")
@@ -205,141 +199,6 @@ class qemu:
                 break
             c += 1
 
-    def __debug_hprintf(self):
-        try:
-            if self.debug_counter < 512:
-                data = ""
-                for line in open("/tmp/kAFL_printf.txt." + str(self.debug_counter)):
-                    data += line
-                self.debug_counter += 1
-                if data.endswith('\n'):
-                    data = data[:-1]
-                if self.hprintf_print_mode:
-                    print("[HPRINTF]\t" + '\033[0;33m' + data + '\033[0m')
-                else:
-                    print('\033[0;33m' + data + '\033[0m')
-        except Exception as e:
-            print("__debug_hprintf: " + str(e))
-
-    def __debug_send(self, cmd):
-        #self.last_bitmap_wrapper.invalidate() # works on a copy, probably obsolete..
-        if self.debug_mode:
-                info = ""
-                if self.handshake_stage_1 and cmd == qemu_protocol.RELEASE:
-                    info = " (Agent Init)"
-                    self.handshake_stage_1 = False
-                elif self.handshake_stage_2 and cmd == qemu_protocol.RELEASE:
-                    info = " (Agent Run)"
-                    self.handshake_stage_2 = False
-                try:
-                    log_qemu("[SEND] " + '\033[94m' + self.CMDS[cmd] + info + '\033[0m', self.qemu_id)
-                except:
-                    log_qemu("[SEND] " + "unknown cmd '" + res + "'", self.qemu_id)
-        try:
-            self.control.send(cmd)
-        except (BrokenPipeError, OSError):
-            if not self.exiting:
-                log_qemu("Fatal error in __debug_send()", self.qemu_id)
-                self.shutdown()
-                raise
-
-    def __dump_recv_res(self, res):
-        if res == qemu_protocol.ACQUIRE:
-            self.debug_counter = 0
-        # try:
-        info = ""
-        if self.handshake_stage_1 and res == qemu_protocol.RELEASE:
-            info = " (Agent Init)"
-        elif self.handshake_stage_2 and res == qemu_protocol.ACQUIRE:
-            info = " (Agent Ready)"
-        elif res == qemu_protocol.INFO:
-            log_qemu("[RECV] " + '\033[1m' + '\033[92m' + self.CMDS[res] + info + '\033[0m', self.qemu_id)
-            log_qemu("------------------------------------------------------", self.qemu_id)
-            try:
-                for line in open("/tmp/kAFL_info.txt"):
-                    log_qemu(line, self.qemu_id)
-                os.remove("/tmp/kAFL_info.txt")
-            except:
-                pass
-            log_qemu("------------------------------------------------------", self.qemu_id)
-            os._exit(0)
-        elif res == qemu_protocol.ABORT:
-            #print(common.color.FAIL + self.CMDS[res] + common.color.ENDC)
-            log_qemu("[RECV] " + common.color.FAIL + self.CMDS[res] + common.color.ENDC, self.qemu_id)
-            os._exit(0)
-        if res == qemu_protocol.CRASH or res == qemu_protocol.KASAN:
-            log_qemu("[RECV] " + '\033[1m' + '\033[91m' + self.CMDS[res] + info + '\033[0m', self.qemu_id)
-        else:
-            try:
-                log_qemu("[RECV] " + '\033[1m' + '\033[92m' + self.CMDS[res] + info + '\033[0m', self.qemu_id)
-            except Exception as e:
-                log_qemu("[RECV] " + "unknown cmd '" + res + "'" + str(e), self.qemu_id)
-                raise e
-
-    def __debug_recv(self):
-        while True:
-            try:
-                res = self.control.recv(1)
-            except ConnectionResetError:
-                if self.exiting:
-                    sys.exit(0)
-                raise
-
-            if (len(res) == 0):
-                # Another case of socket error, apparently on Qemu reset/crash
-                if self.catch_vm_reboots:
-                    # Treat event as Qemu reset triggered by target, and log as KASAN
-                    log_qemu("Qemu exit? - Assuming target crash/reset (KASAN)", self.qemu_id)
-                    return qemu_protocol.KASAN
-                else:
-                    # Default: assume Qemu exit is fatal bug in harness/setup
-                    log_qemu("Fatal error in __debug_recv()", self.qemu_id)
-                    sig = self.shutdown()
-                    if sig == 0: # regular shutdown? still report as KASAN
-                        return qemu_protocol.KASAN
-                    else:
-                        raise BrokenPipeError("Qemu exited with signal: %s" % str(sig))
-
-            if res == qemu_protocol.PRINTF:
-                self.__debug_hprintf()
-                self.hprintf_print_mode = False
-            else:
-                self.hprintf_print_mode = True
-
-                if self.debug_mode:
-                    try:
-                        self.__dump_recv_res(res)
-                    except:
-                        pass
-
-                return res
-
-    def __debug_recv_expect(self, cmd):
-        res = ''
-        while True:
-
-            res = self.__debug_recv()
-            if res in cmd:
-                break
-            # TODO: the I/O handling here really sucks.
-            # Below we are returning OK to set_init_state() in order to silence handshake error message during kafl_info.py.
-            # We need to factor out the debug stuff and properly support required vs optional/intermediate control messages...
-            elif res == qemu_protocol.INFO:
-                break
-            elif res is None:
-                # Timeout is detected separately in debug_recv(), so we should never get here..
-                assert False
-            else:
-                # Reaching this part typically means there is a bug in the agent or target setup which
-                # messes up the expected interaction. Throw an error and kill Qemu. Slave may retry.
-                log_qemu("Error in debug_recv(): Got " + str(res) + ", Expected: " + str(cmd) + ")", self.qemu_id)
-                print_warning("Slave %s: Error in debug_recv(): Got %s, Expected: %s" % (self.qemu_id, str(res), str(cmd)))
-                self.shutdown()
-                raise ConnectionResetError("Killed Qemu due to protocol error.")
-        if res == qemu_protocol.PT_TRASHED:
-            log_qemu("PT_TRASHED", self.qemu_id)
-            return False
-        return True
 
     # Asynchronous exit by slave instance. Note this may be called multiple times
     # while we were in the middle of shutdown(), start(), send_payload(), ..
@@ -473,7 +332,7 @@ class qemu:
         self.lock_qemu()
 
     def run_qemu(self):
-        log_qemu("Kicking off..", self.qemu_id)
+        #print("Kick Qemu..")
         self.unlock_qemu()
         self.lock_qemu()
 
@@ -500,8 +359,8 @@ class qemu:
         log_qemu("QEMU IS READY\n", self.qemu_id)
         print("QEMU IS READY\n")
 
-        self.qemu_aux_buffer.set_reload_mode(False)
-        self.qemu_aux_buffer.set_timeout(0, 500000)
+        self.qemu_aux_buffer.set_reload_mode(True)
+        self.qemu_aux_buffer.set_timeout(1, 6000)
         self.run_qemu()
 
         return
@@ -550,6 +409,8 @@ class qemu:
 
     # Reset Qemu after crash/timeout - can skip if target has own forkserver
     def reload(self):
+        # don't restart process 0 -> otherwise you'll corrupt the snapshot file 
+        return 
         if self.config.argument_values['forkserver']:
             return True
         else:
@@ -558,22 +419,17 @@ class qemu:
     # Wait forever on Qemu to execute the payload - useful for interactive debug
     def debug_payload(self, apply_patches=True):
 
-        assert(False) # not converted yet
+        # XXX this way of setting endless timeout is probably not working anymore
+        #while True:
+        #    ready = select.select([self.control], [], [], 0.5)
+        #    if ready[0]:
+        #        break
 
-        # TODO: do we care about this?
-        if apply_patches:
-            self.send_enable_patches()
-        else:
-            self.send_disable_patches()
+        self.qemu_aux_buffer.set_timeout(0, 0)
+        self.run_qemu()
 
-        self.__debug_send(qemu_protocol.RELEASE)
-
-        while True:
-            ready = select.select([self.control], [], [], 0.5)
-            if ready[0]:
-                break
-
-        result = self.__debug_recv()
+        result = self.qemu_aux_buffer.get_result()
+        print("Result:\n%s" % repr(result))
         return result
 
     def send_payload(self, apply_patches=True, timeout_detection=True, max_iterations=10):
@@ -629,14 +485,13 @@ class qemu:
 
     def execute_in_trace_mode(self, timeout_detection):
         log_qemu("Performing trace iteration...", self.qemu_id)
-        assert(False) ## not converted yet
         exec_res = None
         try:
             self.soft_reload()
-            self.send_enable_trace()
+            self.qemu_aux_buffer.set_trace_mode(True)
             exec_res = self.send_payload(timeout_detection=timeout_detection)
             self.soft_reload()
-            self.send_disable_trace()
+            self.qemu_aux_buffer.set_trace_mode(False)
         except Exception as e:
             log_qemu("Error during trace: %s" % str(e), self.qemu_id)
             return None
@@ -649,6 +504,7 @@ class qemu:
 
         result = self.qemu_aux_buffer.get_result()
         self.qemu_aux_buffer.enable_redqueen()
+        self.qemu_aux_buffer.set_timeout(1, 60000)
 
         self.run_qemu()
 
@@ -676,7 +532,7 @@ class qemu:
             self.fs_shm.write_byte(input_len[1])
             self.fs_shm.write_byte(input_len[0])
             self.fs_shm.write(payload)
-            self.fs_shm.flush()
+            #self.fs_shm.flush()
         except ValueError:
             if self.exiting:
                 sys.exit(0)
