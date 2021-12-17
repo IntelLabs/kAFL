@@ -1,3 +1,14 @@
+This project is distributed as AGPL-3.0-or-later.
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+
+
+Some individual components may be subject to a more permissive license.
+These files are marked with corresponding information in their header,
+for example: SPDX-License-Identifier: MIT
+
+
+-------------------------------------------------------------------------------
                     GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
 
