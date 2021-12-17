@@ -1,0 +1,9 @@
+QEMU
+KVM
+libxdc
+capstone
+targets
+radamsa
+west.yml
+zephyrproject
+edk2

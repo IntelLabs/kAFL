@@ -1,0 +1,64 @@
+# West manifest for multi-repo management
+#
+# Configure custom branches and keep track in a repo of your choice.
+#
+# By default, west checks out a detached HEAD to avoid touching any local branches.
+# To work on sub-projects, pull/extend branches as you like and use west update -k:
+# https://docs.zephyrproject.org/latest/guides/west/built-in.html#west-update
+#
+
+manifest:
+  remotes:
+    - name: sandbox
+      url-base: https://github.com/intel-sandbox
+    - name: capstone-upstream
+      url-base: https://github.com/aquynh/
+    - name: radamsa-upstream
+      url-base: https://gitlab.com/akihe/
+
+  projects:
+
+    - name: targets
+      repo-path: research.security.fuzzing.kafl.targets
+      remote: sandbox
+      revision: master
+      path: kafl/targets
+
+    - name: radamsa
+      remote: radamsa-upstream
+      path: kafl/radamsa
+      revision: develop
+
+    - name: kvm
+      repo-path: research.security.fuzzing.nyx.kvm
+      remote: sandbox
+      revision: kvm-nyx-5.10.73
+      path: kafl/KVM
+      groups:
+        - kvm
+
+    - name: qemu
+      repo-path: research.security.fuzzing.nyx.qemu
+      remote: sandbox
+      revision: qemu-nyx-4.2.0-upstream-4
+      path: kafl/QEMU
+      groups:
+        - qemu
+
+    - name: libxdc
+      repo-path: research.security.fuzzing.nyx.libxdc
+      remote: sandbox
+      revision: upstream-3
+      path: kafl/libxdc
+      groups:
+        - qemu
+
+    - name: capstone
+      repo-path: capstone
+      remote: capstone-upstream
+      revision: v4
+      path: kafl/capstone
+      groups:
+        - qemu
+
+  group-filter: [-kvm]

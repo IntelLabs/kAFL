@@ -1,43 +1,8 @@
 #!/bin/bash
 
-#LINUX_VERSION="5.4.55"
-LINUX_VERSION="5.7.12"
-LINUX_VERSION="5.8.12"
-LINUX_URL="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_VERSION}.tar.xz"
-
-#QEMU_VERSION="4.2.0"
-QEMU_VERSION="5.0.0"
-QEMU_URL="https://download.qemu.org/qemu-${QEMU_VERSION}.tar.xz"
-
 echo "================================================="
 echo "           kAFL auto-magic installer             "
 echo "================================================="
-
-checked_download()
-{
-	filename="$1"
-	url="$2"
-
-	if [ ! -f "$filename" ]; then
-		echo "[*] Downloading $filename ..."
-		wget -O "$filename" "$url"
-	fi
-
-	grep $filename sha256sums.lst | sha256sum -c || exit
-}
-
-check_gitconfig()
-{
-	if [ ! "`git config --get user.name`" ] || [ ! "`git config --get user.email`" ]; then
-		echo "[-] Error: The installer uses git in order to manage local patches against qemu and linux sources."
-		echo "           Please setup a valid git config in order for this to work:"
-		echo
-		echo " $ git config --global user.name Joe User"
-		echo " $ git config --global user.email joe.user@invalid.local"
-		echo
-		exit 1
-	fi
-}
 
 system_check()
 {
@@ -77,7 +42,6 @@ system_check()
 		fi
 	done
 
-	check_gitconfig
 }
 
 system_deps()
@@ -91,109 +55,130 @@ system_deps()
 
 	echo "[*] Installing build dependencies for QEMU ..."
 	sudo apt-get build-dep qemu-system-x86 -y
-	# libcapstone is an optional qemu feature but a hard requirement for kAFL
-	sudo apt-get install libcapstone-dev libcapstone3
 
 	echo "[*] Installing kAFL python dependencies ..."
-	pip3 install --user mmh3 lz4 psutil fastrand ipdb inotify msgpack toposort pygraphviz pgrep tqdm six python-dateutil
+	pip3 install --user -r requirements.txt
+}
+
+find_repos()
+{
+	#KAFL_ROOT=$(dirname $(realpath $0))
+
+	if west topdir > /dev/null 2>&1; then
+		LINUX_ROOT=$(west list -f {abspath} kvm)
+		QEMU_ROOT=$(west list -f {abspath} qemu)
+		LIBXDC_ROOT=$(west list -f {abspath} libxdc)
+		CAPSTONE_ROOT=$(west list -f {abspath} capstone)
+		RADAMSA_ROOT=$(west list -f {abspath} radamsa)
+	else
+		LINUX_ROOT=$KAFL_ROOT/KVM
+		QEMU_ROOT=$KAFL_ROOT/QEMU
+		LIBXDC_ROOT=$QEMU_ROOT/libxdc
+		CAPSTONE_ROOT=$QEMU_ROOT/capstone_v4
+		RADAMSA_ROOT=$KAFL_ROOT/radamsa
+	fi
+}
+
+install_capstone()
+{
+	if [ ! -d "$CAPSTONE_ROOT" ]; then
+		echo "[!] Could not find CAPSTONE_ROOT - failed to build capstone."
+		return
+	fi
+
+	echo "[*] Need to remove any existing (and likely conflicting) capstone install (need sudo)"
+	sudo apt-get remove -y libcapstone3 libcapstone-dev
+
+	echo "[*] Building capstone at $CAPSTONE_ROOT..."
+	echo "-------------------------------------------------"
+	make -C $CAPSTONE_ROOT -j $jobs
+	echo "[*] Installing capstone v4 branch into system (need sudo)"
+	sudo make -C $CAPSTONE_ROOT install
+}
+
+install_libxdc()
+{
+	if [ ! -d "$LIBXDC_ROOT" ]; then
+		echo "[!] Could not find LIBXDC_ROOT - failed to build libxdc."
+		return
+	fi
+
+	echo "[*] Building libxdc at $LIBXDC_ROOT..."
+	echo "-------------------------------------------------"
+	make -C $LIBXDC_ROOT -j $jobs
+	echo "[*] Installing libxdc branch into system (need sudo)"
+	sudo make -C $LIBXDC_ROOT install
 }
 
 build_qemu()
 {
-	echo
-	echo "[*] Building Qemu ${QEMU_VERSION} ..."
-
-	check_gitconfig
-
-	if [ -d "qemu-${QEMU_VERSION}" ]; then
-		echo "[*] Folder exists, skipping download + patching..."
-		pushd "qemu-${QEMU_VERSION}"
-	else
-		checked_download "qemu-${QEMU_VERSION}.tar.xz" "$QEMU_URL"
-		tar xf "qemu-${QEMU_VERSION}.tar.xz" || exit
-		pushd "qemu-${QEMU_VERSION}"
-		git init
-		git add .
-		git commit -m "vanilla qemu-${QEMU_VERSION}"
-
-		echo "[*] Applying QEMU patches ..."
-		git am ../patches/qemu/v${QEMU_VERSION}/00*.patch
+	if [ ! -d "$QEMU_ROOT" ]; then
+		echo "[!] Could not find QEMU_ROOT - failed to build Qemu."
+		return
 	fi
 
-	echo "[*] Building ..."
+	echo
+	echo "[*] Building Qemu at $QEMU_ROOT..."
 	echo "-------------------------------------------------"
-	./configure --target-list=i386-softmmu,x86_64-softmmu --enable-vnc --enable-gtk --enable-pt --enable-redqueen --disable-werror
-	make -j $jobs
+	pushd $QEMU_ROOT > /dev/null
+		export QEMU_CFLAGS="-DCONFIG_KAFL_IJON_BITMAP_SIZE=0"
+		export QEMU_CFLAGS="$QEMU_CFLAGS -DCONFIG_KVM_EXIT_SHUTDOWN_IS_PANIC"
+		./configure \
+			--target-list=x86_64-softmmu \
+			--enable-gtk \
+			--disable-capstone \
+			--disable-libssh \
+			--disable-tools \
+			--disable-werror \
+			--enable-nyx
+		make -j $jobs
+	popd
+
 	echo
 	echo "-------------------------------------------------"
-	echo "Qemu build should be done now. Note that you do not have to install this Qemu build into the system."
-	echo "Just update kAFL-Fuzzer/kafl.ini to point it in the proper direction:"
+	echo "Qemu build should be done. You do not have to install this"
+	echo "patched build into the system. Just update kAFL-Fuzzer/kafl.ini:"
 	echo
-	echo    QEMU_KAFL_LOCATION = qemu-${QEMU_VERSION}/x86_64-softmmu/qemu-system-x86_64
+	echo "  qemu_kafl_location = $QEMU_ROOT/x86_64-softmmu/qemu-system-x86_64"
 	echo
 
-	popd
 }
 
 build_linux()
 {
-	echo
-	echo "[*] Building Linux $LINUX_VERSION ..."
 
-	check_gitconfig
-
-	if [ -d linux-${LINUX_VERSION} ]; then
-		echo "[*] Folder exists, assume it is already patched.."
-		pushd "linux-${LINUX_VERSION}"
-	else
-		checked_download "linux-${LINUX_VERSION}.tar.xz" "$LINUX_URL"
-		tar xf "linux-${LINUX_VERSION}.tar.xz" || exit
-		pushd "linux-${LINUX_VERSION}" || exit
-		git init
-		git add .
-		git commit -m "vanilla linux-${LINUX_VERSION}"
-		echo "[*] Applying Linux patches ..."
-		BASE_VERSION=$(echo $LINUX_VERSION|sed "s/\.[0-9]*$//")
-		git am ../patches/kvm/v${BASE_VERSION}/*.patch
+	if [ ! -d "$LINUX_ROOT" ]; then
+		echo "[!] Could not find LINUX_ROOT - failed to build Linux."
+		return
 	fi
 
-	echo "[*] Building ..."
+	echo
+	echo "[*] Building Linux at $LINUX_ROOT..."
 	echo "-------------------------------------------------"
-	# use current/system config as base, but limit modules to actual used..
-	yes ""|make oldconfig
-	#make localmodconfig
-	./scripts/config --set-str CONFIG_LOCALVERSION "-kAFL" --set-val CONFIG_KVM_VMX_PT y
-	./scripts/config --set-str CONFIG_SYSTEM_TRUSTED_KEYS ""
-	make -j $jobs
-	echo "-------------------------------------------------"
-
+	pushd $LINUX_ROOT > /dev/null
+		# use current/system config as base, but limit modules to actual used..
+		yes ""|make oldconfig
+		#make localmodconfig
+		./scripts/config --set-str CONFIG_LOCALVERSION "-kafl" --set-val CONFIG_KVM_NYX y
+		./scripts/config --set-str CONFIG_SYSTEM_TRUSTED_KEYS ""
+		#make -j $jobs
+		make -j $jobs bindeb-pkg
 	popd
+	echo "-------------------------------------------------"
 }
 
 build_radamsa()
 {
-	echo
-	echo "[*] Building radamsa..."
 
-	check_gitconfig
-
-	if [ -d radamsa ]; then
-		echo "[*] Folder exists, skipping download..."
-	else
-		git clone https://gitlab.com/akihe/radamsa.git radamsa
+	if [ ! -d "$RADAMSA_ROOT" ]; then
+		echo "[!] Could not find RADAMSA_ROOT - failed to build radamsa."
+		return
 	fi
 
-	echo "[*] Building ..."
-	make -j $jobs -C radamsa
-}
-
-build_targets()
-{
-	echo
-	echo "[*] Building Target components ..."
-	pushd targets
-	bash compile.sh
-	popd
+	echo "[*] Building radamsa at $RADAMSA_ROOT..."
+	echo "-------------------------------------------------"
+	make -j $jobs -C $RADAMSA_ROOT
+	echo "-------------------------------------------------"
 }
 
 system_perms()
@@ -238,17 +223,6 @@ print_help()
 	echo
 }
 
-install_note()
-{
-	echo "To install the patched kernel, try something like this:"
-	echo
-	echo "  $ cd linux-${LINUX_VERSION}"
-	echo "  $ # optionally set 'MODULES=dep' in /etc/initramfs-tools/initramfs.conf"
-	echo "  $ sudo make INSTALL_MOD_STRIP=1 modules_install"
-	echo "  $ sudo make install"
-	echo
-}
-
 ####################################
 # main()
 ####################################
@@ -266,31 +240,33 @@ case $1 in
 		system_check
 		system_deps
 		;;
-	"radamsa")
-		build_radamsa
-		;;
-	"qemu")
-		build_qemu
-		;;
-	"linux")
-		build_linux
-		;;
-	"targets")
-		build_targets
-		;;
 	"perms")
 		system_perms
 		;;
+	"radamsa")
+		find_repos
+		build_radamsa
+		;;
+	"qemu")
+		find_repos
+		install_capstone
+		install_libxdc
+		build_qemu
+		;;
+	"linux")
+		find_repos
+		build_linux
+		;;
 	"all")
+		system_check
 		system_deps
+		find_repos
+		install_capstone
+		install_libxdc
 		build_qemu
 		build_linux
 		build_radamsa
 		system_perms
-		build_targets
-		;;
-	"note")
-		install_note
 		;;
 	*)
 		print_help
@@ -301,11 +277,5 @@ esac
 echo
 echo "[*] All done."
 echo
-
-case $1 in
-	"linux"|"all")
-		install_note
-		;;
-esac
 
 exit
