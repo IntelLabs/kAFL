@@ -1,10 +1,9 @@
 # Getting Started with Linux Fuzzing
 
-Refer to installation.md first. Make sure that all necessary components
-are installed on your VM host.
-
 Based on legacy kAFL guide. Running on newer distributions may require minor
 fixes to provided sample code.
+
+For base installation, follow the [Getting Started](../README.md#getting-started) steps.
 
 ## Preparing a Linux VM Image
 

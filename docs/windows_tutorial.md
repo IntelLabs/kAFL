@@ -1,8 +1,8 @@
 # Getting Started with Windows Fuzzing
 
-Refer to installation.md first.
-
 Based on legacy kAFL guide. Tested on Ubuntu 20.04.
+
+For base installation, follow the [Getting Started](../README.md#getting-started) steps.
 
 ## Preparing Windows VM
 
