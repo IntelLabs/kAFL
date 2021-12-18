@@ -1,3 +1,8 @@
+# Copyright 2020 Sergej Schumilo, Cornelius Aschermann, Tim Blazytko
+# Copyright 2021 Intel Corporation
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 import mmap
 import os
 import struct
