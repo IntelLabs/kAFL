@@ -7,6 +7,7 @@
 AFL-style trim algorithms (init stage)
 """
 
+from fuzzer.technique.helper import rand
 from fuzzer.bitmap import GlobalBitmap
 from common.log import logger
 
@@ -113,11 +114,9 @@ def perform_extend(payload, old_node, send_handler, max_len):
         return None
 
     # run the payload with some colorized padding to potentially trigger the starved code
-    pad_buffer = bytes(range(pad_bytes%256))
-    for _ in range(pad_bytes//256):
-        pad_buffer += bytes(range(256))
-    for i in range(min(len(pad_buffer),32)):
-        _, is_new = send_handler(payload + pad_buffer[i:] + pad_buffer[:i], label="stream_color")
+    for _ in range(MAX_ROUNDS):
+        pad_buffer = rand.bytes(pad_bytes)
+        _, is_new = send_handler(payload + pad_buffer, label="stream_color")
         if is_new: num_findings += 1
 
     # check if zero-padded payload is still valid, drop otherwise..
