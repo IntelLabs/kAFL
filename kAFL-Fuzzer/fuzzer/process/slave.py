@@ -99,11 +99,11 @@ class SlaveProcess:
         kickstart = self.config.argument_values['kickstart']
 
         if kickstart:
-            logger.info("%s No inputs in queue, attempting kickstart[%d].." % (self, kickstart))
+            logger.debug("%s No inputs in queue, attempting kickstart(%d).." % (self, kickstart))
             self.q.set_timeout(self.t_hard)
             self.logic.process_kickstart(kickstart)
         else:
-            logger.info("%s No inputs in queue, stalling.." % self)
+            logger.info("%s No inputs in queue, sleeping %ds.." % (self, busy_timeout))
             time.sleep(busy_timeout)
         self.conn.send_ready()
 
