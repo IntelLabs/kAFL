@@ -57,6 +57,7 @@ class MasterStatistics:
         self.stats_file = self.work_dir + "/stats"
         self.plot_file  = self.work_dir + "/stats.csv"
         # write once so that we have a valid stats file
+        self.write_plot_header()
         self.maybe_write_stats()
 
     def read_slave_stats(self, slave_id):
@@ -209,6 +210,10 @@ class MasterStatistics:
     def write_statistics(self):
         atomic_write(self.stats_file, msgpack.packb(self.data, use_bin_type=True))
         #print "execs/sec: %d" % ((self.data["executions"] + self.data["executions_redqueen"]) / self.data["duration"])
+
+    def write_plot_header(self):
+        with open(self.plot_file, 'a') as fd:
+            fd.write("#secs; exec/s; paths; p_pend; favs; crash; kasan; tmout; lvls; cycles; f_pend; exec; edges\n")
 
     def write_plot(self):
         cur_time = time.time()

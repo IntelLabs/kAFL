@@ -176,6 +176,11 @@ def atime(secs):
         return "%dd,%02dh" % (days, hours)
     return "%2dh%02dm" % (hours, mins)
 
+def perf(secs):
+    if secs >= 1:
+        return "%.2f s" % secs
+    return "%.2fms" % (secs*1000)
+
 class GuiDrawer:
     def __init__(self, workdir, stdscr):
         self.gui_mutex = Lock()
@@ -328,9 +333,9 @@ class GuiDrawer:
             self.gui.print_info_line([
                 (12, "Parent", "%5d" % d.node_parent_id(nid)),
                 (11, "Size",   pbyte(d.node_size(nid)) + "B"),
-                (13, "Perf",  "%.2fms" % (d.node_performance(nid)*1000)),
-                (10, "Score",   pnum(d.node_score(nid))),
-                (14, "Fuzzed",    atime(d.node_time(nid)))])
+                (13, "Perf",   perf(d.node_performance(nid))),
+                (10, "Score",  pnum(d.node_score(nid))),
+                (14, "Fuzzed", atime(d.node_time(nid)))])
             self.gui.print_thin_line()
             if cur_hex_rows:
                 self.gui.print_hexdump(d.node_payload(nid), max_rows=12)
