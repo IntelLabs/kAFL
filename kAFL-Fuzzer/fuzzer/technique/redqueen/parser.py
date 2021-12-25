@@ -113,7 +113,7 @@ class RedqueenInfo:
         orig_run_info = [r for r in self.run_infos if not r.was_colored]
         #assert (len(orig_run_info) == 1)
         if len(orig_run_info) != 1:
-            log_redq("Warning: Could not find canonical orig. run info! len(info)=%d" % len(orig_run_info))
+            logger.warn("Warning: Could not find canonical orig. run info! len(info)=%d" % len(orig_run_info))
             return num_mut, offsets_to_lhs_to_rhs_to_info    
 
         orig_run_info = orig_run_info[0]
@@ -165,7 +165,7 @@ class RedqueenInfo:
                 res_offsets += new_offsets
                 res_lhss += new_lhss
                 res_rhss += new_rhss
-        # log_redq("strip: %s -> %s"%( repr((offsets,lhss,rhss)), repr((res_offsets,res_lhss, res_rhss)) ) )
+        # logger.debug("strip: %s -> %s"%( repr((offsets,lhss,rhss)), repr((res_offsets,res_lhss, res_rhss)) ) )
         return tuple(res_offsets), tuple(res_lhss), tuple(res_rhss)
 
     def get_hash_candidates(self):

@@ -101,7 +101,7 @@ class MasterProcess:
                     self.maybe_insert_node(msg["input"]["payload"], msg["input"]["bitmap"], node_struct)
                 elif msg["type"] == MSG_READY:
                     # Initial slave hello, send first task...
-                    # log_master("Slave is ready..")
+                    # logger.debug("Slave is ready..")
                     self.send_next_task(conn)
                 else:
                     raise ValueError("unknown message type {}".format(msg))

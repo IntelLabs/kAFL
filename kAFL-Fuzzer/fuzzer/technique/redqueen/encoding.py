@@ -229,7 +229,7 @@ class SplitEncoding(Encoding):
         zeros = bytes(4)
         low = (lhs[:4] == zeros and rhs[:4] == zeros)
         high = (lhs[4:] == zeros and rhs[4:] == zeros)
-        # log_redq("is redundant %s %s %s %s"%(lhs, rhs, low, high))
+        # logger.debug("is redundant %s %s %s %s"%(lhs, rhs, low, high))
         return low or high
 
 

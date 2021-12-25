@@ -56,8 +56,8 @@ class FuzzingStateLogic:
         limiter_map = bytearray([1 for _ in range(len(payload))])
         if self.config.argument_values['i']:
             for ignores in self.config.argument_values['i']:
-                # log_slave("Ignore-range 0: " + str(ignores[0]) + " " + str(min(ignores[0], len(payload))))
-                # log_slave("Ignore-range 1: " + str(ignores[1]) + " " + str(min(ignores[1], len(payload))))
+                # logger.debug("Ignore-range 0: " + str(ignores[0]) + " " + str(min(ignores[0], len(payload))))
+                # logger.debug("Ignore-range 1: " + str(ignores[1]) + " " + str(min(ignores[1], len(payload))))
                 for i in range(min(ignores[0], len(payload)), min(ignores[1], len(payload))):
                     limiter_map[i] = 0
 
@@ -214,8 +214,8 @@ class FuzzingStateLogic:
         self.initial_time += time.time() - time_initial_start
         if new_payload == payload:
             return None
-        #log_slave("before trim:\t\t{}".format(repr(payload)), self.slave.slave_id)
-        #log_slave("after trim:\t\t{}".format(repr(new_payload)), self.slave.slave_id)
+        #logger.debug("before trim:\t\t{}".format(repr(payload)), self.slave.slave_id)
+        #logger.debug("after trim:\t\t{}".format(repr(new_payload)), self.slave.slave_id)
         return new_payload
 
     def handle_grimoire_inference(self, payload, metadata):

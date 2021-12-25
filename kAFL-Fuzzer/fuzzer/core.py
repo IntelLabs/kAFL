@@ -85,6 +85,6 @@ def start(config):
     finally:
         graceful_exit(slaves)
 
-    time.sleep(0.2)
+    time.sleep(1)
     qemu_sweep("Detected potential qemu zombies, please kill -9:")
     sys.exit(0)

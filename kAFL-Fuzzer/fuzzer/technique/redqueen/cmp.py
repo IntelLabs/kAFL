@@ -85,7 +85,7 @@ class Cmp:
 
     def was_true_in(self, run_info):
         # print self.run_info_to_results[run_info]
-        # log_redq("check if cmp was satisfied: %s"%repr(self.run_info_to_pairs[run_info]))
+        # logger.debug("check if cmp was satisfied: %s"%repr(self.run_info_to_pairs[run_info]))
         return all([lhs == rhs for (lhs, rhs) in self.run_info_to_pairs[run_info]])
 
     def __calc_available_encoders(self):
@@ -249,7 +249,7 @@ class CmpEncoded:
             return self.get_int_variants(rhs)
 
     def register_dict(self, repl):
-        # log_redq("add to dict: %s"%repr(repl))
+        # logger.debug("add to dict: %s"%repr(repl))
         if len(repl) > 2:
             havoc_handler.add_to_redqueen_dict(self.cmp.addr, repl)
 
