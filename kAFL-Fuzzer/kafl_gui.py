@@ -279,7 +279,7 @@ class GuiDrawer:
         self.gui.print_info_line([
             (11, "Init", pnum(d.yield_init())),
             (11, "Grim", pnum(d.yield_grim())),
-            (11, "Redq", pnum(d.yield_redq()+d.yield_color())),
+            (11, "Redq", pnum(d.yield_redq())),
             (11, "Det", pnum(d.yield_det())),
             (11, "Hvc", pnum(d.yield_havoc()))
             ], prefix="Yld: ")
@@ -308,7 +308,7 @@ class GuiDrawer:
                 self.gui.print_info_line([(15, "", "[STALLED]"),
                                           (10, "node", "%5d" % d.slave_input_id(i)),
                                           (17, "fav/lvl", "        -"),
-                                          (12, "exec/s",    "    -")],
+                                          (12, "for", ptime(d.slave_is_stalled(i)))],
                                           prefix="%c Slave %2d" % (hl, i))
             elif nid not in [None, 0] and d.nodes.get(nid, None):
                 self.gui.print_info_line([(15, "", d.slave_stage(i)),
@@ -595,28 +595,27 @@ class GuiData:
         return self.swap.used
 
     def yield_imported(self):
-        return self.stats["yield"].get("import", 0)
+        return (self.stats["yield"].get("import", 0) +
+                self.stats["yield"].get("kickstart", 0))
 
     def yield_init(self):
         return (self.stats["yield"].get("trim", 0) +
                 self.stats["yield"].get("trim_funky", 0) +
-                self.stats["yield"].get("center_trim", 0) +
-                self.stats["yield"].get("center_trim_funky", 0) +
+                self.stats["yield"].get("trim_center", 0) +
+                self.stats["yield"].get("stream_zero", 0) +
+                self.stats["yield"].get("stream_color", 0) +
+                self.stats["yield"].get("stream_funky", 0) +
                 self.stats["yield"].get("calibrate", 0))
 
     def yield_grim(self):
-        return (self.stats["yield"].get("grim_inference", 0) +
-                self.stats["yield"].get("grim_generalize", 0) +
-                self.stats["yield"].get("grim_recursive", 0) +
-                self.stats["yield"].get("grim_extension", 0) +
-                self.stats["yield"].get("grim_repl_str", 0))
+        return (self.stats["yield"].get("grim_infer", 0) +
+                self.stats["yield"].get("grim_havoc", 0))
 
     def yield_redq(self):
         return (self.stats["yield"].get("redq_mutate", 0) +
+                self.stats["yield"].get("redq_trace", 0) +
+                self.stats["yield"].get("redq_color", 0) +
                 self.stats["yield"].get("redq_dict", 0))
-
-    def yield_color(self):
-        return self.stats["yield"].get("redq_coloring", 0)
 
     def yield_havoc(self):
         return (self.stats["yield"].get("afl_havoc", 0) +
@@ -709,7 +708,8 @@ class GuiData:
         return self.slave_stats[i]["node_id"]
 
     def slave_is_stalled(self, i):
-        return (self.runtime() - self.slave_stats[i]["run_time"]) > 10
+        last_update = self.runtime() - self.slave_stats[i]["run_time"]
+        return last_update if last_update > 10 else 0
 
     def node_size(self, nid):
         return self.nodes[nid]["payload_len"]

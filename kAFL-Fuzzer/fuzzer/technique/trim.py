@@ -52,13 +52,13 @@ def perform_center_trim(payload, old_node, send_handler, trimming_bytes=2):
     if len(payload) > 1024:
         index = len(payload)//3
 
-    old_res, _ = send_handler(payload, label="center_trim_funky")
+    old_res, _ = send_handler(payload, label="trim_funky")
     if old_res.is_crash():
         return payload
 
     while index < len(payload):
         test_payload = payload[0: index] + payload[index + trimming_bytes:]
-        exec_res, _ = send_handler(test_payload, label="center_trim")
+        exec_res, _ = send_handler(test_payload, label="trim_center")
 
         if check_trim_still_valid(old_node, old_res, exec_res):
             payload = test_payload[:]
@@ -68,10 +68,14 @@ def perform_center_trim(payload, old_node, send_handler, trimming_bytes=2):
     return payload
 
 # Search a padding extension that does not make the target report a STARVED status.
+# Can be very effective for 'streaming' targets that continuously consume input.
 #
-# The target should pad with 0 by default so that length-extending with 0 here is a NOP.
-# However, it seems we can still get bitmap changes sometimes, i.e. the extension failed.
-# So we also try some colorized padding at this point, in hope of triggering the starved logic.
+# We want to extend the payload to match the consumed input, such that the added
+# bytes are accessible to mutation in other stages.
+# Ideally, the target should stop executing at end of input or pad with zero-bytes.
+# This way we can find the correct payload length while maintaining the bitmap.
+# As a fallback, padding with 'colored' input is highly effective in triggering
+# new paths, thus providing new payloads with more optimal length.
 def perform_extend(payload, old_node, send_handler, max_len):
 
     num_findings = 0
@@ -85,11 +89,9 @@ def perform_extend(payload, old_node, send_handler, max_len):
     upper = max(0, max_len - len(payload))
     lower = 0
     for _ in range(2*MAX_ROUNDS):
-        try:
-            new_res, is_new = send_handler(payload + bytes(padding), label="stream_extend")
-        except Exception:
-            print("Round: %d, lengths: %d + %d = %d, maxlen=%d, upper=%d, lower=%d" %(
-                _, len(payload), padding, padding+len(payload), max_len, upper, lower))
+        new_res, is_new = send_handler(payload + bytes(padding), label="stream_zero")
+        #logger.debug("Round: %d, lengths: %d + %d = %d, maxlen=%d, upper=%d, lower=%d" %(
+        #    _, len(payload), padding, padding+len(payload), max_len, upper, lower))
 
         if is_new: num_findings += 1
 
@@ -108,7 +110,7 @@ def perform_extend(payload, old_node, send_handler, max_len):
             break
 
     pad_bytes = upper
-    logger.debug("stream_extend: pad_bytes=%d" % (pad_bytes))
+    logger.debug("stream_extend: detected %d padding bytes" % (pad_bytes))
 
     if pad_bytes == 0:
         return None
@@ -120,7 +122,7 @@ def perform_extend(payload, old_node, send_handler, max_len):
         if is_new: num_findings += 1
 
     # check if zero-padded payload is still valid, drop otherwise..
-    new_res, is_new = send_handler(payload + bytes(pad_bytes), label="stream_extend")
+    new_res, is_new = send_handler(payload + bytes(pad_bytes), label="stream_zero")
     if is_new: num_findings += 1
     if check_trim_still_valid(old_node, old_res, new_res):
         return payload + bytes(pad_bytes)

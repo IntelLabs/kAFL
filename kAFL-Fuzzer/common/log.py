@@ -56,20 +56,20 @@ class Logger():
     def debug(self, msg):
         self.file_log("DEBUG", msg)
         if self.stdout_level <= LOG_LEVEL["DEBUG"]:
-            print(msg)
+            print(color.FLUSH_LINE + msg)
 
     def info(self, msg):
         self.file_log("INFO", msg)
         if self.stdout_level <= LOG_LEVEL["INFO"]:
-            print(msg)
+            print(color.FLUSH_LINE + msg)
 
     def warn(self, msg):
         self.file_log("WARN", "[WARN] " + msg)
-        print(color.WARNING + msg + color.ENDC, file=sys.stderr, flush=True)
+        print(color.FLUSH_LINE + color.WARNING + msg + color.ENDC, file=sys.stderr, flush=True)
 
     def error(self, msg):
         self.file_log("ERROR", "[ERROR] " + msg)
-        print(color.FAIL + "[ERROR] " + msg + color.ENDC, file=sys.stderr, flush=True)
+        print(color.FLUSH_LINE + color.FAIL + "[ERROR] " + msg + color.ENDC, file=sys.stderr, flush=True)
 
 logger = Logger()
 

@@ -124,7 +124,7 @@ def copy_seed_files(working_directory, seed_directory):
     return True
 
 def print_hprintf(msg):
-    sys.stdout.write(color.HPRINTF + msg + color.ENDC)
+    sys.stdout.write(color.FLUSH_LINE + color.HPRINTF + msg + color.ENDC)
     sys.stdout.flush()
 
 def is_float(value):

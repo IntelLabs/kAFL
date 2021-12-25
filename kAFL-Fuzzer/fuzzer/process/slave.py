@@ -152,7 +152,7 @@ class SlaveProcess:
             else:
                 raise ValueError("Unknown message type {}".format(msg))
 
-    def quick_validate(self, data, old_res, quiet=False, trace=False):
+    def quick_validate(self, data, old_res, trace=False):
         # Validate in persistent mode. Faster but problematic for very funky targets
         self.statistics.event_exec()
         old_array = old_res.copy_to_array()
@@ -173,8 +173,6 @@ class SlaveProcess:
         if new_array == old_array:
             return True, new_res.performance
 
-        if not quiet:
-            logger.warn("%s Input validation failed! Target is funky?.." % self)
         return False, new_res.performance
 
     def funky_validate(self, data, old_res, trace=False):
@@ -187,7 +185,7 @@ class SlaveProcess:
         trace_round=False
 
         for num in range(validations):
-            stable, runtime = self.quick_validate(data, old_res, quiet=True, trace=trace_round)
+            stable, runtime = self.quick_validate(data, old_res, trace=trace_round)
             if stable:
                 confirmations += 1
                 runtime_avg += runtime
@@ -364,6 +362,7 @@ class SlaveProcess:
                             info['pt_dump'] = f.name
                 if not stable:
                     # TODO: auto-throttle persistent runs based on funky rate?
+                    logger.debug("%s Input validation failed! Target funky?.." % self)
                     self.statistics.event_funky()
             if exec_res.exit_reason == "timeout" and not hard_timeout:
                 # re-run payload with max timeout

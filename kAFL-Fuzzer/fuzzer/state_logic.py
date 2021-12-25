@@ -226,7 +226,7 @@ class FuzzingStateLogic:
         if len(metadata["new_bytes"]) <= 0 or len(payload) >= 16384:
             return grimoire_info
 
-        self.stage_update_label("grim_inference")
+        self.stage_update_label("grim_infer")
         start_time = time.time()
 
         generalized_input = self.grimoire.generalize_input(payload, metadata)
@@ -249,6 +249,7 @@ class FuzzingStateLogic:
             if "generalized_input" in metadata["grimoire"]:
                 grimoire_input = metadata["grimoire"]["generalized_input"]
 
+        self.stage_update_label("grim_havoc")
         if grimoire_input:
             havoc_amount = havoc.havoc_range(perf * self.HAVOC_MULTIPLIER * 2.0)
             if len(self.grimoire.generalized_inputs) < havoc_amount / 4:
@@ -354,7 +355,7 @@ class FuzzingStateLogic:
 
 
     def __perform_redqueen(self, payload, metadata):
-        self.stage_update_label("redq_coloring")
+        self.stage_update_label("redq_color")
 
         orig_hash = self.__get_bitmap_hash_robust(payload)
         extension = bytes([207, 117, 130, 107, 183, 200, 143, 154])
@@ -375,6 +376,7 @@ class FuzzingStateLogic:
             logger.debug("%s Redqueen: Input is not stable, skipping.." % self)
             return
 
+        self.stage_update_label("redq_trace")
         rq_info = RedqueenInfoGatherer()
         rq_info.make_paths(RedqueenWorkdir(self.slave.slave_id, self.config))
         rq_info.verbose = False
@@ -497,7 +499,7 @@ class FuzzingStateLogic:
                         for i in range(len(payload_array)-len(repl)):
                             counter += 1
                             mutated = apply_dict(payload_array, repl, i)
-                            self.execute(mutated, label="rq_dict")
+                            self.execute(mutated, label="redq_dict")
         logger.debug("%s RedQ-Dict: Have performed %d iters" % (self, counter))
 
 

@@ -82,7 +82,7 @@ def mutate_recursive_replacement(generalized_input, func, grimoire_inference):
     generalized_input = recursive_replacement(generalized_input, grimoire_inference, depth)
     data = grimoire_inference.generalized_to_string(generalized_input)
 
-    func(data, label="grim_recursive")
+    func(data)
 
 
 def mutate_input_extension(generalized_input, func, grimoire_inference):
@@ -90,10 +90,10 @@ def mutate_input_extension(generalized_input, func, grimoire_inference):
     rand_generalized = random_generalized(grimoire_inference)
 
     data = grimoire_inference.generalized_to_string(rand_generalized) + grimoire_inference.generalized_to_string(generalized_input)
-    func(data, label="grim_extension")
+    func(data)
 
     data = grimoire_inference.generalized_to_string(generalized_input) + grimoire_inference.generalized_to_string(rand_generalized)
-    func(data, label="grim_extension")
+    func(data)
 
 
 def mutate_replace_strings(generalized_input, func, grimoire_inference, string_matches):
@@ -107,11 +107,11 @@ def mutate_replace_strings(generalized_input, func, grimoire_inference, string_m
 
     # replace single instance
     data = payload[0:match.start()] + rand_str + payload[match.end():]
-    func(data, label="grim_repl_str")
+    func(data)
 
     # replace all instances
     data = payload.replace(payload[match.start():match.end()], rand_str)
-    func(data, label="grim_repl_str")
+    func(data)
 
 
 def havoc(generalized_input, func, grimoire_inference, max_iterations, generalized):

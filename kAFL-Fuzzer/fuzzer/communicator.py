@@ -27,6 +27,7 @@ class ServerConnection:
         self.address = config.argument_values["work_dir"] + "/slave_socket"
         self.listener = Listener(self.address, 'AF_UNIX', backlog=1000)
         self.clients = [self.listener]
+        self.clients_seen = 0
 
     def wait(self, timeout=None):
         results = []
@@ -35,15 +36,16 @@ class ServerConnection:
             if sock_ready == self.listener:
                 c = self.listener.accept()
                 self.clients.append(c)
+                self.clients_seen += 1
             else:
                 try:
                     msg = sock_ready.recv_bytes()
                     msg = msgpack.unpackb(msg, raw=False, strict_map_key=False)
                     results.append((sock_ready, msg))
                 except (EOFError, IOError):
-                    logger.error("Slave has died - check logs!")
                     sock_ready.close()
                     self.clients.remove(sock_ready)
+                    logger.info("Slave disconnected (remaining %d/%d)." % (len(self.clients)-1, self.clients_seen))
                     if len(self.clients) == 1:
                         raise SystemExit("All slaves have died.")
         return results
