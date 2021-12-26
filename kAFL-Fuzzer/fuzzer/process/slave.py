@@ -307,6 +307,24 @@ class SlaveProcess:
 
         return exec_res
 
+    def execute_naked(self, data, timeout=None):
+
+        if len(data) > self.payload_size_limit:
+            data = data[:self.payload_size_limit]
+
+        if timeout:
+            old_timeout = self.q.get_timeout()
+            self.q.set_timeout(0)
+
+        exec_res = self.__execute(data)
+        self.statistics.event_exec(bb_cov=self.q.bb_seen)
+
+        if timeout:
+            self.q.set_timeout(old_timeout)
+
+        return exec_res
+
+
     def __execute(self, data, retry=0):
 
         try:
