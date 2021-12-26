@@ -31,6 +31,9 @@ from fuzzer.state_logic import FuzzingStateLogic
 from fuzzer.statistics import SlaveStatistics
 from fuzzer.technique.helper import rand
 
+class QemuIOException(Exception):
+        """Exception raised when Qemu interaction fails"""
+        pass
 
 def slave_loader(slave_id):
 
@@ -54,11 +57,13 @@ def slave_loader(slave_id):
 
     try:
         slave_process.loop()
-    except:
+    except QemuIOException:
+        # try to restart here, if Qemu is really dead?
+        pass
+    finally:
         if slave_process.q:
             slave_process.q.async_exit()
-        raise
-    logger.info("QEMU-%02d Exit." % slave_id)
+        logger.error("QEMU-%02d Exit." % slave_id)
 
 
 num_funky = 0
@@ -115,7 +120,14 @@ class SlaveProcess:
         t_dyn = self.t_soft + 1.2 * meta_data["info"]["performance"]
         self.q.set_timeout(min(self.t_hard, t_dyn))
 
-        results, new_payload = self.logic.process_node(payload, meta_data)
+        try:
+            results, new_payload = self.logic.process_node(payload, meta_data)
+        except QemuIOException:
+            # mark node as crashing and free it before escalating
+            results = self.logic.create_update(meta_data["state"], {"crashing": True})
+            self.conn.send_node_done(meta_data["id"], results, None)
+            raise
+
         if new_payload:
             default_info = {"method": "validate_bits", "parent": meta_data["id"]}
             if self.validate_bits(new_payload, meta_data, default_info):
@@ -320,6 +332,11 @@ class SlaveProcess:
         if timeout:
             self.q.set_timeout(old_timeout)
 
+        # restart Qemu on crash
+        if exec_res.is_crash():
+            self.statistics.event_reload(exec_res.exit_reason)
+            self.q.reload()
+
         return exec_res
 
 
@@ -328,19 +345,16 @@ class SlaveProcess:
         try:
             self.q.set_payload(data)
             return self.q.send_payload()
-        except (ValueError, BrokenPipeError):
+        except (ValueError, BrokenPipeError, ConnectionResetError) as e:
             if retry > 2:
                 # TODO if it reliably kills qemu, perhaps log to master for harvesting..
                 logger.error("%s Aborting due to repeated SHM/socket error." % self)
-                if self.debug_mode:
-                    logger.debug("%s Payload: %s" % (self, repr(data)))
-                    raise
-                sys.exit(0)
+                raise QemuIOException("Qemu SHM/socket failure.") from e
 
-            logger.warn("%s SHM/socket error (retry %d)" % (self, retry))
+            logger.warn("%s Qemu SHM/socket error (retry %d)" % (self, retry))
             self.statistics.event_reload("shm/socket error")
             if not self.q.restart():
-                raise
+                raise QemuIOException("Qemu restart failure.") from e
         return self.__execute(data, retry=retry+1)
 
 
