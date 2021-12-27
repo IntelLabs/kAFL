@@ -141,7 +141,8 @@ class SlaveProcess:
             if self.config.argument_values['log_crashes']:
                 # reset logs for each new seed/input
                 for _, logfile in self.qemu_logfiles.items():
-                    os.truncate(logfile,0)
+                    if os.path.exists(logfile):
+                        os.truncate(logfile,0)
 
             if msg["type"] == MSG_RUN_NODE:
                 self.handle_node(msg)
@@ -216,10 +217,12 @@ class SlaveProcess:
         num_crashes += 1
 
         for logname, logfile in self.qemu_logfiles.items():
-            # qemu may keep the FD so we just copy + truncate here and on handle_node()
-            shutil.copy(logfile, "%s/logs/%s_%s_%04x%02x.log" % (
-                self.work_dir, reason[:5], logname, num_crashes, self.slave_id))
-            os.truncate(logfile,0)
+            if os.path.exists(logfile):
+                if os.path.getsize(logfile) > 0:
+                    # qemu may keep the FD so we just copy + truncate here
+                    shutil.copy(logfile, "%s/logs/%s_%s_%04x%02x.log" % (
+                        self.work_dir, reason[:5], logname, num_crashes, self.slave_id))
+                    os.truncate(logfile,0)
 
     def validate_bits(self, data, old_node, default_info):
         new_bitmap, _ = self.execute(data, default_info)
@@ -283,13 +286,13 @@ class SlaveProcess:
             self.q.set_trace_mode(False)
             self.q.set_timeout(old_timeout)
 
-            if (os.path.exists(trace_edge_in)):
+            if os.path.exists(trace_edge_in):
                 with open(trace_edge_in, 'rb') as f_in:
                     with lz4.LZ4FrameFile(trace_edge_out + ".lz4", 'wb',
                             compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
                         shutil.copyfileobj(f_in, f_out)
 
-            if (os.path.exists(trace_dump_in)):
+            if os.path.exists(trace_dump_in):
                 with open(trace_dump_in, 'rb') as f_in:
                     with lz4.LZ4FrameFile(trace_dump_out + ".lz4", 'wb',
                             compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
@@ -356,7 +359,7 @@ class SlaveProcess:
 
                 if trace_pt and stable:
                     trace_in = "%s/pt_trace_dump_%d" % (self.work_dir, self.slave_id)
-                    if (os.path.exists(trace_in)):
+                    if os.path.exists(trace_in):
                         with tempfile.NamedTemporaryFile(delete=False,dir=self.work_dir + "/traces") as f:
                             shutil.move(trace_in, f.name)
                             info['pt_dump'] = f.name
