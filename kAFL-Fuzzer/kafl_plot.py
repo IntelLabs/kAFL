@@ -120,9 +120,9 @@ class Graph:
         elif exit == "kasan": color = "orange"
         elif exit == "timeout": color = "grey"
 
-        print("%s: Found %3d from %3d using %s [%s] (stage=%s, exit=%s, favs=%d, score=%.1f [%3.1fK, %.3fms], prio=%.1f, t=%.1fmin)" %
+        print("%s: Found %3d from %3d using %s [%s] (stage=%s, exit=%s, favs=%d, score=%.1f [%3.1fK, %.2fms], prio=%.1f, t=%.1fmin)" %
                 (t_str, node_id, parent, method[:10].ljust(10), sample[:32].ljust(32),
-                    stage[:8].ljust(8), exit[:1].title(), len(favs), score, perf*1000, plen/1024, prio, t_seen))
+                    stage[:8].ljust(8), exit[:1].title(), len(favs), score, plen/1024, perf*1000, prio, t_seen))
 
         self.dot.add_node(node["id"], label="%s\n[id=%02d, score=%2.2f]\n%s" % (sample[:12], node_id, score, exit), color=color)
         self.dot.add_edge(parent, node["id"], headlabel=method, arrowhead='open')
