@@ -308,7 +308,7 @@ class GuiDrawer:
                 self.gui.print_info_line([(15, "", "[STALLED]"),
                                           (10, "node", "%5d" % d.slave_input_id(i)),
                                           (17, "fav/lvl", "        -"),
-                                          (12, "for", ptime(d.slave_is_stalled(i)))],
+                                          (12, "last", ptime(d.slave_is_stalled(i)))],
                                           prefix="%c Slave %2d" % (hl, i))
             elif nid not in [None, 0] and d.nodes.get(nid, None):
                 self.gui.print_info_line([(15, "", d.slave_stage(i)),
@@ -331,8 +331,8 @@ class GuiDrawer:
         nid = d.slave_input_id(i)
         if nid not in [None, 0] and d.nodes.get(nid, None):
             self.gui.print_info_line([
-                (12, "Parent", "%5d" % d.node_parent_id(nid)),
-                (11, "Size",   pbyte(d.node_size(nid)) + "B"),
+                (11, "Parent", "%4d" % d.node_parent_id(nid)),
+                (12, "Size",   pbyte(d.node_size(nid)) + "B"),
                 (13, "Perf",   perf(d.node_performance(nid))),
                 (10, "Score",  pnum(d.node_score(nid))),
                 (14, "Fuzzed", atime(d.node_time(nid)))])
@@ -342,11 +342,11 @@ class GuiDrawer:
                 self.gui.print_thin_line()
         else:
             self.gui.print_info_line([
-                (12, "Parent", "  N/A"),
-                (12, "Size",   "  N/A"),
-                (12, "Bytes",  "  N/A"),
-                (12, "Bits",   "  N/A"),
-                (12, "Exit",   " ")])
+                (11, "Parent", " N/A"),
+                (12, "Size",   " N/A"),
+                (13, "Perf",   " N/A"),
+                (10, "Score",  " N/A"),
+                (14, "Fuzzed", " N/A")])
             self.gui.print_thin_line()
             if cur_hex_rows:
                 self.gui.print_hexdump(b"importing...", max_rows=12)
