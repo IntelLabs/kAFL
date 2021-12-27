@@ -75,9 +75,18 @@ class QueueNode:
     def apply_metadata_update(old_data, new_data):
         new_data = new_data.copy()  # if we remove keys deeper than attention_execs and attention_secs, we need a deep copy
 
-        for key in ["attention_execs", "attention_secs", "state_time_initial",
-                    "state_time_havoc", "state_time_grimoire",
-                    "state_time_grimoire_inference", "state_time_redqueen"]:
+        for key in [
+                "attention_execs",
+                "attention_secs",
+                "state_time_initial",
+                "state_time_redqueen",
+                "state_time_grimoire",
+                "state_time_grimoire_inference",
+                "state_time_havoc",
+                "state_time_splice",
+                "state_time_radamsa"
+                ]:
+
             old_data[key] = old_data.get(key, 0) + new_data[key]
             del new_data[key]
 
