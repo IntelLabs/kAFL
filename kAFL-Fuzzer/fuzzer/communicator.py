@@ -17,6 +17,7 @@ MSG_READY = 0
 MSG_IMPORT = 1
 MSG_RUN_NODE = 2
 MSG_NODE_DONE = 3
+MSG_NODE_ABORT = 6
 MSG_NEW_INPUT = 4
 MSG_BUSY = 5
 
@@ -85,3 +86,7 @@ class ClientConnection:
     def send_node_done(self, node_id, results, new_payload):
         self.sock.send_bytes(msgpack.packb(
             {"type": MSG_NODE_DONE, "node_id": node_id, "results": results, "new_payload": new_payload}, use_bin_type=True))
+
+    def send_node_abort(self, node_id, results):
+        self.sock.send_bytes(msgpack.packb(
+            {"type": MSG_NODE_ABORT, "node_id": node_id, "results": results}, use_bin_type=True))

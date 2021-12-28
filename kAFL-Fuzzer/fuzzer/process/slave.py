@@ -63,7 +63,7 @@ def slave_loader(slave_id):
     finally:
         if slave_process.q:
             slave_process.q.async_exit()
-        logger.error("QEMU-%02d Exit." % slave_id)
+        logger.info("QEMU-%02d Exit." % slave_id)
 
 
 num_funky = 0
@@ -96,7 +96,12 @@ class SlaveProcess:
         meta_data = {"state": {"name": "import"}, "id": 0}
         payload = msg["task"]["payload"]
         self.q.set_timeout(self.t_hard)
-        self.logic.process_import(payload, meta_data)
+        try:
+            self.logic.process_import(payload, meta_data)
+        except QemuIOException:
+            logger.warn("%s: Execution failure on import.")
+            self.conn.send_node_abort(None, None)
+            raise
         self.conn.send_ready()
 
     def handle_busy(self):
@@ -124,8 +129,9 @@ class SlaveProcess:
             results, new_payload = self.logic.process_node(payload, meta_data)
         except QemuIOException:
             # mark node as crashing and free it before escalating
+            logger.info("Qemu execution failed for node %d." % meta_data["id"])
             results = self.logic.create_update(meta_data["state"], {"crashing": True})
-            self.conn.send_node_done(meta_data["id"], results, None)
+            self.conn.send_node_abort(meta_data["id"], results)
             raise
 
         if new_payload:

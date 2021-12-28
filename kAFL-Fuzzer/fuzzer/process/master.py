@@ -20,7 +20,7 @@ import lz4.frame as lz4
 from common.log import logger
 from common.util import read_binary_file
 from common.execution_result import ExecutionResult
-from fuzzer.communicator import ServerConnection, MSG_NODE_DONE, MSG_NEW_INPUT, MSG_READY
+from fuzzer.communicator import ServerConnection, MSG_NODE_DONE, MSG_NEW_INPUT, MSG_READY, MSG_NODE_ABORT
 from fuzzer.queue import InputQueue
 from fuzzer.statistics import MasterStatistics
 from fuzzer.technique.redqueen.cmp import redqueen_global_config
@@ -87,10 +87,13 @@ class MasterProcess:
             for conn, msg in self.comm.wait(self.statistics.plot_thres):
                 if msg["type"] == MSG_NODE_DONE:
                     # Slave execution done, update queue item + send new task
-                    logger.debug("Received results, sending next task..")
                     if msg["node_id"]:
                         self.queue.update_node_results(msg["node_id"], msg["results"], msg["new_payload"])
                     self.send_next_task(conn)
+                elif msg["type"] == MSG_NODE_ABORT:
+                    # Slave execution aborted, update queue item + DONT send new task
+                    if msg["node_id"]:
+                        self.queue.update_node_results(msg["node_id"], msg["results"], None)
                 elif msg["type"] == MSG_NEW_INPUT:
                     # Slave reports new interesting input
                     if self.debug_mode:
