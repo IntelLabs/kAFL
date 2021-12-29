@@ -204,13 +204,16 @@ class GuiDrawer:
         self.current_slave_id = 0
         self.stdscr = stdscr
 
-        self.fix_rows = 22
-        self.hex_rows = 12
-        self.min_slave_rows = 4
+        self.min_cols = 81
+        self.fixed_rows = 25
+        self.max_hex_rows = 17
+        self.min_slave_rows = 2
+        self.max_slave_rows = 32
 
         # colors!
         curses.start_color()
         curses.use_default_colors()
+        curses.curs_set(0)
         curses.init_pair(0, -1, -1)
         curses.init_pair(1, curses.COLOR_GREEN, -1)
         curses.init_pair(2, curses.COLOR_YELLOW, -1)
@@ -235,15 +238,12 @@ class GuiDrawer:
         d = self.data
 
         # size-limited display: try w/o hexdump, then limit slaves list
-        cur_slave_rows = d.num_slaves()
-        cur_hex_rows = self.hex_rows
-
-        if cur_rows < self.fix_rows + self.hex_rows + d.num_slaves():
+        max_slave_rows = min(self.max_slave_rows, d.num_slaves())
+        cur_hex_rows = min(self.max_hex_rows, cur_rows - self.fixed_rows - max_slave_rows)
+        if cur_hex_rows < 2:
             cur_hex_rows = 0
-            if cur_rows < self.fix_rows + d.num_slaves():
-                cur_slave_rows = cur_rows - self.fix_rows
 
-        assert(cur_slave_rows >= min(self.min_slave_rows, d.num_slaves()))
+        cur_slave_rows = min(d.num_slaves(), cur_rows - self.fixed_rows - cur_hex_rows)
 
         self.gui.print_title_line("kAFL Grand UI")
         self.gui.print_info_line([
@@ -351,10 +351,10 @@ class GuiDrawer:
                 (13, "Perf",   perf(d.node_performance(nid))),
                 (12, "Score",  pnum(d.node_score(nid))),
                 (14, "Fuzzed", atime(d.node_time(nid)))])
-            self.gui.print_thin_line()
             if cur_hex_rows:
-                self.gui.print_hexdump(d.node_payload(nid), max_rows=12)
-                self.gui.print_end_line()
+                self.gui.print_thin_line()
+                self.gui.print_hexdump(d.node_payload(nid), max_rows=cur_hex_rows-1)
+            self.gui.print_end_line()
         else:
             self.gui.print_info_line([
                 (10, "Node", " N/A"),
@@ -362,11 +362,10 @@ class GuiDrawer:
                 (13, "Perf",   " N/A"),
                 (10, "Score",  " N/A"),
                 (14, "Fuzzed", " N/A")])
-            self.gui.print_thin_line()
             if cur_hex_rows:
-                self.gui.print_hexdump(b"importing...", max_rows=12)
-                self.gui.print_end_line()
-        self.gui.refresh()
+                self.gui.print_thin_line()
+                self.gui.print_hexdump(b"importing...", max_rows=cur_hex_rows-1)
+            self.gui.print_end_line()
 
     def loop(self):
         colorscheme = 0
@@ -377,6 +376,8 @@ class GuiDrawer:
                     self.current_slave_id = (self.current_slave_id - 1) % self.data.num_slaves()
                 elif char == "KEY_DOWN":
                     self.current_slave_id = (self.current_slave_id + 1) % self.data.num_slaves()
+                elif char == "KEY_RESIZE":
+                    self.gui.clear()
                 elif char == '\t':
                     colorscheme += 1
                     colorscheme %= self.num_colors
@@ -387,24 +388,22 @@ class GuiDrawer:
             except curses.error:
                 pass
 
-            self.gui_mutex.acquire()
-
-            #self.gui.clear()
-            self.gui.refresh()
-            min_rows = self.fix_rows + self.min_slave_rows
-            min_cols = 82
             cur_rows, cur_cols = self.stdscr.getmaxyx()
+            min_rows = self.fixed_rows + self.min_slave_rows
 
             try:
+                self.gui_mutex.acquire()
                 self.draw(cur_rows)
-            except:
-                if cur_cols < min_cols or cur_rows < min_rows:
-                    print("Terminal too small? (found: %dx%d)" % (cur_rows, cur_cols));
-                    self.gui.refresh()
+            except (Exception,curses.error):
+                if cur_cols < self.min_cols or cur_rows < min_rows:
+                    self.gui.clear()
+                    print("Terminal too small? Need %dx%d but found: %dx%d" % (
+                        min_rows, self.min_cols, cur_rows, cur_cols));
+                    time.sleep(1)
                 else:
                     raise
             finally:
-                self.data.redraw = False
+                self.gui.refresh()
                 self.gui_mutex.release()
 
     def watch(self, workdir):
@@ -422,7 +421,6 @@ class GuiDrawer:
             try:
                 (_, type_names, path, filename) = event
                 d.update(path, filename)
-                d.redraw = True
             finally:
                 self.gui_mutex.release()
 
@@ -438,7 +436,6 @@ class GuiDrawer:
                 self.data.mem = mem_info
                 self.data.cpu = cpu_info
                 self.data.swap = swap_info
-                self.data.redraw = True
             finally:
                 self.gui_mutex.release()
 
@@ -449,7 +446,6 @@ class GuiData:
         self.workdir = workdir
         self.slave_stats = list()
         self.load_initial()
-        self.redraw = True
 
     def load_initial(self):
         self.cpu = psutil.cpu_times_percent(interval=0.01, percpu=False)
