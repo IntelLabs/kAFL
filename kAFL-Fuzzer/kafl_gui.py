@@ -29,24 +29,39 @@ class Interface:
         self.y = 0
 
     def print_title_line(self, title):
-        title = "[%s%s]" % (title, " " * (len(title) % 2))
-        pad = '░' * ((80 - len(title)) // 2)
-        self.stdscr.addstr(self.y, 0, pad + title + pad)
+        ftitle = f"  ┏━┫▌{title}▐┣━┓"
+        self.stdscr.addstr(self.y, 0, ftitle)
         self.y += 1
 
-    def print_sep_line(self):
-        self.stdscr.addstr(self.y, 0, '━' * 80)
+        part1 = "┏━┻━━━" + '━' * len(title) + "━━━┻"
+        part2 = '━' * (80-len(part1)-1) + '┓'
+        self.stdscr.addstr(self.y, 0, part1 + part2 )
+        self.y += 1
+
+    def print_header_line(self, title):
+        ftitle = f"┏━━❮❰ {title} ❱❯"
+        part2 = '━' * (80 - 1 - len(ftitle)) + '┓'
+        self.stdscr.addstr(self.y, 0, ftitle + part2)
+        self.y += 1
+        self.print_empty()
+
+    def print_start_line(self):
+        self.stdscr.addstr(self.y, 0, '┏' + '━' * 78 + '┓')
+        self.y += 1
+
+    def print_end_line(self):
+        self.stdscr.addstr(self.y, 0, '┗' + '━' * 78 + '┛')
         self.y += 1
 
     def print_thin_line(self):
-        self.stdscr.addstr(self.y, 0, '─' * 80)
+        self.stdscr.addstr(self.y, 0, '┠' + '─' * 78 + '┨')
         self.y += 1
 
     def print_empty(self):
         self.stdscr.addstr(self.y, 0, '┃' + ' ' * 78 + '┃')
         self.y += 1
 
-    def print_info_line(self, pairs, sep=" │ ", end="┃", prefix=""):
+    def print_info_line(self, pairs, sep=" │ ", prefix=""):
         infos = []
         for info in pairs:
             infolen = len(info[1]) + len(info[2])
@@ -56,7 +71,7 @@ class Interface:
                 infos.append("%s:%s%s" % (
                     info[1], " ".ljust(info[0]-infolen), info[2]))
 
-        self.stdscr.addstr(self.y, 0, '┃' + prefix + sep.join(infos) + " " + end)
+        self.stdscr.addstr(self.y, 0, "┃ " + prefix + sep.join(infos) + " ┃")
         self.y += 1
 
     def refresh(self):
@@ -85,7 +100,7 @@ class Interface:
         def map_hex(char):
             return hex(char)[2:].ljust(2, "0")
 
-        prefix = "┃0x%07x: " % offset
+        prefix = "┃ 0x%07x: " % offset
         hex_dmp = prefix + (" ".join(map(map_hex, row)))
         hex_dmp = hex_dmp.ljust(61)
         print_dmp = ("".join(map(map_printable, row)))
@@ -230,120 +245,119 @@ class GuiDrawer:
 
         assert(cur_slave_rows >= min(self.min_slave_rows, d.num_slaves()))
 
-        self.gui.print_title_line("kAFL v0.2")
-        self.gui.print_sep_line()
+        self.gui.print_title_line("kAFL Grand UI")
         self.gui.print_info_line([
             (16, "Runtime", ptime(d.runtime())),
             (16, "#Execs", pnum(d.total_execs())),
             (16, "Stability",  "%3d%%" % d.stability()),
-            (16, "Slaves", "%d/%d" %
+            (15, "Slaves", "%d/%d" %
                 (d.num_slaves(), d.cpu_cores()))])
         self.gui.print_info_line([
             (16, "", ""),
             (16, "CurExec/s", pnum(d.execs_p_sec_cur())),
             (16, "Funkiness", pfloat(d.relative_funky()) + "%"),
             #(16, "Reload/s", pnum(d.reload_p_sec()))])
-            (16, "CPU Use", pnum(d.cpu_used()) + "%")])
-            #(16, "", "")])
+            (15, "CPU Use", pnum(d.cpu_used()) + "%")])
+            #(1 6, "", "")])
         self.gui.print_info_line([
             #(16, "", ""),
             (16, "User", pfloat(d.cpu_user()) + "%"),
             (16, "AvgExec/s", pnum(d.execs_p_sec_avg())),
             (16, "Timeouts", pfloat(d.relative_timeouts()) + "%"),
-            (16, "Mem Use", pfloat(d.ram_used()) + "%")])
-        self.gui.print_thin_line()
+            (15, "Mem Use", pfloat(d.ram_used()) + "%")])
+        self.gui.print_end_line()
+        self.gui.print_header_line("Progress")
         self.gui.print_info_line([
-            (16, "Path Info", ""),
-            (16, "Bitmap Stats", ""),
-            (36, "Findings", "")])
+            (16, "Paths", ""),
+            (16, "Bitmap", ""),
+            (35, "Findings", "")])
         self.gui.print_info_line([
             (16, " Total", pnum(d.paths_total())),
             (16, "", ""),
-            (36, " Crash", "%6s (N/A) %10s" % (pnum((d.num_found("crash"))),
+            (35, " Crash", "%6s (N/A) %10s" % (pnum((d.num_found("crash"))),
                                                  ptime(d.time_since("crash"))))])
         self.gui.print_info_line([
             (16, " Seeds", pnum(d.yield_imported())),
             (16, " Edges", pnum(d.bitmap_used())),
-            (36, " AddSan", "%6s (N/A) %10s" % (pnum((d.num_found("kasan"))),
+            (35, " AddSan", "%6s (N/A) %10s" % (pnum((d.num_found("kasan"))),
                                                  ptime(d.time_since("kasan"))))])
         self.gui.print_info_line([
             (16, " Favs", pnum(d.fav_total())),
             (16, " Blocks", pnum(d.bb_covered())),
-            (36, " Timeout", "%6s (N/A) %10s" % (pnum((d.num_found("timeout"))),
+            (35, " Timeout", "%6s (N/A) %10s" % (pnum((d.num_found("timeout"))),
                                                  ptime(d.time_since("timeout"))))])
         self.gui.print_info_line([
             (16, " Norm", pnum(d.normal_total())),
             (16, " p(col)", pfloat(d.p_coll()) + "%"),
-            (36, " Regular", "%6s (N/A) %10s" % (pnum((d.num_found("regular"))),
+            (35, " Regular", "%6s (N/A) %10s" % (pnum((d.num_found("regular"))),
                                                  ptime(d.time_since("regular"))))])
         self.gui.print_thin_line()
         self.gui.print_info_line([
             (11, "Init", pnum(d.yield_init())),
             (11, "Grim", pnum(d.yield_grim())),
             (11, "Redq", pnum(d.yield_redq())),
-            (11, "Det", pnum(d.yield_det())),
+            (10, "Det", pnum(d.yield_det())),
             (11, "Hvc", pnum(d.yield_havoc()))
             ], prefix="Yld: ")
         self.gui.print_info_line([
             (11, "Init", pnum(d.fav_init())),
             (11, "Rq/Gr", pnum(d.fav_redq())),
             (11, "Det", pnum(d.fav_deter())),
-            (11, "Hvc", pnum(d.fav_havoc())),
+            (10, "Hvc", pnum(d.fav_havoc())),
             (11, "Fin", pnum(d.fav_fin()))], prefix="Fav: ")
         self.gui.print_info_line([
             (11, "Init", pnum(d.normal_init())),
             (11, "Rq/Gr", pnum(d.normal_redq())),
             (11, "Det", pnum(d.normal_deter())),
-            (11, "Hvc", pnum(d.normal_havoc())),
+            (10, "Hvc", pnum(d.normal_havoc())),
             (11, "Fin", pnum(d.normal_fin()))], prefix="Nrm: ")
-        #self.gui.print_sep_line()
-        self.gui.print_thin_line()
+        self.gui.print_end_line()
+        self.gui.print_header_line("Activity")
         slaves_start = min(d.num_slaves() - cur_slave_rows, self.current_slave_id)
         slaves_end   = min(d.num_slaves(), self.current_slave_id + cur_slave_rows)
         for i in range(slaves_start, slaves_end):
             hl = " "
             if i == self.current_slave_id:
-                hl = ">"
+                hl = "▶"
             nid = d.slave_input_id(i)
             if d.slave_is_stalled(i):
                 self.gui.print_info_line([(15, "", "[STALLED]"),
                                           (10, "node", "%5d" % d.slave_input_id(i)),
                                           (17, "fav/lvl", "        -"),
                                           (12, "last", ptime(d.slave_is_stalled(i)))],
-                                          prefix="%c Slave %2d" % (hl, i))
+                                          prefix="%cSlave %2d" % (hl, i))
             elif nid not in [None, 0] and d.nodes.get(nid, None):
                 self.gui.print_info_line([(15, "", d.slave_stage(i)),
                                           (10, "node", "%5d" % d.slave_input_id(i)),
                                           (17, "fav/lvl",  "%5s/%3d" % (pnum(d.node_fav_bits(nid)),
                                                                         d.node_level(nid))),
                                           (12, "exec/s", pnum(d.slave_execs_p_sec(i)))],
-                                          prefix="%c Slave %2d" % (hl, i))
+                                          prefix="%cSlave %2d" % (hl, i))
             else:
                 self.gui.print_info_line([(15, "", d.slave_stage(i)),
                                           (10, "node",       "    -"),
                                           (17, "fav/lvl", "        -"),
                                           (12, "exec/s",    "    -")],
-                                          prefix="%c Slave %2d" % (hl, i))
+                                          prefix="%cSlave %2d" % (hl, i))
 
         i = self.current_slave_id
-        self.gui.print_thin_line()
-        self.gui.print_title_line("Payload Info")
-        self.gui.print_sep_line()
+        self.gui.print_end_line()
+        self.gui.print_header_line("Node Info")
         nid = d.slave_input_id(i)
         if nid not in [None, 0] and d.nodes.get(nid, None):
             self.gui.print_info_line([
-                (11, "Parent", "%4d" % d.node_parent_id(nid)),
+                (8, "Id", "%4d" % nid),
                 (12, "Size",   pbyte(d.node_size(nid)) + "B"),
                 (13, "Perf",   perf(d.node_performance(nid))),
-                (10, "Score",  pnum(d.node_score(nid))),
+                (12, "Score",  pnum(d.node_score(nid))),
                 (14, "Fuzzed", atime(d.node_time(nid)))])
             self.gui.print_thin_line()
             if cur_hex_rows:
                 self.gui.print_hexdump(d.node_payload(nid), max_rows=12)
-                self.gui.print_thin_line()
+                self.gui.print_end_line()
         else:
             self.gui.print_info_line([
-                (11, "Parent", " N/A"),
+                (10, "Node", " N/A"),
                 (12, "Size",   " N/A"),
                 (13, "Perf",   " N/A"),
                 (10, "Score",  " N/A"),
@@ -351,8 +365,7 @@ class GuiDrawer:
             self.gui.print_thin_line()
             if cur_hex_rows:
                 self.gui.print_hexdump(b"importing...", max_rows=12)
-                self.gui.print_thin_line()
-        #self.gui.print_title_line("Log")
+                self.gui.print_end_line()
         self.gui.refresh()
 
     def loop(self):
