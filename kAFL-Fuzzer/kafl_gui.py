@@ -463,24 +463,24 @@ class GuiData:
             if not self.config:
                 raise FileNotFoundError("$workdir/config")
             self.bitmap_size = self.config['BITMAP_SHM_SIZE']
-        except Exception:
-            # legacy fallback
+        except (FileNotFoundError, KeyError):
+            print("Could not find bitmap size in $workdir/config - using default value..")
+            time.sleep(1)
             self.bitmap_size = 64*1024
 
         if not self.stats:
             raise FileNotFoundError("$workdir/stats")
 
-
         print("Waiting for slaves to launch..")
-        num_slaves = self.stats.get("num_slaves",0)
-        init_data = None
+        num_slaves = self.stats["num_slaves"]
         for slave_id in range(0, num_slaves):
-            while init_data is None:
-                time.sleep(0.1)
+            while True:
                 init_data = self.read_file("slave_stats_%d" % slave_id)
-            self.slave_stats.append(init_data)
+                if init_data:
+                    self.slave_stats.append(init_data)
+                    break
+                time.sleep(0.2)
 
-        # TODO frontend is using time.time() when we actually need time.clock(), plus perhaps the startup time/date
         self.starttime = min([x["start_time"] for x in self.slave_stats])
 
         self.nodes = {}
