@@ -193,15 +193,16 @@ class GuiDrawer:
         self.hex_rows = 12
         self.min_slave_rows = 4
 
-        # Fenster und Hintergrundfarben
+        # colors!
         curses.start_color()
-        curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-        curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLACK)
-        default_col = curses.color_pair(1)
-        self.stdscr.bkgd(default_col)
-        self.stdscr.nodelay(True)
+        curses.use_default_colors()
+        curses.init_pair(0, -1, -1)
+        curses.init_pair(1, curses.COLOR_GREEN, -1)
+        curses.init_pair(2, curses.COLOR_YELLOW, -1)
+        curses.init_pair(3, curses.COLOR_RED, -1)
+        curses.init_pair(4, curses.COLOR_BLUE, -1)
+        self.num_colors = 5
+        curses.halfdelay(1)
 
         self.gui = Interface(stdscr)
         self.data = GuiData(workdir)
@@ -355,22 +356,23 @@ class GuiDrawer:
         self.gui.refresh()
 
     def loop(self):
-        self.gui.refresh()
+        colorscheme = 0
         while True:
-            redraw = False
-            char = self.stdscr.getch()
-            if char == curses.KEY_UP:
-                self.current_slave_id = (self.current_slave_id - 1) % self.data.num_slaves()
-                redraw = True
-            elif char == curses.KEY_DOWN:
-                self.current_slave_id = (self.current_slave_id + 1) % self.data.num_slaves()
-                redraw = True
-            elif char == ord("q") or char == ord("Q"):
-                self.finished = True
-                return
-
-            if not redraw and not self.data.redraw:
-                time.sleep(0.1)
+            try:
+                char = self.stdscr.getkey()
+                if char == "KEY_UP":
+                    self.current_slave_id = (self.current_slave_id - 1) % self.data.num_slaves()
+                elif char == "KEY_DOWN":
+                    self.current_slave_id = (self.current_slave_id + 1) % self.data.num_slaves()
+                elif char == '\t':
+                    colorscheme += 1
+                    colorscheme %= self.num_colors
+                    self.stdscr.bkgd(curses.color_pair(colorscheme))
+                elif char in ["q", "Q"]:
+                    self.finished = True
+                    return
+            except curses.error:
+                pass
 
             self.gui_mutex.acquire()
 
@@ -793,7 +795,7 @@ if __name__ == "__main__":
     code = locale.getpreferredencoding()
 
     if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
-        print("Usage: " + sys.argv[0] + " <kafl-workdir>")
+        print("Usage:\n\t" + sys.argv[0] + " <kafl-workdir>\n")
         sys.exit(1)
 
     try:
@@ -801,3 +803,5 @@ if __name__ == "__main__":
     except FileNotFoundError as e:
         # ignore - typically just a fuzzer restart or wrong argv[1]
         print("Error reading from workdir. Exit.")
+    except KeyboardInterrupt:
+        pass
