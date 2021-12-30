@@ -789,7 +789,7 @@ class GuiData:
             except:
                 retry -= 1
         if data:
-            return msgpack.unpackb(data, raw=False, strict_map_key=False)
+            return msgpack.unpackb(data, strict_map_key=False)
         else:
             return None
 

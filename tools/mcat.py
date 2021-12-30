@@ -20,4 +20,4 @@ def read_binary_file(filename):
         return f.read()
 
 for arg in sys.argv[1:]:
-    pprint(msgpack.unpackb(read_binary_file(arg), raw=False, strict_map_key=False))
+    pprint(msgpack.unpackb(read_binary_file(arg), strict_map_key=False))

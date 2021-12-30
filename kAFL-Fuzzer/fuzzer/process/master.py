@@ -54,7 +54,7 @@ class MasterProcess:
         #logger.debug("Configuration dump:\n%s" % pformat(config.argument_values, indent=4, compact=True))
         with open(self.work_dir + "/config", 'wb') as fd:
             merged_config = {**self.config.argument_values, **self.config.config_values}
-            fd.write(msgpack.packb(merged_config, use_bin_type=True))
+            fd.write(msgpack.packb(merged_config))
 
 
     def send_next_task(self, conn):

@@ -65,7 +65,7 @@ class Graph:
             self.dot.write(self.outfile)
 
     def __read_msgpack(self, name):
-        return msgpack.unpackb(read_binary_file(name), raw=False, strict_map_key=False)
+        return msgpack.unpackb(read_binary_file(name), strict_map_key=False)
 
     def __read_payload(self, node_id, exit_reason):
         payload_file = self.workdir + "/corpus/" + exit_reason + "/payload_%05d" % node_id

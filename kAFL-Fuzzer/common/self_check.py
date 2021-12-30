@@ -47,7 +47,7 @@ def check_packages():
         logger.error("Package 'msgpack' is missing!")
         return False
 
-    if msgpack.version < (0,6,0):
+    if msgpack.version < (1,0,0):
         logger.error("Package 'msgpack' is too old, try pip3 install -U msgpack!")
         return False
 

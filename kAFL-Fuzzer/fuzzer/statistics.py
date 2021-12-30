@@ -63,7 +63,7 @@ class MasterStatistics:
     def read_slave_stats(self, slave_id):
         # one-shot attempt to read + parse file - this can fail!
         filename = self.work_dir + "/slave_stats_%d" % slave_id
-        return msgpack.unpackb(read_binary_file(filename), raw=False, strict_map_key=False)
+        return msgpack.unpackb(read_binary_file(filename), strict_map_key=False)
 
     def event_queue_cycle(self, queue):
         self.data["cycles"] += 1
@@ -208,7 +208,7 @@ class MasterStatistics:
                 self.write_plot()
 
     def write_statistics(self):
-        atomic_write(self.stats_file, msgpack.packb(self.data, use_bin_type=True))
+        atomic_write(self.stats_file, msgpack.packb(self.data))
         #print "execs/sec: %d" % ((self.data["executions"] + self.data["executions_redqueen"]) / self.data["duration"])
 
     def write_plot_header(self):
@@ -306,6 +306,6 @@ class SlaveStatistics:
         self.data["total_execs"] += self.execs_new
         self.execs_new = 0
 
-        atomic_write(self.filename, msgpack.packb(self.data, use_bin_type=True))
+        atomic_write(self.filename, msgpack.packb(self.data))
         #print "execs/sec: %d" % ((self.data["executions"] + self.data["executions_redqueen"]) / self.data["duration"])
         self.write_last = cur_time

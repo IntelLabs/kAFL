@@ -189,7 +189,7 @@ def kafl_workdir_iterator(work_dir):
     for stats_file in glob.glob(work_dir + "/slave_stats_*"):
         if not stats_file:
             return None
-        slave_stats = msgpack.unpackb(read_binary_file(stats_file), raw=False, strict_map_key=False)
+        slave_stats = msgpack.unpackb(read_binary_file(stats_file), strict_map_key=False)
         start_time = min(start_time, slave_stats['start_time'])
 
     # enumerate inputs from corpus/ and match against metainfo in metadata/
@@ -201,7 +201,7 @@ def kafl_workdir_iterator(work_dir):
             return None
         input_id = os.path.basename(input_file).replace("payload_", "")
         meta_file = work_dir + "/metadata/node_{}".format(input_id)
-        metadata = msgpack.unpackb(read_binary_file(meta_file), raw=False, strict_map_key=False)
+        metadata = msgpack.unpackb(read_binary_file(meta_file), strict_map_key=False)
 
         seconds = metadata["info"]["time"] - start_time
         nid = metadata["id"]

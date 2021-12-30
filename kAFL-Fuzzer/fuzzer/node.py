@@ -36,7 +36,7 @@ class QueueNode:
 
     @staticmethod
     def get_metadata(id):
-        return msgpack.unpackb(read_binary_file(QueueNode.__get_metadata_filename(id)), raw=False, strict_map_key=False)
+        return msgpack.unpackb(read_binary_file(QueueNode.__get_metadata_filename(id)), strict_map_key=False)
 
     @staticmethod
     def get_payload(exitreason, id):
@@ -60,7 +60,7 @@ class QueueNode:
 
     def update_file(self, write=True):
         if write:
-            atomic_write(QueueNode.__get_metadata_filename(self.get_id()), msgpack.packb(self.node_struct, use_bin_type=True))
+            atomic_write(QueueNode.__get_metadata_filename(self.get_id()), msgpack.packb(self.node_struct))
 
     def write_bitmap(self, bitmap):
         atomic_write(self.__get_bitmap_filename(), lz4.frame.compress(bitmap))
