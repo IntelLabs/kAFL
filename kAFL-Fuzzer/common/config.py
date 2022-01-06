@@ -20,13 +20,10 @@ import six
 default_section = "Fuzzer"
 default_config = {"PAYLOAD_SHM_SIZE": 131072,
                   "BITMAP_SHM_SIZE": 65536,
-                  "AGENT_MAX_SIZE": 134217728,
                   "QEMU_KAFL_LOCATION": "",
                   "RADAMSA_LOCATION": "radamsa/bin/radamsa",
-                  "TIMEOUT_TICK_FACTOR": 10.0,
                   "ARITHMETIC_MAX": 35,
                   "APPLE-SMC-OSK": "",
-                  "AGENTS-FOLDER": "./targets/",
                   }
 
 
@@ -112,12 +109,6 @@ def add_args_general(parser):
     parser.add_argument('--debug', help='enable extra debug checks and max logging verbosity',
                         action='store_true', default=False)
 
-# --quiet - mute stdout, disabling debug, info and statistics output
-# --verbose - enable verbose stdout (logger.debug())
-# --debug - enable extra debug checks and qemu tracing
-# --log - log outputs to file, combine with --debug for max verbosity
-# --hprintf_log - write hprintf to separate files
-
 # kAFL/Fuzzer-specific options
 def add_args_fuzzer(parser):
     parser.add_argument('-seed_dir', required=False, metavar='<dir>', action=FullPath,
@@ -182,8 +173,6 @@ def add_args_qemu(parser):
     xorarg.add_argument('-bios', metavar='<file>', required=False, action=FullPath, type=parse_is_file,
                         help='path to the BIOS image.')
 
-    parser.add_argument('-agent', metavar='<file>', required=False, action=FullPath,
-                        type=parse_is_file, help='path to fuzzing agent to be loaded into the VM.')
     parser.add_argument('-mem', metavar='<num>', help='size of virtual memory in MB (default: 256).',
                         default=256, type=int)
 
@@ -207,7 +196,7 @@ def add_args_qemu(parser):
 
     parser.add_argument('-forkserver', required=False, help='target has forkserver (skip Qemu resets)',
                         action='store_true', default=False)
-    parser.add_argument('-R', required=False, help='enable fast reload mode',
+    parser.add_argument('-R', '--no_fast_reload', required=False, help='disable fast reload mode',
                         action='store_true', default=False)
     parser.add_argument('-catch_resets', required=False, help='interpret silent VM reboot as KASAN events',
                         action='store_true', default=False)
@@ -272,76 +261,6 @@ class ConfigReader(object):
     def get_values(self):
         return self.config_value
 
-
-class UserPrepareConfiguration(six.with_metaclass(Singleton)):
-    global default_section, default_config
-
-    __config_section = default_section
-    __config_default = default_config
-
-    def __init__(self, configfile, initial=True):
-        self.config_file = configfile
-        if initial:
-            self.argument_values = None
-            self.config_values = None
-            self.__load_arguments()
-            self.__load_config()
-            self.load_old_state = False
-
-    def __load_config(self):
-        self.config_values = ConfigReader(self.config_file, self.__config_section,
-                                          self.__config_default).get_values()
-
-    def __load_arguments(self):
-        modes = ["m32", "m64"]
-        modes_help = 'm32\tpack and compile as an i386   executable.\n' \
-                     'm64\tpack and compile as an x86-64 executable.\n'
-
-        parser = ArgsParser(formatter_class=argparse.RawTextHelpFormatter)
-
-        parser.add_argument('binary_file', metavar='<Executable>', action=FullPath, type=parse_is_file,
-                            help='path to the user space executable file.')
-        parser.add_argument('output_dir', metavar='<Output Directory>', action=FullPath, type=parse_is_dir,
-                            help='path to the output directory.')
-        parser.add_argument('mode', metavar='<Mode>', choices=modes, help=modes_help)
-        parser.add_argument('-args', metavar='<args>', help='define target arguments.', default="", type=str)
-        parser.add_argument('-file', metavar='<file>', help='write payload to file instead of stdin.', default="", type=str)
-        parser.add_argument('--recompile', help='recompile all agents.', action='store_true', default=False)
-        parser.add_argument('-m', metavar='<memlimit>', help='set memory limit [MB] (default 50 MB).', default=50, type=int)
-        parser.add_argument('--asan', help='disables memlimit (required for ASAN binaries)', action='store_true', default=False)
-
-        self.argument_values = vars(parser.parse_args())
-
-
-class InfoConfiguration(six.with_metaclass(Singleton)):
-    global default_section, default_config
-
-    __config_section = default_section
-    __config_default = default_config
-
-    def __init__(self, configfile, initial=True):
-        self.config_file = configfile
-        if initial:
-            self.argument_values = None
-            self.config_values = None
-            self.__load_arguments()
-            self.__load_config()
-            self.load_old_state = False
-
-    def __load_config(self):
-        self.config_values = ConfigReader(self.config_file, self.__config_section,
-                                          self.__config_default).get_values()
-
-    def __load_arguments(self):
-
-        parser = ArgsParser(formatter_class=argparse.RawTextHelpFormatter, add_help=False)
-
-        general = parser.add_argument_group('General options')
-        add_args_general(general)
-        qemu = parser.add_argument_group('Qemu options')
-        add_args_qemu(qemu)
-
-        self.argument_values = vars(parser.parse_args())
 
 
 class DebugConfiguration(six.with_metaclass(Singleton)):

@@ -28,7 +28,6 @@ class qemu:
     def __init__(self, qid, config, debug_mode=False, notifiers=True, resume=False):
 
         self.debug_mode = debug_mode
-        self.agent_size = config.config_values['AGENT_MAX_SIZE']
         self.bitmap_size = config.config_values['BITMAP_SHM_SIZE']
         self.payload_size = config.config_values['PAYLOAD_SHM_SIZE']
         self.payload_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 5
@@ -48,7 +47,6 @@ class qemu:
 
         self.qemu_aux_buffer_filename = work_dir + "/aux_buffer_%d" % self.qemu_id
 
-        self.binary_filename = work_dir + "/program"
         self.bitmap_filename = work_dir + "/bitmap_%d" % self.qemu_id
         self.payload_filename = work_dir + "/payload_%d" % self.qemu_id
         self.control_filename = work_dir + "/interface_%d" % self.qemu_id
@@ -146,8 +144,7 @@ class qemu:
             self.cmd += " -cpu kAFL64-Hypervisor-v1,+vmx"
             #self.cmd += " -cpu kvm64-v1" #,+vmx
 
-        self.fast_vm_reload = True
-        if self.fast_vm_reload:
+        if not self.config.argument_values['no_fast_reload']:
             if qid == 0 or qid == 1337 and not resume:
                 if self.config.argument_values["vm_snapshot"]:
                     self.cmd += " -fast_vm_reload path=%s,load=off,pre_path=%s " % (
@@ -160,9 +157,6 @@ class qemu:
                 # TDX: all VMs perform regular boot & race for snapshot lock
                 self.cmd += " -fast_vm_reload path=%s,load=off " % (
                              work_dir + "/snapshot/")
-                # starting many qemu instances at once causes random crashes
-                if qid != 1337:
-                    time.sleep(0.1*qid)
 
         # split cmd into list of arguments for Popen(), replace BOOTPARAM as single element
         self.cmd = [_f for _f in self.cmd.split(" ") if _f]
@@ -172,6 +166,10 @@ class qemu:
                 self.cmd[c] = "nokaslr oops=panic nopti mitigations=off console=ttyS0"
                 break
             c += 1
+
+        # delayed Qemu startup - launching too many at once seems to cause random crashes
+        if qid != 1337:
+            time.sleep(0.1*qid)
 
     def __str__(self):
         return "QEMU-%02d" % self.qemu_id
@@ -247,7 +245,6 @@ class qemu:
                 self.qemu_aux_buffer_filename,
                 self.payload_filename,
                 self.control_filename,
-                self.binary_filename,
                 self.bitmap_filename]:
             try:
                 os.remove(tmp_file)
@@ -256,12 +253,6 @@ class qemu:
 
         self.redqueen_workdir.rmtree()
         return self.process.returncode
-
-    def __set_agent(self):
-        agent_bin = self.config.argument_values['agent']
-        bin = read_binary_file(agent_bin)
-        assert (len(bin) <= self.agent_size)
-        atomic_write(self.binary_filename, bin)
 
     def start(self):
 
@@ -308,9 +299,6 @@ class qemu:
 
     def __qemu_handshake(self):
 
-        if self.config.argument_values['agent']:
-            self.__set_agent()
-
         self.run_qemu()
 
         self.qemu_aux_buffer = qemu_aux_buffer(self.qemu_aux_buffer_filename)
@@ -327,7 +315,8 @@ class qemu:
 
         logger.debug("%s Handshake done." % self)
 
-        self.qemu_aux_buffer.set_reload_mode(True)
+        if not self.config.argument_values['no_fast_reload']:
+            self.qemu_aux_buffer.set_reload_mode(True)
         self.qemu_aux_buffer.set_timeout(self.config.argument_values['timeout'])
 
         return
@@ -349,9 +338,6 @@ class qemu:
 
         self.kafl_shm_f     = os.open(self.bitmap_filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
         self.fs_shm_f       = os.open(self.payload_filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
-
-        with open(self.binary_filename, 'bw') as f:
-            os.ftruncate(f.fileno(), self.agent_size)
 
         os.ftruncate(self.kafl_shm_f, self.bitmap_size)
         os.ftruncate(self.fs_shm_f, self.payload_size)
