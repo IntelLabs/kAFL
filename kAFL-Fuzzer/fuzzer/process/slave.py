@@ -50,6 +50,8 @@ def slave_loader(slave_id):
 
     connection = ClientConnection(slave_id, config)
 
+    rand.reseed()
+
     slave_process = SlaveProcess(slave_id, config, connection)
 
     signal.signal(signal.SIGTERM, sigterm_handler)

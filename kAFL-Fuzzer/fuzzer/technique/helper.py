@@ -94,8 +94,10 @@ class rand:
         self.reseed()
 
     def reseed():
+        # seed from system and flush initial output
         fastrand.pcg32_seed(random.getrandbits(63))
-        fastrand.pcg32bounded(2) # flush initial 0 output (?!)
+        fastrand.pcg32()
+        fastrand.pcg32()
 
     def bytes(num):
         return bytes([rand.int(256) for _ in range(num)])
