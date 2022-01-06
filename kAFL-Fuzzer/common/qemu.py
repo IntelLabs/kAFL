@@ -513,26 +513,6 @@ class qemu:
         self.qemu_aux_buffer.set_trace_mode(enable)
 
 
-    def execute_in_redqueen_mode(self, payload):
-        # execute once to ensure we have all pages - should not be required
-        old_timeout = self.qemu_aux_buffer.get_timeout()
-        self.qemu_aux_buffer.set_timeout(0)
-        self.set_payload(payload)
-        #self.send_payload()
-
-        # execute in trace mode, then restore settings
-        self.qemu_aux_buffer.set_redqueen_mode(True)
-        #self.set_payload(payload) # ensure the payload is intact
-        self.run_qemu()
-
-        result = self.qemu_aux_buffer.get_result()
-        self.qemu_aux_buffer.set_redqueen_mode(False)
-        self.qemu_aux_buffer.set_timeout(old_timeout)
-
-        return ExecutionResult(
-                self.c_bitmap, self.bitmap_size,
-                self.exit_reason(result), 0)
-
     def set_payload(self, payload):
         # Ensure the payload fits into SHM. Caller has to cut off since they also report findings.
         # actual payload is limited to payload_size - sizeof(uint32) - sizeof(uint8)

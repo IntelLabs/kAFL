@@ -335,7 +335,9 @@ class FuzzingStateLogic:
 
 
     def execute_redqueen(self, payload):
-        self.stage_info_execs += 1
+        # one regular execution to ensure all pages cached
+        # also colored payload may yield new findings(?)
+        self.execute(payload)
         return self.slave.execute_redqueen(payload)
 
 

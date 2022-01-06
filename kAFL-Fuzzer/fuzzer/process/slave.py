@@ -242,15 +242,13 @@ class SlaveProcess:
         return GlobalBitmap.all_new_bits_still_set(old_bits, new_bitmap)
 
     def execute_redqueen(self, data):
+        # execute in trace mode, then restore settings
+        # setting a timeout seems to interfere with tracing
         self.statistics.event_exec_redqueen()
-
-        if len(data) > self.payload_size_limit:
-            data = data[:self.payload_size_limit]
-        exec_res = self.q.execute_in_redqueen_mode(data)
-        if not exec_res.is_regular():
-            self.statistics.event_reload(exec_res.exit_reason)
-            self.q.reload()
-        return True
+        self.q.qemu_aux_buffer.set_redqueen_mode(True)
+        exec_res = self.execute_naked(data, timeout=0)
+        self.q.qemu_aux_buffer.set_redqueen_mode(False)
+        return exec_res
 
     def __send_to_master(self, data, exec_res, info):
         info["time"] = time.time()
