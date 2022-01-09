@@ -56,7 +56,7 @@ steps in Nyx/KVM repo or use the below steps to generate a generic Debian kernel
 package:
 
 ```
-$ west update linux
+$ west update kvm
 $ ./install.sh linux    # download, patch and build Linux
 $ sudo dpkg -i linux-image*kafl+_*deb
 $ sudo reboot

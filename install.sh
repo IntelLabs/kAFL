@@ -157,6 +157,7 @@ build_linux()
 	echo "-------------------------------------------------"
 	pushd $LINUX_ROOT > /dev/null
 		# use current/system config as base, but limit modules to actual used..
+		cp /boot/config-$(uname -r) .config
 		yes ""|make oldconfig
 		#make localmodconfig
 		./scripts/config --set-str CONFIG_LOCALVERSION "-kafl" --set-val CONFIG_KVM_NYX y
