@@ -115,7 +115,7 @@ separate tools:
 ```
 
 Most of the status/state files are stored as `msgpack`. You can use
-`kAFL-Fuzzer/tools/mcat.py` to dump their content.
+`kAFL-Fuzzer/scripts/mcat.py` to dump their content.
 
 A more intuitive user interface can be started like this:
 
@@ -134,7 +134,7 @@ $ xdot ~/graph.dot
 kAFL also records some basic stats to plot progress over time:
 
 ```
-$ gnuplot -c ~/kafl/tools/stats.plot $workdir/stats.csv
+$ gnuplot -c ~/kafl/scripts/stats.plot $workdir/stats.csv
 ```
 
 To obtain detailed coverage analysis, you can post-process a given workdir using
