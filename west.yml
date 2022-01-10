@@ -8,13 +8,17 @@
 #
 
 manifest:
+
   remotes:
     - name: sandbox
       url-base: https://github.com/intel-sandbox
-    - name: capstone-upstream
-      url-base: https://github.com/aquynh/
-    - name: radamsa-upstream
-      url-base: https://gitlab.com/akihe/
+    - name: github
+      url-base: https://github.com
+    - name: gitlab
+      url-base: https://gitlab.com
+
+  self:
+    path: kafl
 
   projects:
 
@@ -23,11 +27,7 @@ manifest:
       remote: sandbox
       revision: master
       path: kafl/targets
-
-    - name: radamsa
-      remote: radamsa-upstream
-      path: kafl/radamsa
-      revision: develop
+      import: west.yml
 
     - name: kvm
       repo-path: research.security.fuzzing.nyx.kvm
@@ -54,11 +54,17 @@ manifest:
         - qemu
 
     - name: capstone
-      repo-path: capstone
-      remote: capstone-upstream
+      repo-path: aquynh/capstone
+      remote: github
       revision: v4
       path: kafl/capstone
       groups:
         - qemu
+
+    - name: radamsa
+      remote: gitlab
+      repo-path: akihe/radamsa
+      path: kafl/radamsa
+      revision: develop
 
   group-filter: [-kvm]
