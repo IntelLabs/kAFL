@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 """
-Main logic used by Slaves to push nodes through various fuzzing stages/mutators.
+Main logic used by Worker to push nodes through various fuzzing stages/mutators.
 """
 
 
@@ -35,12 +35,12 @@ class FuzzingStateLogic:
     COLORIZATION_STEPS = 1500
     COLORIZATION_TIMEOUT = 5
 
-    def __init__(self, slave, config):
-        self.slave = slave
+    def __init__(self, worker, config):
+        self.worker = worker
         self.config = config
         self.grimoire = GrimoireInference(config, self.validate_bytes)
         havoc.init_havoc(config)
-        radamsa.init_radamsa(config, self.slave.slave_id)
+        radamsa.init_radamsa(config, self.worker.pid)
 
         self.stage_info = {}
         self.stage_info_start_time = None
@@ -50,7 +50,7 @@ class FuzzingStateLogic:
         self.attention_execs_start = None
 
     def __str__(self):
-        return "QEMU%s " % self.slave.slave_id
+        return "Worker-%s " % self.worker.pid
 
     def create_limiter_map(self, payload):
         limiter_map = bytearray([1 for _ in range(len(payload))])
@@ -143,11 +143,11 @@ class FuzzingStateLogic:
         self.grimoire_inference_time = 0
         self.redqueen_time = 0
 
-        self.slave.statistics.event_stage(stage, nid)
+        self.worker.statistics.event_stage(stage, nid)
 
     def stage_update_label(self, method):
         self.stage_info["method"] = method
-        self.slave.statistics.event_method(method)
+        self.worker.statistics.event_method(method)
 
     def get_parent_info(self, extra_info=None):
         info = self.stage_info.copy()
@@ -186,7 +186,7 @@ class FuzzingStateLogic:
 
         if self.config.argument_values["trace_cb"]:
             self.stage_update_label("trace")
-            self.slave.trace_payload(payload, metadata)
+            self.worker.trace_payload(payload, metadata)
 
         self.stage_update_label("calibrate")
         # Update input performance using multiple randomized executions
@@ -203,7 +203,7 @@ class FuzzingStateLogic:
             return None
 
         if metadata['info']['starved']:
-            return perform_extend(payload, metadata, self.execute, self.slave.payload_size_limit)
+            return perform_extend(payload, metadata, self.execute, self.worker.payload_size_limit)
 
         new_payload = perform_trim(payload, metadata, self.execute)
 
@@ -214,8 +214,8 @@ class FuzzingStateLogic:
         self.initial_time += time.time() - time_initial_start
         if new_payload == payload:
             return None
-        #logger.debug("before trim:\t\t{}".format(repr(payload)), self.slave.slave_id)
-        #logger.debug("after trim:\t\t{}".format(repr(new_payload)), self.slave.slave_id)
+        #logger.debug("before trim:\t\t{}".format(repr(payload)), self.worker.pid)
+        #logger.debug("after trim:\t\t{}".format(repr(new_payload)), self.worker.pid)
         return new_payload
 
     def handle_grimoire_inference(self, payload, metadata):
@@ -316,9 +316,9 @@ class FuzzingStateLogic:
 
     def validate_bytes(self, payload, metadata, extra_info=None):
         self.stage_info_execs += 1
-        # FIXME: can we lift this function from slave to this class and avoid this wrapper?
+        # FIXME: can we lift this function from worker to this class and avoid this wrapper?
         parent_info = self.get_parent_info(extra_info)
-        return self.slave.validate_bytes(payload, metadata, parent_info)
+        return self.worker.validate_bytes(payload, metadata, parent_info)
 
 
     def execute(self, payload, label=None, extra_info=None):
@@ -328,7 +328,7 @@ class FuzzingStateLogic:
             self.stage_update_label(label)
 
         parent_info = self.get_parent_info(extra_info)
-        bitmap, is_new = self.slave.execute(payload, parent_info)
+        bitmap, is_new = self.worker.execute(payload, parent_info)
         if is_new:
             self.stage_info_findings += 1
         return bitmap, is_new
@@ -338,7 +338,7 @@ class FuzzingStateLogic:
         # one regular execution to ensure all pages cached
         # also colored payload may yield new findings(?)
         self.execute(payload)
-        return self.slave.execute_redqueen(payload)
+        return self.worker.execute_redqueen(payload)
 
 
     def __get_bitmap_hash(self, payload):
@@ -380,7 +380,7 @@ class FuzzingStateLogic:
 
         self.stage_update_label("redq_trace")
         rq_info = RedqueenInfoGatherer()
-        rq_info.make_paths(RedqueenWorkdir(self.slave.slave_id, self.config))
+        rq_info.make_paths(RedqueenWorkdir(self.worker.pid, self.config))
         rq_info.verbose = False
         for pld in colored_alternatives:
             if self.execute_redqueen(pld):

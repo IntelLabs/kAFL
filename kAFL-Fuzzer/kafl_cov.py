@@ -186,11 +186,11 @@ def afl_workdir_iterator(work_dir):
 def kafl_workdir_iterator(work_dir):
     input_id_time = list()
     start_time = time.time()
-    for stats_file in glob.glob(work_dir + "/slave_stats_*"):
+    for stats_file in glob.glob(work_dir + "/worker_stats_*"):
         if not stats_file:
             return None
-        slave_stats = msgpack.unpackb(read_binary_file(stats_file), strict_map_key=False)
-        start_time = min(start_time, slave_stats['start_time'])
+        worker_stats = msgpack.unpackb(read_binary_file(stats_file), strict_map_key=False)
+        start_time = min(start_time, worker_stats['start_time'])
 
     # enumerate inputs from corpus/ and match against metainfo in metadata/
     # TODO: Tracing crashes/timeouts has minimal overall improvement ~1-2%
@@ -226,7 +226,7 @@ def get_inputs_by_time(data_dir):
         logger.error("Unrecognized target directory type «%s». Exit." % data_dir)
         sys.exit()
 
-    # timestamps may be off slightly but payload IDs are strictly ordered by kAFL master
+    # timestamps may be off slightly but payload IDs are strictly ordered by kAFL Manager
     input_data.sort(key=itemgetter(2))
     return input_data
 
@@ -291,7 +291,7 @@ def generate_traces(config, nproc, input_list):
                 return None
 
     except KeyboardInterrupt:
-        logger.info("Received Ctrl-C, killing slaves...")
+        logger.info("Received Ctrl-C, closing Workers...")
         return None
     except Exception:
         return None

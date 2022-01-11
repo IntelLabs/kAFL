@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 """
-Abstractions for kAFL Master/Slave communicaton.
+Abstractions for kAFL Manager/Worker communicaton.
 """
 
 import msgpack
@@ -25,7 +25,7 @@ MSG_BUSY = 5
 class ServerConnection:
     def __init__(self, config):
         Listener.fileno = lambda self: self._listener._socket.fileno()
-        self.address = config.argument_values["work_dir"] + "/slave_socket"
+        self.address = config.argument_values["work_dir"] + "/kafl_socket"
         self.listener = Listener(self.address, 'AF_UNIX', backlog=1000)
         self.clients = [self.listener]
         self.clients_seen = 0
@@ -46,9 +46,9 @@ class ServerConnection:
                 except (EOFError, IOError):
                     sock_ready.close()
                     self.clients.remove(sock_ready)
-                    logger.info("Slave disconnected (remaining %d/%d)." % (len(self.clients)-1, self.clients_seen))
+                    logger.info("Worker disconnected (remaining %d/%d)." % (len(self.clients)-1, self.clients_seen))
                     if len(self.clients) == 1:
-                        raise SystemExit("All slaves have died.")
+                        raise SystemExit("All Workers exited.")
         return results
 
     def send_import(self, client, task_data):
@@ -64,7 +64,7 @@ class ServerConnection:
 class ClientConnection:
     def __init__(self, id, config):
         self.id = id
-        self.address = config.argument_values["work_dir"] + "/slave_socket"
+        self.address = config.argument_values["work_dir"] + "/kafl_socket"
         self.sock = self.connect()
         self.send_ready()
 

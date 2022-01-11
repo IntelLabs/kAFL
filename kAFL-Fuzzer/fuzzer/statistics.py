@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 """
-Manage status outputs for Master and Slave instances
+Manage status outputs for Manager and Worker instances
 """
 
 import msgpack
@@ -14,7 +14,7 @@ import sys
 from common.util import atomic_write, read_binary_file
 from common.color import FLUSH_LINE, FAIL, OKBLUE, ENDC
 
-class MasterStatistics:
+class ManagerStatistics:
     def __init__(self, config):
         self.config = config
         self.execs_last = 0
@@ -26,7 +26,7 @@ class MasterStatistics:
         self.write_last = 0
         self.write_thres = 0.5
         self.quiet = self.config.argument_values['quiet']
-        self.num_slaves = self.config.argument_values['p']
+        self.num_workers = self.config.argument_values['p']
         self.work_dir = self.config.argument_values['work_dir']
         self.data = {
                 "start_time": time.time(),
@@ -51,7 +51,7 @@ class MasterStatistics:
                     "kasan": 0,
                     "timeout": 0,
                     },
-                "num_slaves": self.num_slaves
+                "num_workers": self.num_workers
                 }
 
         self.stats_file = self.work_dir + "/stats"
@@ -60,9 +60,9 @@ class MasterStatistics:
         self.write_plot_header()
         self.maybe_write_stats()
 
-    def read_slave_stats(self, slave_id):
+    def read_worker_stats(self, pid):
         # one-shot attempt to read + parse file - this can fail!
-        filename = self.work_dir + "/slave_stats_%d" % slave_id
+        filename = self.work_dir + "/worker_stats_%d" % pid
         return msgpack.unpackb(read_binary_file(filename), strict_map_key=False)
 
     def event_queue_cycle(self, queue):
@@ -149,7 +149,7 @@ class MasterStatistics:
             if node.get_state() != "final":
                 self.data["favs_pending"] -= 1
 
-    def event_slave_poll(self):
+    def event_worker_poll(self):
         # collect some global stats - not pretty but simplifies write_plot and kafl_gui
         sum_execs = 0
         sum_funky = 0
@@ -158,14 +158,15 @@ class MasterStatistics:
         sum_slow = 0
         max_bb_cov = 0
         try:
-            for slave_id in range(0, self.num_slaves):
-                sum_execs  += self.read_slave_stats(slave_id).get("total_execs", 0)
-                sum_funky  += self.read_slave_stats(slave_id).get("num_funky", 0)
-                sum_reload += self.read_slave_stats(slave_id).get("num_reload", 0)
-                sum_timeout += self.read_slave_stats(slave_id).get("num_timeout", 0)
-                sum_slow    += self.read_slave_stats(slave_id).get("num_slow", 0)
+            for pid in range(0, self.num_workers):
+                # FIXME: read + unpack just once!
+                sum_execs   += self.read_worker_stats(pid).get("total_execs", 0)
+                sum_funky   += self.read_worker_stats(pid).get("num_funky", 0)
+                sum_reload  += self.read_worker_stats(pid).get("num_reload", 0)
+                sum_timeout += self.read_worker_stats(pid).get("num_timeout", 0)
+                sum_slow    += self.read_worker_stats(pid).get("num_slow", 0)
                 max_bb_cov = max(max_bb_cov,
-                                 self.read_slave_stats(slave_id).get("bb_seen", 0))
+                                 self.read_worker_stats(pid).get("bb_seen", 0))
         except:
             return # don't update on read failure
         self.data["total_execs"] = sum_execs
@@ -194,7 +195,7 @@ class MasterStatistics:
 
         if cur_time - self.write_last > self.write_thres:
             self.write_last = cur_time
-            self.event_slave_poll()
+            self.event_worker_poll()
             self.write_statistics()
             if sys.stdout.isatty():
                 if cur_time - self.stat_last > self.stat_thres:
@@ -239,10 +240,10 @@ class MasterStatistics:
                 ))
 
 
-class SlaveStatistics:
-    def __init__(self, slave_id, config):
+class WorkerStatistics:
+    def __init__(self, pid, config):
         self.config = config
-        self.filename = self.config.argument_values['work_dir'] + "/slave_stats_%d" % (slave_id)
+        self.filename = self.config.argument_values['work_dir'] + "/worker_stats_%d" % pid
         self.write_last = 0
         self.write_thres = 0.5
         self.execs_new = 0

@@ -4,10 +4,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 """
-kAFL Slave Implementation.
+kAFL Worker Implementation.
 
-Request fuzz input from Master and process it through various fuzzing stages/mutations.
-Each Slave is associated with a single Qemu instance for executing fuzz inputs.
+Request fuzz input from Manager and process it through various fuzzing stages/mutations.
+Each Worker is associated with a single Qemu instance for executing fuzz inputs.
 """
 
 import os
@@ -28,57 +28,57 @@ from fuzzer.bitmap import BitmapStorage, GlobalBitmap
 from fuzzer.communicator import ClientConnection, MSG_IMPORT, MSG_RUN_NODE, MSG_BUSY
 from fuzzer.node import QueueNode
 from fuzzer.state_logic import FuzzingStateLogic
-from fuzzer.statistics import SlaveStatistics
+from fuzzer.statistics import WorkerStatistics
 from fuzzer.technique.helper import rand
 
 class QemuIOException(Exception):
         """Exception raised when Qemu interaction fails"""
         pass
 
-def slave_loader(slave_id):
+def worker_loader(pid):
 
     def sigterm_handler(signal, frame):
-        if slave_process.q:
-            slave_process.q.async_exit()
+        if worker.q:
+            worker.q.async_exit()
         sys.exit(0)
 
-    logger.debug(("QEMU-%02d PID: " % slave_id) + str(os.getpid()))
-    # sys.stdout = open("slave_%d.out"%slave_id, "w")
+    logger.debug(("Worker-%02d PID: " % pid) + str(os.getpid()))
+    # sys.stdout = open("worker_%d.out"%pid, "w")
     config = FuzzerConfiguration()
 
-    psutil.Process().cpu_affinity([slave_id + config.argument_values["cpu_offset"]])
+    psutil.Process().cpu_affinity([pid + config.argument_values["cpu_offset"]])
 
-    connection = ClientConnection(slave_id, config)
+    connection = ClientConnection(pid, config)
 
     rand.reseed()
 
-    slave_process = SlaveProcess(slave_id, config, connection)
+    worker = WorkerTask(pid, config, connection)
 
     signal.signal(signal.SIGTERM, sigterm_handler)
     os.setpgrp()
 
     try:
-        slave_process.loop()
+        worker.loop()
     except QemuIOException:
         # try to restart here, if Qemu is really dead?
         pass
     finally:
-        if slave_process.q:
-            slave_process.q.async_exit()
-        logger.info("QEMU-%02d Exit." % slave_id)
+        if worker.q:
+            worker.q.async_exit()
+        logger.info("Worker-%02d Exit." % pid)
 
 
 num_funky = 0
 num_crashes = 0
 
-class SlaveProcess:
+class WorkerTask:
 
-    def __init__(self, slave_id, config, connection, auto_reload=False):
+    def __init__(self, pid, config, connection, auto_reload=False):
         self.config = config
-        self.slave_id = slave_id
+        self.pid = pid
         self.debug_mode = config.argument_values['debug']
-        self.q = qemu(self.slave_id, self.config, debug_mode=self.debug_mode)
-        self.statistics = SlaveStatistics(self.slave_id, self.config)
+        self.q = qemu(self.pid, self.config, debug_mode=self.debug_mode)
+        self.statistics = WorkerStatistics(self.pid, self.config)
         self.logic = FuzzingStateLogic(self, self.config)
         self.conn = connection
         self.work_dir = self.config.argument_values['work_dir']
@@ -89,10 +89,10 @@ class SlaveProcess:
         self.qemu_logfiles = {'hprintf': self.q.hprintf_logfile,
                               'serial': self.q.serial_logfile}
 
-        self.bitmap_storage = BitmapStorage(self.config, self.config.config_values['BITMAP_SHM_SIZE'], "master")
+        self.bitmap_storage = BitmapStorage(self.config, self.config.config_values['BITMAP_SHM_SIZE'], "main")
 
     def __str__(self):
-        return "QEMU-%02d" % self.slave_id
+        return "Worker-%02d" % self.pid
 
     def handle_import(self, msg):
         meta_data = {"state": {"name": "import"}, "id": 0}
@@ -155,7 +155,7 @@ class SlaveProcess:
             try:
                 msg = self.conn.recv()
             except ConnectionResetError:
-                logger.error("%s Lost connection to master. Shutting down." % self)
+                logger.error("%s Lost connection to Manager. Shutting down." % self)
                 return
 
             if self.config.argument_values['log_crashes']:
@@ -227,7 +227,7 @@ class SlaveProcess:
         num_funky += 1
 
         # store funky input for further analysis 
-        atomic_write(f"%s/funky/payload_%04x%02x" % (self.work_dir, num_funky, self.slave_id), data)
+        atomic_write(f"%s/funky/payload_%04x%02x" % (self.work_dir, num_funky, self.pid), data)
 
 
     def __store_crashlogs(self, reason):
@@ -241,7 +241,7 @@ class SlaveProcess:
                 if os.path.getsize(logfile) > 0:
                     # qemu may keep the FD so we just copy + truncate here
                     shutil.copy(logfile, "%s/logs/%s_%s_%04x%02x.log" % (
-                        self.work_dir, reason[:5], logname, num_crashes, self.slave_id))
+                        self.work_dir, reason[:5], logname, num_crashes, self.pid))
                     os.truncate(logfile,0)
 
     def validate_bits(self, data, old_node, default_info):
@@ -270,7 +270,7 @@ class SlaveProcess:
         self.q.qemu_aux_buffer.set_redqueen_mode(False)
         return exec_res
 
-    def __send_to_master(self, data, exec_res, info):
+    def __send_to_manager(self, data, exec_res, info):
         info["time"] = time.time()
         info["exit_reason"] = exec_res.exit_reason
         info["performance"] = exec_res.performance
@@ -284,8 +284,8 @@ class SlaveProcess:
         # This is generally slower and produces different bitmaps so we execute it in
         # a different phase as part of calibration stage.
         # Optionally pickup pt_trace_dump* files as well in case both methods are enabled.
-        trace_edge_in = self.work_dir + "/redqueen_workdir_%d/pt_trace_results.txt" % self.slave_id
-        trace_dump_in = self.work_dir + "/pt_trace_dump_%d" % self.slave_id
+        trace_edge_in = self.work_dir + "/redqueen_workdir_%d/pt_trace_results.txt" % self.pid
+        trace_dump_in = self.work_dir + "/pt_trace_dump_%d" % self.pid
         trace_edge_out = self.work_dir + "/traces/fuzz_cb_%05d.lst" % info['id']
         trace_dump_out = self.work_dir + "/traces/fuzz_cb_%05d.bin" % info['id']
 
@@ -355,7 +355,7 @@ class SlaveProcess:
             return self.q.send_payload()
         except (ValueError, BrokenPipeError, ConnectionResetError) as e:
             if retry > 2:
-                # TODO if it reliably kills qemu, perhaps log to master for harvesting..
+                # TODO if it reliably kills qemu, perhaps log to Manager for harvesting..
                 logger.error("%s Aborting due to repeated SHM/socket error." % self)
                 raise QemuIOException("Qemu SHM/socket failure.") from e
 
@@ -374,7 +374,7 @@ class SlaveProcess:
         exec_res = self.__execute(data)
         self.statistics.event_exec(bb_cov=self.q.bb_seen)
 
-        is_new_input = self.bitmap_storage.should_send_to_master(exec_res, exec_res.exit_reason)
+        is_new_input = self.bitmap_storage.should_send_to_manager(exec_res, exec_res.exit_reason)
         crash = exec_res.is_crash()
         stable = False
 
@@ -396,7 +396,7 @@ class SlaveProcess:
                     exec_res.performance = (exec_res.performance + runtime)/2
 
                 if trace_pt and stable:
-                    trace_in = "%s/pt_trace_dump_%d" % (self.work_dir, self.slave_id)
+                    trace_in = "%s/pt_trace_dump_%d" % (self.work_dir, self.pid)
                     if os.path.exists(trace_in):
                         with tempfile.NamedTemporaryFile(delete=False,dir=self.work_dir + "/traces") as f:
                             shutil.move(trace_in, f.name)
@@ -409,7 +409,7 @@ class SlaveProcess:
                 # re-run payload with max timeout
                 # can be quite slow, so we only do this if prior run has some new edges or t_check=True.
                 # t_dyn should grow over time and eventually include slower inputs up to max timeout
-                maybe_new_regular = self.bitmap_storage.should_send_to_master(exec_res, "regular")
+                maybe_new_regular = self.bitmap_storage.should_send_to_manager(exec_res, "regular")
                 if self.t_check or maybe_new_regular:
                     dyn_timeout = self.q.get_timeout()
                     self.q.set_timeout(self.t_hard)
@@ -429,7 +429,7 @@ class SlaveProcess:
                 self.__store_crashlogs(exec_res.exit_reason)
 
             if crash or stable:
-                self.__send_to_master(data, exec_res, info)
+                self.__send_to_manager(data, exec_res, info)
 
         # restart Qemu on crash
         if crash:

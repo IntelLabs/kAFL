@@ -140,12 +140,12 @@ class BitmapStorage:
             return True
         return False
 
-    def should_send_to_master(self, exec_result, exit_reason):
+    def should_send_to_manager(self, exec_result, exit_reason):
         relevant_bitmap = self.get_bitmap_for_node_type(exit_reason)
         new_bytes, new_bits = relevant_bitmap.get_new_byte_and_bit_counts(exec_result)
         return self.check_storage_logic(exec_result, new_bytes, new_bits)
 
-#    def should_send_to_master(self, exec_result):
+#    def should_send_to_manager(self, exec_result):
 #        relevant_bitmap = self.get_bitmap_for_node_type(exec_result.exit_reason)
 #        new_bytes, new_bits = relevant_bitmap.get_new_byte_and_bit_counts(exec_result)
 #        return self.check_storage_logic(exec_result, new_bytes, new_bits)

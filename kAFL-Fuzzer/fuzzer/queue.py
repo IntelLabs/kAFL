@@ -11,7 +11,7 @@ from fuzzer.scheduler import Scheduler
 
 class InputQueue:
     def __init__(self, config, statistics):
-        self.num_slaves = config.argument_values['p']
+        self.num_workers = config.argument_values['p']
         self.scheduler = Scheduler()
         self.id_to_node = {}
         self.current_cycle = []
@@ -46,7 +46,7 @@ class InputQueue:
         # Redqueen/Grimoire stages seem to be the most efficient.
         #
         # Issues
-        # - Sorting the queue is relatively expensive, can turn the master into a bottleneck
+        # - Sorting the queue is relatively expensive, can turn the Manager into a bottleneck
         # - If we have very few items, we will end up sorting all the time
         #
         # Alternatives?
@@ -54,7 +54,7 @@ class InputQueue:
         # - let scheduler pick randomly, with weighted distribution
 
         fav_items = self.statistics.data['favs_total']
-        cycle_size = int(min(1.5*fav_items, 4*self.num_slaves))
+        cycle_size = int(min(1.5*fav_items, 4*self.num_workers))
 
         full_queue = sorted(self.id_to_node.values(),
                             key=lambda n: self.scheduler.score_priority_favs(n))

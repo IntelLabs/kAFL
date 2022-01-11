@@ -107,11 +107,11 @@ separate tools:
 
 ```
 /path/to/workdir/
-  - corpus/       - corpus of inputs, sorted by execution result
-  - metadata/     - metadata associated with each input
-  - stats         - overall fuzzer status
-  - slave_stats_N - individual status of each slave
-  - debug.log     - detailed logging (activate with -v)
+  - corpus/        - corpus of inputs, sorted by execution result
+  - metadata/      - metadata associated with each input
+  - stats          - overall fuzzer status
+  - worker_stats_N - individual status of Worker <N>
+  - debug.log      - detailed logging (activate with -v)
 ```
 
 Most of the status/state files are stored as `msgpack`. You can use

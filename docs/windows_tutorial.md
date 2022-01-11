@@ -63,6 +63,4 @@ This is the first point where you pass VM to kAFL instead of working with it dir
 
 #### Troubleshooting
 
-Got `[WARNING] Slave 0: Error in debug_recv(): Got b'R', Expected: b'DZ'` right after starting `kafl_fuzz.py`? No worries! This is a [known problem](https://github.com/IntelLabs/kAFL/issues/10#issuecomment-662632491). The fix is described a [little bit further](https://github.com/IntelLabs/kAFL/issues/10#issuecomment-663480222).
-
 For other problems, run `kafl_fuzz.py` with `-v --debug` arguments and observer `./work/debug.log`.

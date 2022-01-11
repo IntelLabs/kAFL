@@ -25,7 +25,7 @@ from common.qemu_aux_buffer import qemu_aux_buffer
 
 class qemu:
 
-    def __init__(self, qid, config, debug_mode=False, notifiers=True, resume=False):
+    def __init__(self, pid, config, debug_mode=False, notifiers=True, resume=False):
 
         self.debug_mode = debug_mode
         self.bitmap_size = config.config_values['BITMAP_SHM_SIZE']
@@ -33,7 +33,7 @@ class qemu:
         self.payload_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 5
         self.timeout_min = 1e-6 # minimum valid timeout/runtime = 1usec
         self.config = config
-        self.qemu_id = qid
+        self.pid = pid
         self.alt_bitmap = bytearray(self.bitmap_size)
         self.alt_edges = 0
         self.bb_seen = 0
@@ -45,17 +45,17 @@ class qemu:
         work_dir = self.config.argument_values['work_dir']
         project_name = work_dir.split("/")[-1]
 
-        self.qemu_aux_buffer_filename = work_dir + "/aux_buffer_%d" % self.qemu_id
+        self.qemu_aux_buffer_filename = work_dir + "/aux_buffer_%d" % self.pid
 
-        self.bitmap_filename = work_dir + "/bitmap_%d" % self.qemu_id
-        self.payload_filename = work_dir + "/payload_%d" % self.qemu_id
-        self.control_filename = work_dir + "/interface_%d" % self.qemu_id
-        self.qemu_trace_log = work_dir + "/qemu_trace_%02d.log" % self.qemu_id
-        self.serial_logfile = work_dir + "/serial_%02d.log" % self.qemu_id
+        self.bitmap_filename = work_dir + "/bitmap_%d" % self.pid
+        self.payload_filename = work_dir + "/payload_%d" % self.pid
+        self.control_filename = work_dir + "/interface_%d" % self.pid
+        self.qemu_trace_log = work_dir + "/qemu_trace_%02d.log" % self.pid
+        self.serial_logfile = work_dir + "/serial_%02d.log" % self.pid
         self.hprintf_log = self.config.argument_values['log_hprintf'] or self.config.argument_values['log_crashes']
-        self.hprintf_logfile = work_dir + "/hprintf_%02d.log" % self.qemu_id
+        self.hprintf_logfile = work_dir + "/hprintf_%02d.log" % self.pid
 
-        self.redqueen_workdir = RedqueenWorkdir(self.qemu_id, config)
+        self.redqueen_workdir = RedqueenWorkdir(self.pid, config)
         self.redqueen_workdir.init_dir()
 
         self.starved = False
@@ -72,7 +72,7 @@ class qemu:
                     ",id=kafl_interface" \
                     " -device kafl,chardev=kafl_interface" + \
                     ",workdir=" + work_dir + \
-                    ",worker_id=%d" % self.qemu_id + \
+                    ",worker_id=%d" % self.pid + \
                     ",bitmap_size=" + str(self.bitmap_size)
 
         if self.config.argument_values['trace']:
@@ -113,7 +113,7 @@ class qemu:
             self.cmd += " -s -S"
 
         if self.config.argument_values['X']:
-            if qid == 0 or qid == 1337:
+            if pid == 0 or pid == 1337:
                 self.cmd += " -display %s" % self.config.argument_values['X']
         else:
             self.cmd += " -display none"
@@ -136,7 +136,7 @@ class qemu:
         if self.config.argument_values["macOS"]:
             self.cmd = self.cmd.replace("-nographic -net none",
                     "-nographic -netdev user,id=hub0port0 -device e1000-82545em,netdev=hub0port0,id=mac_vnet0 -cpu Penryn,kvm=off,vendor=GenuineIntel -device isa-applesmc,osk=\"" + self.config.config_values["APPLE-SMC-OSK"].replace("\"", "") + "\" -machine pc-q35-2.4")
-            if self.qemu_id == 0:
+            if self.pid == 0:
                 self.cmd = self.cmd.replace("-machine pc-q35-2.4", "-machine pc-q35-2.4 -redir tcp:5901:0.0.0.0:5900 -redir tcp:10022:0.0.0.0:22")
         else:
             #self.cmd += " -machine q35 " ## cannot do fast_snapshot
@@ -145,7 +145,7 @@ class qemu:
             #self.cmd += " -cpu kvm64-v1" #,+vmx
 
         if not self.config.argument_values['no_fast_reload']:
-            if qid == 0 or qid == 1337 and not resume:
+            if pid == 0 or pid == 1337 and not resume:
                 if self.config.argument_values["vm_snapshot"]:
                     self.cmd += " -fast_vm_reload path=%s,load=off,pre_path=%s " % (
                             work_dir + "/snapshot/",
@@ -168,13 +168,13 @@ class qemu:
             c += 1
 
         # delayed Qemu startup - launching too many at once seems to cause random crashes
-        if qid != 1337:
-            time.sleep(0.1*qid)
+        if pid != 1337:
+            time.sleep(0.1*pid)
 
     def __str__(self):
-        return "QEMU-%02d" % self.qemu_id
+        return "Worker-%02d" % self.pid
 
-    # Asynchronous exit by slave instance. Note this may be called multiple times
+    # Asynchronous exit by Worker. Note this may be called multiple times
     # while we were in the middle of shutdown(), start(), send_payload(), ..
     def async_exit(self):
         if self.exiting:
@@ -261,7 +261,7 @@ class qemu:
 
         self.persistent_runs = 0
 
-        if self.qemu_id == 0 or self.qemu_id == 1337: ## 1337 is debug instance!
+        if self.pid == 0 or self.pid == 1337: ## 1337 is debug instance!
             logger.info(("%s Launching virtual machine...CMD:\n" % self) + ' '.join(self.cmd))
         else:
             logger.info("%s Launching virtual machine..." % self)

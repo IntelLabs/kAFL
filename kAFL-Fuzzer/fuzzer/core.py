@@ -6,8 +6,8 @@
 """
 Startup routines for kAFL Fuzzer.
 
-Spawn a Master and one or more Slave processes, where Master implements the
-global fuzzing queue and scheduler and Slaves implement mutation stages and
+Spawn a Manager and one or more Worker processes, where Manager implements the
+global fuzzing queue and scheduler and Workers implement mutation stages and
 Qemu/KVM execution.
 
 Prepare the kAFL workdir and copy any provided seeds to be picked up by the scheduler.
@@ -20,23 +20,23 @@ import sys
 from common.log import init_logger, logger
 from common.self_check import post_self_check
 from common.util import prepare_working_dir, copy_seed_files, qemu_sweep
-from fuzzer.process.master import MasterProcess
-from fuzzer.process.slave import slave_loader
+from fuzzer.process.manager import ManagerTask
+from fuzzer.process.worker import worker_loader
 
-def graceful_exit(slaves):
-    for s in slaves:
+def graceful_exit(workers):
+    for s in workers:
         s.terminate()
 
-    logger.info("Waiting for Slave instances to shutdown...")
+    logger.info("Waiting for Workers to shutdown...")
     time.sleep(1)
 
-    while len(slaves) > 0:
-        for s in slaves:
+    while len(workers) > 0:
+        for s in workers:
             if s and s.exitcode is None:
                 logger.info("Still waiting on %s (pid=%d)..  [hit Ctrl-c to abort..]" % (s.name, s.pid))
                 s.join(timeout=1)
             else:
-                slaves.remove(s)
+                workers.remove(s)
 
 
 def start(config):    
@@ -53,7 +53,7 @@ def start(config):
 
     work_dir   = config.argument_values["work_dir"]
     seed_dir   = config.argument_values["seed_dir"]
-    num_slaves = config.argument_values['p']
+    num_worker = config.argument_values['p']
 
     init_logger(config)
 
@@ -69,22 +69,22 @@ def start(config):
     if not config.argument_values['ip0']:
         logger.warn("No trace region configured! PT feedback disabled!")
 
-    master = MasterProcess(config)
+    manager = ManagerTask(config)
 
-    slaves = []
-    for i in range(num_slaves):
-        slaves.append(multiprocessing.Process(name="Slave " + str(i), target=slave_loader, args=(i,)))
-        slaves[i].start()
+    workers = []
+    for i in range(num_worker):
+        workers.append(multiprocessing.Process(name="Worker " + str(i), target=worker_loader, args=(i,)))
+        workers[i].start()
 
     try:
-        master.loop()
+        manager.loop()
     except KeyboardInterrupt:
-        logger.info("Received Ctrl-C, killing slaves...")
+        logger.info("Received Ctrl-C, killing workers...")
     except SystemExit as e:
-        logger.error("Master exit: " + str(e))
+        logger.info("Manager exit: " + str(e))
     finally:
-        graceful_exit(slaves)
+        graceful_exit(workers)
 
     time.sleep(1)
-    qemu_sweep("Detected potential qemu zombies, please kill -9:")
+    qemu_sweep("Detected potential qemu zombies, try to kill -9:")
     sys.exit(0)

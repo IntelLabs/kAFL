@@ -201,14 +201,14 @@ class GuiDrawer:
         self.gui_mutex = Lock()
         self.workdir = workdir
         self.finished = False
-        self.current_slave_id = 0
+        self.current_pid = 0
         self.stdscr = stdscr
 
         self.min_cols = 81
         self.fixed_rows = 25
         self.max_hex_rows = 17
-        self.min_slave_rows = 2
-        self.max_slave_rows = 32
+        self.min_worker_rows = 2
+        self.max_worker_rows = 32
 
         # colors!
         curses.start_color()
@@ -237,21 +237,21 @@ class GuiDrawer:
     def draw(self, cur_rows=None):
         d = self.data
 
-        # size-limited display: try w/o hexdump, then limit slaves list
-        max_slave_rows = min(self.max_slave_rows, d.num_slaves())
-        cur_hex_rows = min(self.max_hex_rows, cur_rows - self.fixed_rows - max_slave_rows)
+        # size-limited display: try w/o hexdump, then limit workers list
+        max_worker_rows = min(self.max_worker_rows, d.num_workers())
+        cur_hex_rows = min(self.max_hex_rows, cur_rows - self.fixed_rows - max_worker_rows)
         if cur_hex_rows < 2:
             cur_hex_rows = 0
 
-        cur_slave_rows = min(d.num_slaves(), cur_rows - self.fixed_rows - cur_hex_rows)
+        cur_worker_rows = min(d.num_workers(), cur_rows - self.fixed_rows - cur_hex_rows)
 
         self.gui.print_title_line("kAFL Grand UI")
         self.gui.print_info_line([
             (16, "Runtime", ptime(d.runtime())),
             (16, "#Execs", pnum(d.total_execs())),
             (16, "Stability",  "%3d%%" % d.stability()),
-            (15, "Slaves", "%d/%d" %
-                (d.num_slaves(), d.cpu_cores()))])
+            (15, "Workers", "%d/%d" %
+                (d.num_workers(), d.cpu_cores()))])
         self.gui.print_info_line([
             (16, "", ""),
             (16, "CurExec/s", pnum(d.execs_p_sec_cur())),
@@ -313,37 +313,37 @@ class GuiDrawer:
             (11, "Fin", pnum(d.normal_fin()))], prefix="Nrm: ")
         self.gui.print_end_line()
         self.gui.print_header_line("Activity")
-        slaves_start = min(d.num_slaves() - cur_slave_rows, self.current_slave_id)
-        slaves_end   = min(d.num_slaves(), self.current_slave_id + cur_slave_rows)
-        for i in range(slaves_start, slaves_end):
+        workers_start = min(d.num_workers() - cur_worker_rows, self.current_pid)
+        workers_end   = min(d.num_workers(), self.current_pid + cur_worker_rows)
+        for i in range(workers_start, workers_end):
             hl = " "
-            if i == self.current_slave_id:
-                hl = "▶"
-            nid = d.slave_input_id(i)
-            if d.slave_is_stalled(i):
-                self.gui.print_info_line([(15, "", "[STALLED]"),
-                                          (10, "node", "%5d" % d.slave_input_id(i)),
+            if i == self.current_pid:
+                hl = ">"
+            nid = d.worker_input_id(i)
+            if d.worker_is_stalled(i):
+                self.gui.print_info_line([(14, "", "[STALLED]"),
+                                          (10, "node", "%5d" % d.worker_input_id(i)),
                                           (17, "fav/lvl", "        -"),
-                                          (12, "last", ptime(d.slave_is_stalled(i)))],
-                                          prefix="%cSlave %2d" % (hl, i))
+                                          (12, "last", ptime(d.worker_is_stalled(i)))],
+                                          prefix="%cWorker %2d" % (hl, i))
             elif nid not in [None, 0] and d.nodes.get(nid, None):
-                self.gui.print_info_line([(15, "", d.slave_stage(i)),
-                                          (10, "node", "%5d" % d.slave_input_id(i)),
+                self.gui.print_info_line([(14, "", d.worker_stage(i)),
+                                          (10, "node", "%5d" % d.worker_input_id(i)),
                                           (17, "fav/lvl",  "%5s/%3d" % (pnum(d.node_fav_bits(nid)),
                                                                         d.node_level(nid))),
-                                          (12, "exec/s", pnum(d.slave_execs_p_sec(i)))],
-                                          prefix="%cSlave %2d" % (hl, i))
+                                          (12, "exec/s", pnum(d.worker_execs_p_sec(i)))],
+                                          prefix="%cWorker %2d" % (hl, i))
             else:
-                self.gui.print_info_line([(15, "", d.slave_stage(i)),
+                self.gui.print_info_line([(14, "", d.worker_stage(i)),
                                           (10, "node",       "    -"),
                                           (17, "fav/lvl", "        -"),
                                           (12, "exec/s",    "    -")],
-                                          prefix="%cSlave %2d" % (hl, i))
+                                          prefix="%cWorker %2d" % (hl, i))
 
-        i = self.current_slave_id
+        i = self.current_pid
         self.gui.print_end_line()
         self.gui.print_header_line("Node Info")
-        nid = d.slave_input_id(i)
+        nid = d.worker_input_id(i)
         if nid not in [None, 0] and d.nodes.get(nid, None):
             self.gui.print_info_line([
                 (8, "Id", "%4d" % nid),
@@ -373,9 +373,9 @@ class GuiDrawer:
             try:
                 char = self.stdscr.getkey()
                 if char == "KEY_UP":
-                    self.current_slave_id = (self.current_slave_id - 1) % self.data.num_slaves()
+                    self.current_pid = (self.current_pid - 1) % self.data.num_workers()
                 elif char == "KEY_DOWN":
-                    self.current_slave_id = (self.current_slave_id + 1) % self.data.num_slaves()
+                    self.current_pid = (self.current_pid + 1) % self.data.num_workers()
                 elif char == "KEY_RESIZE":
                     self.gui.clear()
                 elif char == '\t':
@@ -389,7 +389,7 @@ class GuiDrawer:
                 pass
 
             cur_rows, cur_cols = self.stdscr.getmaxyx()
-            min_rows = self.fixed_rows + self.min_slave_rows
+            min_rows = self.fixed_rows + self.min_worker_rows
 
             try:
                 self.gui_mutex.acquire()
@@ -444,7 +444,7 @@ class GuiData:
 
     def __init__(self, workdir):
         self.workdir = workdir
-        self.slave_stats = list()
+        self.worker_stats = list()
         self.load_initial()
 
     def load_initial(self):
@@ -467,17 +467,17 @@ class GuiData:
         if not self.stats:
             raise FileNotFoundError("$workdir/stats")
 
-        print("Waiting for slaves to launch..")
-        num_slaves = self.stats["num_slaves"]
-        for slave_id in range(0, num_slaves):
+        print("Waiting for Workers to launch..")
+        num_workers = self.stats["num_workers"]
+        for pid in range(0, num_workers):
             while True:
-                init_data = self.read_file("slave_stats_%d" % slave_id)
+                init_data = self.read_file("worker_stats_%d" % pid)
                 if init_data:
-                    self.slave_stats.append(init_data)
+                    self.worker_stats.append(init_data)
                     break
                 time.sleep(0.2)
 
-        self.starttime = min([x["start_time"] for x in self.slave_stats])
+        self.starttime = min([x["start_time"] for x in self.worker_stats])
 
         self.nodes = {}
         for metadata in glob.glob(self.workdir + "/metadata/node_*"):
@@ -512,10 +512,10 @@ class GuiData:
 
 
     def runtime(self):
-        return max([x["run_time"] for x in self.slave_stats])
+        return max([x["run_time"] for x in self.worker_stats])
 
     def execs_p_sec_cur(self):
-        return sum([x.get("execs/sec",0) for x in self.slave_stats])
+        return sum([x.get("execs/sec",0) for x in self.worker_stats])
 
     def execs_p_sec_avg(self):
         return self.total_execs()/self.runtime()
@@ -524,8 +524,8 @@ class GuiData:
         # avoid div-by-zero
         return self.stats.get("total_execs")
 
-    def num_slaves(self):
-        return len(self.slave_stats)
+    def num_workers(self):
+        return len(self.worker_stats)
 
     def num_found(self, reason):
         return self.aggregated["exit_reasons"][reason]
@@ -700,26 +700,25 @@ class GuiData:
         return 100.0 * float(self.bitmap_used()) / self.bitmap_size
 
 
-    def slave_stage(self, i):
-        method = self.slave_stats[i].get("method", None)
-        stage  = self.slave_stats[i].get("stage", "[waiting..]")
+    def worker_stage(self, i):
+        method = self.worker_stats[i].get("method", None)
+        stage  = self.worker_stats[i].get("stage", "[waiting..]")
         if method:
-            #return "%s/%s" % (stage[0:6],method[0:12])
-            return "%s" % method[0:14]
+            return "%s" % method[0:12]
         else:
-            return stage[0:14]
+            return stage[0:12]
 
-    def slave_execs_p_sec(self, i):
-        return self.slave_stats[i].get("execs/sec")
+    def worker_execs_p_sec(self, i):
+        return self.worker_stats[i].get("execs/sec")
 
-    def slave_total_execs(self, i):
-        return self.slave_stats[i].get("total_execs")
+    def worker_total_execs(self, i):
+        return self.worker_stats[i].get("total_execs")
 
-    def slave_input_id(self, i):
-        return self.slave_stats[i]["node_id"]
+    def worker_input_id(self, i):
+        return self.worker_stats[i]["node_id"]
 
-    def slave_is_stalled(self, i):
-        last_update = self.runtime() - self.slave_stats[i]["run_time"]
+    def worker_is_stalled(self, i):
+        last_update = self.runtime() - self.worker_stats[i]["run_time"]
         return last_update if last_update > 10 else 0
 
     def node_size(self, nid):
@@ -763,8 +762,8 @@ class GuiData:
         filename = self.workdir + "/corpus/%s/payload_%05d" % (exit_reason, nid)
         return read_binary_file(filename)[0:1024]  # TODO remove path traversal vuln
 
-    def load_slave(self, id):
-        self.slave_stats[id] = self.read_file("slave_stats_%d" % id)
+    def load_worker(self, id):
+        self.worker_stats[id] = self.read_file("worker_stats_%d" % id)
 
     def load_global(self):
         self.stats = self.read_file("stats")
@@ -773,9 +772,9 @@ class GuiData:
         if "node_" in filename:
             self.load_node(pathname + "/" + filename)
             self.aggregate()
-        elif "slave_stats" in filename:
-            for i in range(0, self.num_slaves()):
-                self.load_slave(i)
+        elif "worker_stats" in filename:
+            for i in range(0, self.num_workers()):
+                self.load_worker(i)
         elif filename == "stats":
             self.load_global()
 

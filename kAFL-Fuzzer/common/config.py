@@ -152,7 +152,7 @@ def add_args_fuzzer(parser):
     parser.add_argument('--kickstart', metavar='<n>', help="kickstart fuzzing with size <n> random strings (default 256, 0 to disable)",
                         type=int, required=False, default=256)
 
-# Qemu/Slave-specific launch options
+# Qemu/Worker-specific launch options
 def add_args_qemu(parser):
 
     # BIOS/VM/Kernel load modes are exclusive, but we need at least one of them

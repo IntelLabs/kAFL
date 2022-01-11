@@ -19,14 +19,14 @@ from common.util import read_binary_file
 from fuzzer.technique.helper import KAFL_MAX_FILE
 
 
-def init_radamsa(config, slave_id):
+def init_radamsa(config, pid):
     global corpus_dir
     global input_dir
     global radamsa_path
 
     corpus_dir = config.argument_values['work_dir'] + "/corpus/"
     radamsa_path = config.config_values["RADAMSA_LOCATION"]
-    input_dir = config.argument_values['work_dir'] + "/radamsa_%d/" % slave_id
+    input_dir = config.argument_values['work_dir'] + "/radamsa_%d/" % pid
 
     if not os.path.isdir(input_dir):
         os.makedirs(input_dir)

@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 """
-kAFL Master Implementation.
+kAFL Manager Implementation.
 
-Manage overall fuzz inputs/findings and schedule work for Slave instances.
+Manage overall fuzz inputs/findings and schedule work for Worker instances.
 """
 
 import glob
@@ -22,13 +22,13 @@ from common.util import read_binary_file
 from common.execution_result import ExecutionResult
 from fuzzer.communicator import ServerConnection, MSG_NODE_DONE, MSG_NEW_INPUT, MSG_READY, MSG_NODE_ABORT
 from fuzzer.queue import InputQueue
-from fuzzer.statistics import MasterStatistics
+from fuzzer.statistics import ManagerStatistics
 from fuzzer.technique.redqueen.cmp import redqueen_global_config
 from fuzzer.bitmap import BitmapStorage
 from fuzzer.node import QueueNode
 
 
-class MasterProcess:
+class ManagerTask:
 
     def __init__(self, config):
         self.config = config
@@ -39,10 +39,10 @@ class MasterProcess:
         self.busy_events = 0
         self.empty_hash = mmh3.hash(("\x00" * self.config.config_values['BITMAP_SHM_SIZE']), signed=False)
 
-        self.statistics = MasterStatistics(self.config)
+        self.statistics = ManagerStatistics(self.config)
         self.queue = InputQueue(self.config, self.statistics)
-        self.bitmap_storage = BitmapStorage(config, config.config_values['BITMAP_SHM_SIZE'], "master", read_only=False)
-        self.num_slaves = self.config.argument_values['p']
+        self.bitmap_storage = BitmapStorage(config, config.config_values['BITMAP_SHM_SIZE'], "main", read_only=False)
+        self.num_workers = self.config.argument_values['p']
 
         redqueen_global_config(
                 redq_hammering=self.config.argument_values['hammer_jmp_tables'],
@@ -72,11 +72,11 @@ class MasterProcess:
         if node:
             return self.comm.send_node(conn, {"type": "node", "nid": node.get_id()})
 
-        # No work in queue. Tell slave to wait a little or attempt blind fuzzing.
-        # If all the slaves are waiting, check if we are getting any coverage..
+        # No work in queue. Tell Worker to wait a little or attempt blind fuzzing.
+        # If all Workers are waiting, check if we are getting any coverage..
         self.comm.send_busy(conn)
         self.busy_events +=1
-        if self.busy_events >= self.num_slaves:
+        if self.busy_events >= self.num_workers:
             self.busy_events = 0
             main_bitmap = self.bitmap_storage.get_bitmap_for_node_type("regular").c_bitmap
             if mmh3.hash(main_bitmap) == self.empty_hash:
@@ -86,16 +86,16 @@ class MasterProcess:
         while True:
             for conn, msg in self.comm.wait(self.statistics.plot_thres):
                 if msg["type"] == MSG_NODE_DONE:
-                    # Slave execution done, update queue item + send new task
+                    # Worker execution done, update queue item + send new task
                     if msg["node_id"]:
                         self.queue.update_node_results(msg["node_id"], msg["results"], msg["new_payload"])
                     self.send_next_task(conn)
                 elif msg["type"] == MSG_NODE_ABORT:
-                    # Slave execution aborted, update queue item + DONT send new task
+                    # Worker execution aborted, update queue item + DONT send new task
                     if msg["node_id"]:
                         self.queue.update_node_results(msg["node_id"], msg["results"], None)
                 elif msg["type"] == MSG_NEW_INPUT:
-                    # Slave reports new interesting input
+                    # Worker reports new interesting input
                     if self.debug_mode:
                         logger.debug("Received new input (exit=%s): %s" % (
                            msg["input"]["info"]["exit_reason"],
@@ -103,8 +103,8 @@ class MasterProcess:
                     node_struct = {"info": msg["input"]["info"], "state": {"name": "initial"}}
                     self.maybe_insert_node(msg["input"]["payload"], msg["input"]["bitmap"], node_struct)
                 elif msg["type"] == MSG_READY:
-                    # Initial slave hello, send first task...
-                    # logger.debug("Slave is ready..")
+                    # Initial Worker hello, send first task...
+                    # logger.debug("Worker is ready..")
                     self.send_next_task(conn)
                 else:
                     raise ValueError("unknown message type {}".format(msg))
@@ -138,7 +138,7 @@ class MasterProcess:
     def maybe_insert_node(self, payload, bitmap_array, node_struct):
         bitmap = ExecutionResult.bitmap_from_bytearray(bitmap_array, node_struct["info"]["exit_reason"],
                                                        node_struct["info"]["performance"])
-        bitmap.lut_applied = True  # since we received the bitmap from the slave, the lut was already applied
+        bitmap.lut_applied = True  # since we received the bitmap from Worker, the lut was already applied
         backup_data = bitmap.copy_to_array()
         should_store, new_bytes, new_bits = self.bitmap_storage.should_store_in_queue(bitmap)
         new_data = bitmap.copy_to_array()

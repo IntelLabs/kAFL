@@ -48,8 +48,8 @@ class Graph:
     def process_once(self):
 
         try:
-            for slave_stats in sorted(glob.glob(self.workdir + "/slave_stats_*")):
-                self.__process_slave(slave_stats)
+            for worker_stats in sorted(glob.glob(self.workdir + "/worker_stats_*")):
+                self.__process_worker(worker_stats)
             for nodefile in sorted(glob.glob(self.workdir + "/metadata/node_*")):
                 self.__process_node(nodefile)
         except:
@@ -71,18 +71,18 @@ class Graph:
         payload_file = self.workdir + "/corpus/" + exit_reason + "/payload_%05d" % node_id
         return read_binary_file(payload_file)
 
-    def __process_slave(self, slave_stats):
+    def __process_worker(self, worker_stats):
 
-        slave = self.__read_msgpack(slave_stats)
+        worker = self.__read_msgpack(worker_stats)
         
         self.global_tasks += 1
 
-        self.global_executions += slave["total_execs"]
-        self.global_runtime += slave["run_time"]
+        self.global_executions += worker["total_execs"]
+        self.global_runtime += worker["run_time"]
 
-        slave_startup = slave["start_time"]
-        if slave_startup < self.global_startup:
-            self.global_startup = slave_startup
+        worker_startup = worker["start_time"]
+        if worker_startup < self.global_startup:
+            self.global_startup = worker_startup
 
     def __process_node(self, nodefile):
 
@@ -131,7 +131,7 @@ class Graph:
 
 def main(workdir, outfile=None):
 
-    if glob.glob(workdir + "/slave_stats_*") == []:
+    if glob.glob(workdir + "/worker_stats_*") == []:
         print("No kAFL statistics found. Invalid workdir?")
 
     dot = Graph(workdir, outfile)
