@@ -31,7 +31,6 @@ class qemu:
         self.bitmap_size = config.config_values['BITMAP_SHM_SIZE']
         self.payload_size = config.config_values['PAYLOAD_SHM_SIZE']
         self.payload_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 5
-        self.timeout_min = 1e-6 # minimum valid timeout/runtime = 1usec
         self.config = config
         self.pid = pid
         self.alt_bitmap = bytearray(self.bitmap_size)
@@ -404,7 +403,7 @@ class qemu:
         result = None
         old_address = 0
         self.persistent_runs += 1
-        #start_time = time.time()
+        start_time = time.time()
 
         while True:
             self.run_qemu()
@@ -428,26 +427,13 @@ class qemu:
                 old_address = result.page_fault_addr
                 self.qemu_aux_buffer.dump_page(result.page_fault_addr)
 
-        if result.runtime_sec > 0:
-            # Qemu timer overflow when elapsing seconds
-            MAX_ULONG = 4294967295
-            fixed_usec = result.runtime_usec - MAX_ULONG
-            #print("perf: orig: <%d,%d> => %.3fms ??" % (result.runtime_sec, result.runtime_usec, result.runtime_sec*1000 + fixed_usec/1000))
-        else:
-            fixed_usec = result.runtime_usec
-            #print("perf: orig: <%d,%d> => %.3fms ??" % (result.runtime_sec, result.runtime_usec, result.runtime_sec*1000 + fixed_usec/1000))
-
-        #runtime = result.runtime_sec*1000 + fixed_usec/1000
-        runtime = max(self.timeout_min, result.runtime_sec + fixed_usec/1000000)
-
         # record highest seen BBs
         self.bb_seen = max(self.bb_seen, result.bb_cov)
 
+        #runtime = result.runtime_sec + result.runtime_usec/1000/1000
         res = ExecutionResult(
                 self.c_bitmap, self.bitmap_size,
-                self.exit_reason(result), runtime)
-        #res = ExecutionResult.bitmap_from_bytearray(
-        #        bytearray(self.c_bitmap), self.exit_reason(result), time.time() - start_time)
+                self.exit_reason(result), time.time() - start_time)
 
         if result.success > 1:
             res.starved = True
