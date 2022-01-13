@@ -11,7 +11,7 @@ from threading import Thread
 
 import mmh3
 
-import common.color
+import common.color as color
 from common.config import DebugConfiguration
 from common.log import init_logger, logger
 from common.qemu import qemu
@@ -40,28 +40,45 @@ def hexdump(src, length=16):
 def benchmark(config):
     logger.info("Starting benchmark...")
     payload_file = config.argument_values["input"]
+    payload = read_binary_file(payload_file)
 
     q = qemu(1337, config, debug_mode=False)
     q.start()
-    q.set_payload(read_binary_file(payload_file))
-    logger.info("Hash: " + str(q.send_payload().hash()))
     try:
+        q.set_payload(payload)
+        res = q.send_payload()
+
+        logger.info("Payload hash: " + str(res.hash()))
+        logger.info("Payload exit: " + res.exit_reason)
+        logger.info("Calibrating...")
+
+        start = time.time()
+        iterations = 0
+        while (time.time() - start < 1):
+            q.set_payload(payload)
+            q.send_payload()
+            iterations += 1
+
+        #logger.info("Calibrate to run at %d execs/s..." % iterations)
+        rounds = 0
+        runtime = 0
+        total = 0
         while True:
             start = time.time()
-            execs = 0
-
-            while (time.time() - start < REFRESH):
-                q.set_payload(read_binary_file(payload_file))
+            for _ in range(int(REFRESH*iterations)):
+                q.set_payload(payload)
                 q.send_payload()
-                execs += 1
-
-            end = time.time()
-            stdout.write(common.color.FLUSH_LINE + "Performance: " + str(execs / (end - start)) + "t/s")
-            stdout.flush()
+            rounds += 1
+            runtime = time.time() - start
+            total += runtime
+            print(color.FLUSH_LINE + "Performance: %.2f execs/s" % (iterations / runtime), end='\r')
+    except Exception as e:
+        logger.warn(repr(e))
     except KeyboardInterrupt:
-        stdout.write("\n")
-
-    q.shutdown()
+        pass
+    finally:
+        print("\nPerformance Average: %.2f execs/s\n" % (rounds*iterations/total))
+        q.shutdown()
     return 0
 
 
@@ -224,10 +241,11 @@ def debug_non_det(config, max_execs=0):
         if store_traces:
             shutil.copyfile(trace_out, trace_dir + "/trace_%s_%s.txt" % (os.path.basename(payload_file),first_hash))
 
-        total = 1
+        total = 0
+        iterations = 1
         hash_mismatch = 0
         time.sleep(delay)
-        while max_execs == 0 or total <= max_execs:
+        while max_execs == 0 or iterations <= max_execs:
             start = time.time()
             execs = 0
             while (time.time() - start < REFRESH):
@@ -257,29 +275,24 @@ def debug_non_det(config, max_execs=0):
                 if hash_value != first_hash:
                     hash_mismatch += 1
                 execs += 1
-            end = time.time()
-            total += execs
-            accuracy = (total - hash_mismatch)*100 / total
-            stdout.write(common.color.FLUSH_LINE + "Performance: " + str(
-                format(((execs * 1.0) / (end - start)), '.0f')) + "  t/s\tTotal: " + str(total) + "\tMismatch: ")
-            if (len(hashes) != 1):
-                stdout.write(common.color.FAIL + str(hash_mismatch) + common.color.ENDC + "\tAccuracy: %.2f%%" % (accuracy))
-                stdout.write("\t\tHashes:\t" + str(len(hashes.keys())) + " (" + str(
-                    format(((len(hashes.keys()) * 1.0) / total) * 100.00, '.2f')) + "%)")
-            else:
-                stdout.write(common.color.OKGREEN + str(hash_mismatch) + common.color.ENDC + "\tAccuracy: %.2f%%" % (accuracy))
-                #stdout.write(common.color.OKGREEN + str(hash_mismatch) + common.color.ENDC + " (+" + str(
-                #    mismatch_r) + ")\tRatio: " + str(format(((hash_mismatch * 1.0) / total) * 100.00, '.2f')) + "%")
-            stdout.flush()
+            runtime = time.time() - start
+            total += runtime
+            iterations += execs
+            noise = hash_mismatch*100/iterations
+            code = color.FAIL if (len(hashes) != 1) else color.OKGREEN
+            print(color.FLUSH_LINE +
+                    "Perf: %7.2f execs/s, Execs: %7d, Mismatches: %s %4d %s, Noise %3d" %
+                    (execs / runtime, iterations, code, hash_mismatch, color.ENDC, noise), end='\r')
 
     except Exception as e:
         logger.warn(repr(e))
     except KeyboardInterrupt:
         pass
     finally:
+        print("\nOverall Perf: %7.2f execs/s, Execs: %7d, Mismatches: %s %4d %s, Noise %3d" %
+                (iterations / total, iterations, code, hash_mismatch, color.ENDC, noise))
         q.shutdown()
 
-    stdout.write("\n")
     for h in hashes.keys():
         if h == first_hash:
             logger.info("* %s: %03d" % (h, hashes[h]))
@@ -296,7 +309,7 @@ first_line = True
 def requeen_print_state(qemu):
     global first_line
     if not first_line:
-        stdout.write(common.color.MOVE_CURSOR_UP(1))
+        stdout.write(color.MOVE_CURSOR_UP(1))
     else:
         first_line = False
 
@@ -310,7 +323,7 @@ def requeen_print_state(qemu):
     except:
         size_b = "0"
 
-    stdout.write(common.color.FLUSH_LINE + "Log Size:\t" + size_a + " Bytes\tSE Size:\t" + size_b + " Bytes\n")
+    stdout.write(color.FLUSH_LINE + "Log Size:\t" + size_a + " Bytes\tSE Size:\t" + size_b + " Bytes\n")
     stdout.flush()
 
 
