@@ -1,43 +1,48 @@
 # kAFL: HW-assisted Feedback Fuzzer for x86 VMs
 
-kAFL is a fast guided fuzzer for the x86 VM. It is easily adapted for anything
-that executes as Qemu/KVM guest, including BIOS, custom kernels and full-blown
-VM images.
+kAFL/Nyx is a fast guided fuzzer for the x86 VM. It is great for anything that
+executes as Qemu/KVM guest, in particular x86 firmware, kernels and full-blown
+operating systems.
 
-kAFL now leverages the Qemu/KVM backend from [Nyx](https://nyx-fuzz.com).
+kAFL now leverages the greatly extended and improved [Nyx backend](https://nyx-fuzz.com).
 
 ## Features
 
-- kAFL uses Intel VT, Intel PML and Intel PT to achieve efficient execution,
+- kAFL/Nyx uses Intel VT, Intel PML and Intel PT to achieve efficient execution,
   snapshot reset and coverage feedback for greybox or whitebox fuzzing scenarios.
   It allows to run many x86 FW and OS kernels with any desired toolchain and
   minimal code modifications.
 
 - The kAFL-Fuzzer is written in Python and designed for parallel fuzzing with
-  multiple Qemu instances. It uses an AFL-like fuzzer engine and easily extended
-  to integrate custom mutators, analysis and tracing stages.
+  multiple Qemu instances. kAFL follows an AFL-like design but is easy to
+  extend with custom mutation, analysis or scheduling options.
 
 - kAFL integrates the Radamsa fuzzer as well as Redqueen and Grimoire extensions.
   Redqueen uses VM introspection to extract runtime inputs to conditional
-  instructions, overcoming typical magic byte and other input checks.  Grimoire
+  instructions, overcoming typical magic byte and other input checks. Grimoire
   attempts to identify keywords and syntax from fuzz inputs in order to generate
   more clever large-scale mutations.
 
 
 ## Getting Started
 
-kAFL uses multiple external components. You can use `west` to download them.
-Check `~/kafl/west.yml` for defining local forks or branches:
+1. kAFL uses the `west` repo management tool. Simply create an empty new
+   directory and initialize it as your west workspace using the desired
+   manifest repository and branch:
 
 ```
 $ pip3 install west
-$ git clone $this_repo ~/kafl
-$ west init -l ~/kafl
+$ mkdir -p ~/hacking; cd ~/hacking
+$ west init --mr $this_branch -m $this_url
 $ west update -k
+$ west list
 ```
 
-kAFL includes an install.sh helper to automate installation. Review the detailed
-steps inside this script if you run into trouble installing the components:
+Check `west.yml` for customizing repository locations and revisions.
+
+2. kAFL includes an install.sh helper to automate installation. Review the
+   detailed steps inside this script if you run into trouble installing the
+   components:
 
 ```
 $ cd ~/kafl
@@ -51,9 +56,9 @@ It is safe to re-execute any of these commands after failure,
 for example if not all dependencies could have been downloaded.
 
 
-If you do not have the modified kAFL kernel installed yet, you can follow the
-steps in Nyx/KVM repo or use the below steps to generate a generic Debian kernel
-package:
+3. kAFL requires a modified KVM-Nyx host kernel for efficient PT tracing and
+   snapshots. We recommend the below steps to build your own kernel package
+   based on your existing kernel config:
 
 ```
 $ west update kvm
@@ -62,15 +67,16 @@ $ sudo dpkg -i linux-image*kafl+_*deb
 $ sudo reboot
 ```
 
-After reboot, make sure the new kernel is booted and PT support is detected by KVM:
+4. After reboot, make sure the new kernel is booted and PT support is detected
+   by KVM:
 
 ```
 $ dmesg|grep KVM
  [KVM-NYX] Info:   CPU is supported!
 ```
 
-Lauch `kAFL-Fuzzer/kafl_fuzz.py` to verify all python dependencies are met. You
-should be able to get a help message with all the config options:
+5. Lauch `kAFL-Fuzzer/kafl_fuzz.py` to verify all python dependencies are met.
+   You should be able to get a help message with all the config options:
 
 ```
 $ python3 ~/kafl/kAFL-Fuzzer/kafl_fuzz.py -h
@@ -91,7 +97,7 @@ READMEs as your hands-on "getting started" guides:
 ```
 ~/kafl/
   - targets/uefi_ovmf_64/{README.md,compile.sh}    - fuzz UEFI/OVMF and EFI apps
-  - targets/zephyr_x86_32/{README.rst,compile.sh}  - fuzz Zephyr (ELF images)
+  - targets/zephyr_x86_32/{README.rst,run.sh}      - fuzz Zephyr (ELF images)
   - targets/{linux,windows,macOS}\*                - fuzz full VMs (snapshots)
 ```
 

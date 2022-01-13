@@ -1,16 +1,17 @@
-# Using Nyx htools+sharedir for OS Fuzzing
+# Using Nyx htools + sharedir for OS Fuzzing
 
-The new `sharedir` option replaces the previous `agent` option, which is now
-deprecated.  The agent was previously required to be a single binary resulting
-in all kind of fancy packaging approaches. With the sharedir option, the
-'loader' can be a simple shell script which in turn loads additional components
-using `hget` from Nyx htools package.
+The kAFL/Nyx `sharedir` option replaces the `agent` option in kAFL v0.2. The
+old `agent` was required to be a single binary resulting in all kind of fancy
+packaging approaches. With the sharedir option, the 'loader' can be a simple
+shell script which in turn loads additional components via hypercalls
+transparent to the target.
 
-To make this completely scriptable without changing the target image, we use
-a fixed `loader.sh` integrated in the image, and the first loaded component is
-an `agent.sh` which is actually a second stage loader that contains the bulk of
-the harness preparation logic.
+_TODO_: The Nyx htools are not currently integrated but must be sourced separately from [Nyx/packer](https://github.com/nyx-fuzz/packer).
 
+To avoid frequent modifications to the target VM image, we use a minimal fixed
+`loader.sh` integrated in the boot image. The `loader.sh` has the single purpose
+to load a second stage loader script, dubbed `agent.sh` below. All actual
+harness setup and execution is performed in this second stage.
 
 ## Create Linux VM Image
 
