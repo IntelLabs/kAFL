@@ -62,21 +62,30 @@ system_deps()
 
 find_repos()
 {
-	#KAFL_ROOT=$(dirname $(realpath $0))
-
 	if west topdir > /dev/null 2>&1; then
-		LINUX_ROOT=$(west list -f {abspath} kvm)
-		QEMU_ROOT=$(west list -f {abspath} qemu)
-		LIBXDC_ROOT=$(west list -f {abspath} libxdc)
-		CAPSTONE_ROOT=$(west list -f {abspath} capstone)
-		RADAMSA_ROOT=$(west list -f {abspath} radamsa)
+		LINUX_ROOT=$(west path kvm)
+		QEMU_ROOT=$(west path qemu)
+		LIBXDC_ROOT=$(west path libxdc)
+		CAPSTONE_ROOT=$(west path capstone)
+		RADAMSA_ROOT=$(west path radamsa)
+		eval $(west env)
 	else
+		echo "[!] Warning - could not detect West environment - continue at your own risk!"
+		read
+		KAFL_ROOT=$(dirname $(realpath $0))
 		LINUX_ROOT=$KAFL_ROOT/KVM
 		QEMU_ROOT=$KAFL_ROOT/QEMU
 		LIBXDC_ROOT=$QEMU_ROOT/libxdc
 		CAPSTONE_ROOT=$QEMU_ROOT/capstone_v4
 		RADAMSA_ROOT=$KAFL_ROOT/radamsa
+
+		## build Qemu against local capstone/libxdc builds
+		C_INCLUDE_PATH=$CAPSTONE_ROOT/include:$LIBXDC_ROOT
+		LIBRARY_PATH=$CAPSTONE_ROOT:$LIBXDC_ROOT/build
+		LD_LIBRARY_PATH=$CAPSTONE_ROOT:$LIBXDC_ROOT/build
 	fi
+
+	export C_INCLUDE_PATH LIBRARY_PATH LD_LIBRARY_PATH
 }
 
 install_capstone()
@@ -93,7 +102,7 @@ install_capstone()
 	echo "-------------------------------------------------"
 	make -C $CAPSTONE_ROOT -j $jobs
 	echo "[*] Installing capstone v4 branch into system (need sudo)"
-	sudo make -C $CAPSTONE_ROOT install
+	#sudo make -C $CAPSTONE_ROOT install
 }
 
 install_libxdc()
@@ -107,7 +116,7 @@ install_libxdc()
 	echo "-------------------------------------------------"
 	make -C $LIBXDC_ROOT -j $jobs
 	echo "[*] Installing libxdc branch into system (need sudo)"
-	sudo make -C $LIBXDC_ROOT install
+	#sudo make -C $LIBXDC_ROOT install
 }
 
 build_qemu()
