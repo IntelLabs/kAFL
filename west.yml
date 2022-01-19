@@ -19,6 +19,7 @@ manifest:
 
   self:
     path: kafl
+    west-commands: scripts/west_commands.yml
 
   projects:
 
@@ -35,7 +36,7 @@ manifest:
       revision: kvm-nyx-5.10.73
       path: kafl/KVM
       groups:
-        - kvm
+        - host_kernel
 
     - name: qemu
       repo-path: research.security.fuzzing.nyx.qemu
@@ -67,4 +68,4 @@ manifest:
       path: kafl/radamsa
       revision: develop
 
-  group-filter: [-kvm]
+  group-filter: [-host_kernel]
