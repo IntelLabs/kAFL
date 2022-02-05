@@ -349,7 +349,7 @@ class qemu:
 
     def handle_hprintf(self):
         msg = self.qemu_aux_buffer.get_misc_buf()
-        msg = msg[:-1].decode('latin-1', errors='backslashreplace')
+        msg = msg.decode('latin-1', errors='backslashreplace')
 
         if self.hprintf_log:
             with open(self.hprintf_logfile, "a") as f:
