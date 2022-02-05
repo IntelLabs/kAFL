@@ -54,8 +54,8 @@ class EnvCmd(WestCommand):
 
         # project libraries/includes
         print("C_INCLUDE_PATH=%s/include:%s" % (capstone_path, libxdc_path))
-        print("LIBRARY_PATH=%s:%s/build" % (capstone_path, libxdc_path))
-        print("LD_LIBRARY_PATH=%s:%s/build" % (capstone_path, libxdc_path))
+        print("LIBRARY_PATH=%s:%s" % (capstone_path, libxdc_path))
+        print("LD_LIBRARY_PATH=%s:%s" % (capstone_path, libxdc_path))
 
 
 class PathCmd(WestCommand):
