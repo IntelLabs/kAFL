@@ -20,6 +20,7 @@ manifest:
   self:
     path: kafl
     west-commands: scripts/west_commands.yml
+    import: .submanifests
 
   projects:
 
@@ -28,7 +29,6 @@ manifest:
       remote: sandbox
       revision: master
       path: kafl/targets
-      import: west.yml
 
     - name: kvm
       repo-path: research.security.fuzzing.nyx.kvm
