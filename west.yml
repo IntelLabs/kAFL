@@ -25,31 +25,31 @@ manifest:
   projects:
 
     - name: targets
-      repo-path: research.security.fuzzing.kafl.targets
-      remote: sandbox
+      repo-path: IntelLabs/kafl.targets
+      remote: github
       revision: master
       path: kafl/targets
 
     - name: kvm
-      repo-path: research.security.fuzzing.nyx.kvm
-      remote: sandbox
+      repo-path: nyx-fuzz/KVM-Nyx
+      remote: github
       revision: kvm-nyx-5.10.73
       path: kafl/KVM
       groups:
         - host_kernel
 
     - name: qemu
-      repo-path: research.security.fuzzing.nyx.qemu
-      remote: sandbox
-      revision: qemu-nyx-4.2.0-upstream-4
+      repo-path: il-steffen/QEMU-Nyx
+      remote: github
+      revision: staging-acc90e462b-intel
       path: kafl/QEMU
       groups:
         - qemu
 
     - name: libxdc
-      repo-path: research.security.fuzzing.nyx.libxdc
-      remote: sandbox
-      revision: upstream-3
+      repo-path:  il-steffen/libxdc
+      remote: github
+      revision: staging
       path: kafl/libxdc
       groups:
         - qemu
