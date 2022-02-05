@@ -22,7 +22,7 @@ import lz4.frame as lz4
 
 from common.config import FuzzerConfiguration
 from common.log import logger
-from common.qemu import qemu
+from common.qemu import qemu, QemuIOException
 from common.util import read_binary_file, atomic_write
 from fuzzer.bitmap import BitmapStorage, GlobalBitmap
 from fuzzer.communicator import ClientConnection, MSG_IMPORT, MSG_RUN_NODE, MSG_BUSY
@@ -30,10 +30,6 @@ from fuzzer.node import QueueNode
 from fuzzer.state_logic import FuzzingStateLogic
 from fuzzer.statistics import WorkerStatistics
 from fuzzer.technique.helper import rand
-
-class QemuIOException(Exception):
-        """Exception raised when Qemu interaction fails"""
-        pass
 
 def worker_loader(pid):
 

@@ -22,6 +22,9 @@ from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
 from common.util import read_binary_file, atomic_write, strdump, print_hprintf
 from common.qemu_aux_buffer import qemu_aux_buffer
 
+class QemuIOException(Exception):
+        """Exception raised when Qemu interaction fails"""
+        pass
 
 class qemu:
 
@@ -390,6 +393,9 @@ class qemu:
                 continue
             if result.success or result.crash_found or result.asan_found or result.timeout_found:
                 break
+            if result.abort:
+                self.handle_hprintf()
+                raise QemuIOException("Got ABORT hypercall.")
 
         logger.info("Result: %s\n" % self.exit_reason(result))
         #self.audit(result)
@@ -426,6 +432,9 @@ class qemu:
                     break
                 old_address = result.page_fault_addr
                 self.qemu_aux_buffer.dump_page(result.page_fault_addr)
+            if result.abort:
+                self.handle_hprintf()
+                raise QemuIOException("Got ABORT hypercall.")
 
         # record highest seen BBs
         self.bb_seen = max(self.bb_seen, result.bb_cov)

@@ -44,11 +44,12 @@ result_tuple = namedtuple('result_tuple', [
     'pt_trace_size',
 
     'payload_corrupted',
+    'abort'
     ])
 
 my_magic = 0x54502d554d4551
-my_version = 0x1
-my_hash = 0x51
+my_version = 0x2
+my_hash = 0x52
 
 HEADER_SIZE = 128
 CAP_SIZE = 256
@@ -97,7 +98,7 @@ class qemu_aux_buffer:
 
     def get_result(self):
         return result_tuple._make(
-                struct.unpack_from('B?BBIBB ?? ?? ?? ?B ?B IQII?',
+                struct.unpack_from('B?BBIBB ?? ?? ?? ?B ?B IQII??',
                                    self.aux_buffer,
                                    offset=STATUS_OFFSET))
 
