@@ -20,7 +20,8 @@ from common.log import logger
 from common.execution_result import ExecutionResult
 from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
 from common.util import read_binary_file, atomic_write, strdump, print_hprintf
-from common.qemu_aux_buffer import qemu_aux_buffer
+from common.qemu_aux_buffer import QemuAuxBuffer
+from common.qemu_aux_buffer import QemuAuxRC as RC
 
 class QemuIOException(Exception):
         """Exception raised when Qemu interaction fails"""
@@ -31,6 +32,7 @@ class qemu:
     def __init__(self, pid, config, debug_mode=False, notifiers=True, resume=False):
 
         self.debug_mode = debug_mode
+        self.ijonmap_size = 0x1000 # quick fix - bitmaps are not processed!
         self.bitmap_size = config.config_values['BITMAP_SHM_SIZE']
         self.payload_size = config.config_values['PAYLOAD_SHM_SIZE']
         self.payload_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 5
@@ -50,6 +52,7 @@ class qemu:
         self.qemu_aux_buffer_filename = work_dir + "/aux_buffer_%d" % self.pid
 
         self.bitmap_filename = work_dir + "/bitmap_%d" % self.pid
+        self.ijonmap_filename = work_dir + "/ijon_%d" % self.pid
         self.payload_filename = work_dir + "/payload_%d" % self.pid
         self.control_filename = work_dir + "/interface_%d" % self.pid
         self.qemu_trace_log = work_dir + "/qemu_trace_%02d.log" % self.pid
@@ -71,20 +74,18 @@ class qemu:
                     " -m " + str(config.argument_values['mem']) + \
                     " -net none" \
                     " -chardev socket,server,nowait,path=" + self.control_filename + \
-                    ",id=kafl_interface" \
-                    " -device kafl,chardev=kafl_interface" + \
+                    ",id=nyx_socket" \
+                    " -device nyx,chardev=nyx_socket" + \
                     ",workdir=" + work_dir + \
                     ",worker_id=%d" % self.pid + \
-                    ",bitmap_size=" + str(self.bitmap_size)
+                    ",bitmap_size=" + str(self.bitmap_size) + \
+                    ",input_buffer_size=" + str(self.payload_size)
 
         if self.config.argument_values['trace']:
             self.cmd += ",dump_pt_trace"
 
         if self.config.argument_values['trace_cb']:
             self.cmd += ",edge_cb_trace"
-
-        if self.debug_mode:
-            self.cmd += ",debug_mode"
 
         if self.config.argument_values['sharedir']:
             self.cmd += ",sharedir=" + self.config.argument_values['sharedir']
@@ -247,6 +248,7 @@ class qemu:
                 self.qemu_aux_buffer_filename,
                 self.payload_filename,
                 self.control_filename,
+                self.ijonmap_filename,
                 self.bitmap_filename]:
             try:
                 os.remove(tmp_file)
@@ -303,16 +305,18 @@ class qemu:
 
         self.run_qemu()
 
-        self.qemu_aux_buffer = qemu_aux_buffer(self.qemu_aux_buffer_filename)
+        self.qemu_aux_buffer = QemuAuxBuffer(self.qemu_aux_buffer_filename)
         if not self.qemu_aux_buffer.validate_header():
             logger.error("%s Invalid header in qemu_aux_buffer.py. Abort." % self)
             self.async_exit()
 
         while self.qemu_aux_buffer.get_state() != 3:
-            #logger.debug("%s Waiting for target to enter fuzz mode.." % self)
+            logger.debug("%s Waiting for target to enter fuzz mode.." % self)
             self.run_qemu()
             result = self.qemu_aux_buffer.get_result()
-            if result.hprintf:
+            if result.exec_code == RC.ABORT:
+                self.handle_habort()
+            if result.exec_code == RC.HPRINTF:
                 self.handle_hprintf()
 
         logger.debug("%s Handshake done." % self)
@@ -337,10 +341,14 @@ class qemu:
             except socket.error:
                 if self.process.returncode is not None:
                     raise
+            logger.debug("Waiting for Qemu connect..")
 
+
+        self.ijon_shm_f     = os.open(self.ijonmap_filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
         self.kafl_shm_f     = os.open(self.bitmap_filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
         self.fs_shm_f       = os.open(self.payload_filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
 
+        os.ftruncate(self.ijon_shm_f, self.ijonmap_size)
         os.ftruncate(self.kafl_shm_f, self.bitmap_size)
         os.ftruncate(self.fs_shm_f, self.payload_size)
 
@@ -360,6 +368,18 @@ class qemu:
         elif not self.config.argument_values['quiet']:
             print_hprintf(msg)
 
+    def handle_habort(self):
+        msg = self.qemu_aux_buffer.get_misc_buf()
+        msg = msg.decode('latin-1', errors='backslashreplace')
+        msg = "Guest ABORT: %s" % msg
+
+        logger.error(msg)
+        if self.hprintf_log:
+            with open(self.hprintf_logfile, "a") as f:
+                f.write(msg)
+
+        self.run_qemu()
+        raise QemuIOException(msg)
 
     # Fully stop/start Qemu instance to store logs + possibly recover
     def restart(self):
@@ -388,14 +408,11 @@ class qemu:
                 logger.warn("Page fault encountered!")
             if result.pt_overflow:
                 logger.warn("PT trashed!")
-            if result.hprintf:
+            if result.exec_code == RC.HPRINTF:
                 self.handle_hprintf()
                 continue
-            if result.success or result.crash_found or result.asan_found or result.timeout_found:
-                break
-            if result.abort:
-                self.handle_hprintf()
-                raise QemuIOException("Got ABORT hypercall.")
+            if result.exec_code == RC.ABORT:
+                self.handle_habort()
 
         logger.info("Result: %s\n" % self.exit_reason(result))
         #self.audit(result)
@@ -419,11 +436,14 @@ class qemu:
             if result.pt_overflow:
                 logger.warn("PT trashed!")
 
-            if result.hprintf:
+            if result.exec_code == RC.HPRINTF:
                 self.handle_hprintf()
                 continue
 
-            if result.success or result.crash_found or result.asan_found or result.timeout_found:
+            if result.exec_code == RC.ABORT:
+                self.handle_habort()
+
+            if result.exec_done:
                 break
 
             if result.page_fault:
@@ -432,9 +452,6 @@ class qemu:
                     break
                 old_address = result.page_fault_addr
                 self.qemu_aux_buffer.dump_page(result.page_fault_addr)
-            if result.abort:
-                self.handle_hprintf()
-                raise QemuIOException("Got ABORT hypercall.")
 
         # record highest seen BBs
         self.bb_seen = max(self.bb_seen, result.bb_cov)
@@ -444,8 +461,8 @@ class qemu:
                 self.c_bitmap, self.bitmap_size,
                 self.exit_reason(result), time.time() - start_time)
 
-        if result.success > 1:
-            res.starved = True
+        #if result.success > 1:
+        #    res.starved = True
 
         #self.audit(res.copy_to_array())
         #self.audit(bytearray(self.c_bitmap))
@@ -473,14 +490,16 @@ class qemu:
 
 
     def exit_reason(self, result):
-        if result.crash_found:
+        if result.exec_code == RC.CRASH:
             return "crash"
-        elif result.timeout_found:
+        if result.exec_code == RC.TIMEOUT:
             return "timeout"
-        elif result.asan_found:
+        elif result.exec_code == RC.SANITIZER:
             return "kasan"
-        else:
+        elif result.exec_code == RC.SUCCESS:
             return "regular"
+        else:
+            raise QemuIOException("Unknown QemuAuxRC code")
 
     def set_timeout(self, timeout):
         assert(self.qemu_aux_buffer)
