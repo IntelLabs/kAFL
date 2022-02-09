@@ -41,7 +41,7 @@ manifest:
     - name: qemu
       repo-path: il-steffen/QEMU-Nyx
       remote: github
-      revision: staging-acc90e462b-intel
+      revision: kafl_stable
       path: kafl/QEMU
       groups:
         - qemu
@@ -49,7 +49,7 @@ manifest:
     - name: libxdc
       repo-path:  il-steffen/libxdc
       remote: github
-      revision: staging
+      revision: kafl_stable
       path: kafl/libxdc
       groups:
         - qemu
