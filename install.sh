@@ -68,7 +68,6 @@ find_repos()
 		LIBXDC_ROOT=$(west path libxdc)
 		CAPSTONE_ROOT=$(west path capstone)
 		RADAMSA_ROOT=$(west path radamsa)
-		eval $(west env)
 	else
 		echo "[!] Warning - could not detect West environment - continue at your own risk!"
 		read
@@ -78,45 +77,57 @@ find_repos()
 		LIBXDC_ROOT=$QEMU_ROOT/libxdc
 		CAPSTONE_ROOT=$QEMU_ROOT/capstone_v4
 		RADAMSA_ROOT=$KAFL_ROOT/radamsa
-
-		## build Qemu against local capstone/libxdc builds
-		C_INCLUDE_PATH=$CAPSTONE_ROOT/include:$LIBXDC_ROOT
-		LIBRARY_PATH=$CAPSTONE_ROOT:$LIBXDC_ROOT/build
-		LD_LIBRARY_PATH=$CAPSTONE_ROOT:$LIBXDC_ROOT/build
 	fi
+}
 
+set_env()
+{
+	## setup environment for non-global capstone/libxdc builds
+	C_INCLUDE_PATH=$CAPSTONE_ROOT/include:$LIBXDC_ROOT
+	LIBRARY_PATH=$CAPSTONE_ROOT:$LIBXDC_ROOT/
+	LD_LIBRARY_PATH=$CAPSTONE_ROOT:$LIBXDC_ROOT/
 	export C_INCLUDE_PATH LIBRARY_PATH LD_LIBRARY_PATH
 }
 
-install_capstone()
+unset_env()
+{
+	## unset build environment
+	unset C_INCLUDE_PATH LIBRARY_PATH LD_LIBRARY_PATH
+}
+
+build_capstone()
 {
 	if [ ! -d "$CAPSTONE_ROOT" ]; then
 		echo "[!] Could not find CAPSTONE_ROOT - failed to build capstone."
 		return
 	fi
 
-	echo "[*] Need to remove any existing (and likely conflicting) capstone install (need sudo)"
-	sudo apt-get remove -y libcapstone3 libcapstone-dev
+	#echo "[*] Need to remove any existing (and likely conflicting) capstone install (need sudo)"
+	#sudo apt-get remove -y libcapstone3 libcapstone-dev
 
 	echo "[*] Building capstone at $CAPSTONE_ROOT..."
 	echo "-------------------------------------------------"
 	make -C $CAPSTONE_ROOT -j $jobs
-	echo "[*] Installing capstone v4 branch into system (need sudo)"
+	#echo "[*] Installing capstone v4 branch into system (need sudo)"
 	#sudo make -C $CAPSTONE_ROOT install
 }
 
-install_libxdc()
+build_libxdc()
 {
 	if [ ! -d "$LIBXDC_ROOT" ]; then
 		echo "[!] Could not find LIBXDC_ROOT - failed to build libxdc."
 		return
 	fi
 
+
 	echo "[*] Building libxdc at $LIBXDC_ROOT..."
 	echo "-------------------------------------------------"
+	set_env
 	make -C $LIBXDC_ROOT -j $jobs
-	echo "[*] Installing libxdc branch into system (need sudo)"
+	unset_env
+	#echo "[*] Installing libxdc branch into system (need sudo)"
 	#sudo make -C $LIBXDC_ROOT install
+
 }
 
 build_qemu()
@@ -130,17 +141,19 @@ build_qemu()
 	echo "[*] Building Qemu at $QEMU_ROOT..."
 	echo "-------------------------------------------------"
 	pushd $QEMU_ROOT > /dev/null
-		export QEMU_CFLAGS="-DCONFIG_KAFL_IJON_BITMAP_SIZE=0"
-		export QEMU_CFLAGS="$QEMU_CFLAGS -DCONFIG_KVM_EXIT_SHUTDOWN_IS_PANIC"
+		set_env
 		./configure \
 			--target-list=x86_64-softmmu \
-			--enable-gtk \
+			--disable-gtk \
+			--disable-docs \
+			--disable-werror \
 			--disable-capstone \
 			--disable-libssh \
-			--disable-tools \
-			--disable-werror \
-			--enable-nyx
+			--enable-nyx \
+			--enable-nyx-static \
+			--disable-tools
 		make -j $jobs
+		unset_env
 	popd
 
 	echo
@@ -259,8 +272,8 @@ case $1 in
 		;;
 	"qemu")
 		find_repos
-		install_capstone
-		install_libxdc
+		build_capstone
+		build_libxdc
 		build_qemu
 		;;
 	"linux")
@@ -271,8 +284,8 @@ case $1 in
 		system_check
 		system_deps
 		find_repos
-		install_capstone
-		install_libxdc
+		build_capstone
+		build_libxdc
 		build_qemu
 		build_linux
 		build_radamsa
