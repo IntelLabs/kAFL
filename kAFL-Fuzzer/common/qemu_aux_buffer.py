@@ -56,6 +56,7 @@ class QemuAuxRC(IntEnum):
     INPUT_BUF_WRITE = 4
     ABORT = 5
     SANITIZER = 6
+    STARVED = 7
 
 class QemuAuxBuffer:
 

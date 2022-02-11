@@ -461,8 +461,8 @@ class qemu:
                 self.c_bitmap, self.bitmap_size,
                 self.exit_reason(result), time.time() - start_time)
 
-        #if result.success > 1:
-        #    res.starved = True
+        if result.exec_code == RC.STARVED:
+            res.starved = True
 
         #self.audit(res.copy_to_array())
         #self.audit(bytearray(self.c_bitmap))
@@ -497,6 +497,8 @@ class qemu:
         elif result.exec_code == RC.SANITIZER:
             return "kasan"
         elif result.exec_code == RC.SUCCESS:
+            return "regular"
+        elif result.exec_code == RC.STARVED:
             return "regular"
         else:
             raise QemuIOException("Unknown QemuAuxRC code")
