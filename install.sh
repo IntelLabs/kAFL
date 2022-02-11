@@ -63,6 +63,10 @@ system_deps()
 find_repos()
 {
 	if west topdir > /dev/null 2>&1; then
+
+		# avoid warnings when not using zephyr
+		west list zephyr > /dev/null 2>&1 || west config zephyr.base not-using-zephyr
+
 		LINUX_ROOT=$(west path kvm)
 		QEMU_ROOT=$(west path qemu)
 		LIBXDC_ROOT=$(west path libxdc)
