@@ -8,15 +8,14 @@ Interface to Radamsa fuzzer (optional havoc stage)
 """
 
 import glob
+import math
 import os
 import random
-import math
 import subprocess
 
-from common.config import FuzzerConfiguration
-from common.log import logger
-from common.util import read_binary_file
-from fuzzer.technique.helper import KAFL_MAX_FILE
+from kafl_fuzzer.common.logger import logger
+from kafl_fuzzer.common.util import read_binary_file
+from kafl_fuzzer.technique.helper import KAFL_MAX_FILE
 
 
 def init_radamsa(config, pid):

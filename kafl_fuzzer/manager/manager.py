@@ -11,21 +11,23 @@ Manage overall fuzz inputs/findings and schedule work for Worker instances.
 
 import glob
 import os
-from pprint import pformat
+
 import mmh3
 import shutil
 import msgpack
 import lz4.frame as lz4
+from pprint import pformat
 
-from common.log import logger
-from common.util import read_binary_file
-from common.execution_result import ExecutionResult
-from fuzzer.communicator import ServerConnection, MSG_NODE_DONE, MSG_NEW_INPUT, MSG_READY, MSG_NODE_ABORT
-from fuzzer.queue import InputQueue
-from fuzzer.statistics import ManagerStatistics
-from fuzzer.technique.redqueen.cmp import redqueen_global_config
-from fuzzer.bitmap import BitmapStorage
-from fuzzer.node import QueueNode
+from kafl_fuzzer.common.logger import logger
+from kafl_fuzzer.common.util import read_binary_file
+from kafl_fuzzer.manager.communicator import ServerConnection
+from kafl_fuzzer.manager.communicator import MSG_NODE_DONE, MSG_NEW_INPUT, MSG_READY, MSG_NODE_ABORT
+from kafl_fuzzer.manager.queue import InputQueue
+from kafl_fuzzer.manager.statistics import ManagerStatistics
+from kafl_fuzzer.manager.bitmap import BitmapStorage
+from kafl_fuzzer.manager.node import QueueNode
+from kafl_fuzzer.technique.redqueen.cmp import redqueen_global_config
+from kafl_fuzzer.worker.execution_result import ExecutionResult
 
 
 class ManagerTask:

@@ -7,8 +7,8 @@
 Grimoire grammar-based mutations (havoc stage)
 """
 
-from common.log import logger
-from fuzzer.technique.helper import rand
+from kafl_fuzzer.common.logger import logger
+from kafl_fuzzer.common.rand import rand
 
 CHOOSE_SUBINPUT = 50
 RECURSIVE_REPLACEMENT_DEPTH = [2, 4, 8, 16, 32, 64]

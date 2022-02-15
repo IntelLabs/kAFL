@@ -10,11 +10,12 @@ import sys
 import tempfile
 import string
 import getpass
-import psutil
 from shutil import copyfile
 
-from common import color
-from common.log import logger
+import psutil
+
+import kafl_fuzzer.common.color as color
+from kafl_fuzzer.common.logger import logger
 
 class Singleton(type):
     _instances = {}
@@ -133,6 +134,18 @@ def is_float(value):
         return True
     except ValueError:
         return False
+
+def print_banner(msg, quiet=False):
+    if not quiet:
+        print("""
+    __                        __  ___    ________
+   / /_____  _________  ___  / / /   |  / ____/ /
+  / //_/ _ \/ ___/ __ \/ _ \/ / / /| | / /_  / /
+ / ,< /  __/ /  / / / /  __/ / / ___ |/ __/ / /___
+/_/|_|\___/_/  /_/ /_/\___/_/ /_/  |_/_/   /_____/
+===================================================
+""")
+    print("<< " + color.BOLD + color.OKGREEN + msg + color.ENDC + " >>\n")
 
 
 def is_int(value):

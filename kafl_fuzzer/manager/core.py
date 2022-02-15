@@ -17,11 +17,11 @@ import multiprocessing
 import time
 import sys
 
-from common.log import init_logger, logger
-from common.self_check import post_self_check
-from common.util import prepare_working_dir, copy_seed_files, qemu_sweep
-from fuzzer.process.manager import ManagerTask
-from fuzzer.process.worker import worker_loader
+from kafl_fuzzer.common.logger import init_logger, logger
+from kafl_fuzzer.common.self_check import post_self_check
+from kafl_fuzzer.common.util import prepare_working_dir, copy_seed_files, qemu_sweep
+from kafl_fuzzer.manager.manager import ManagerTask
+from kafl_fuzzer.worker.worker import worker_loader
 
 def graceful_exit(workers):
     for s in workers:

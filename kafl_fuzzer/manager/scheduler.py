@@ -23,9 +23,9 @@ Queue sorting can become a bottleneck on large queues or very fast
 execution/finding rate.
 """
 
-
 from math import log, log2, log10, ceil
-from common.log import logger
+
+from kafl_fuzzer.common import logger
 
 # scale arbitrarily large / small inputs down to interval [1,scale]
 # supply alternative log to get a better fit

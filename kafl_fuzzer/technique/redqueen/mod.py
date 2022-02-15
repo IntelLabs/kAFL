@@ -8,10 +8,11 @@ Redqueen execution inference & deterministic insertion (inference stage)
 """
 
 import os.path
+
 from array import array
 from shutil import copyfile, rmtree
 
-from common.log import logger
+from kafl_fuzzer.common import logger
 from .parser import parse_rq
 
 MAX_NUMBER_PERMUTATIONS = 1000  # number of trials per address, lhs and encoding

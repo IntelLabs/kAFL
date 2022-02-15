@@ -9,8 +9,8 @@ AFL-style havoc and splicing stage
 
 import glob
 
-from common.config import FuzzerConfiguration
-from fuzzer.technique.havoc_handler import *
+from kafl_fuzzer.common.rand import rand
+from kafl_fuzzer.technique.havoc_handler import *
 
 
 def load_dict(file_name):
@@ -29,7 +29,7 @@ def load_dict(file_name):
 def init_havoc(config):
     global location_corpus
     if config.argument_values["dict"]:
-        set_dict(load_dict(FuzzerConfiguration().argument_values["dict"]))
+        set_dict(load_dict(config.argument_values["dict"]))
     # AFL havoc adds these at runtime as soon as available dicts are non-empty
     if config.argument_values["dict"] or config.argument_values["redqueen"]:
         append_handler(havoc_dict_insert)

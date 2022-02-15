@@ -11,19 +11,19 @@ Optionally also visualize this output using an xdot graph.
 
 """
 
-import msgpack
 import os
 import sys
 import time
 import glob
 import string
-from datetime import timedelta
 import binascii
+import msgpack
+from datetime import timedelta
 from pprint import pprint
+
 import pygraphviz as pgv
 
-import common.color
-from common.util import read_binary_file, strdump
+from kafl_fuzzer.common.util import read_binary_file, strdump, print_banner
 
 class Graph:
 
@@ -140,15 +140,9 @@ def main(workdir, outfile=None):
 if __name__ == "__main__":
 
     KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/"
-    KAFL_BANNER = KAFL_ROOT + "banner.txt"
     KAFL_CONFIG = KAFL_ROOT + "kafl.ini"
 
-    with open(KAFL_BANNER) as f:
-        for line in f:
-            print(line.replace("\n", ""))
-
-    print("<< " + common.color.BOLD + common.color.OKGREEN +
-            sys.argv[0] + ": kAFL Plotter " + common.color.ENDC + ">>\n")
+    print_banner("kAFL Plotter")
 
     if (len(sys.argv) == 2):   main(sys.argv[1])
     elif (len(sys.argv) == 3): main(sys.argv[1], outfile=sys.argv[2])

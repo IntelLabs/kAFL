@@ -13,15 +13,15 @@ import os
 import socket
 import struct
 import subprocess
-import time
 import sys
+import time
 
-from common.log import logger
-from common.execution_result import ExecutionResult
-from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
-from common.util import read_binary_file, atomic_write, strdump, print_hprintf
-from common.qemu_aux_buffer import QemuAuxBuffer
-from common.qemu_aux_buffer import QemuAuxRC as RC
+from kafl_fuzzer.common.logger import logger
+from kafl_fuzzer.common.util import read_binary_file, atomic_write, strdump, print_hprintf
+from kafl_fuzzer.technique.redqueen.workdir import RedqueenWorkdir
+from kafl_fuzzer.worker.execution_result import ExecutionResult
+from kafl_fuzzer.worker.qemu_aux_buffer import QemuAuxBuffer
+from kafl_fuzzer.worker.qemu_aux_buffer import QemuAuxRC as RC
 
 class QemuIOException(Exception):
         """Exception raised when Qemu interaction fails"""

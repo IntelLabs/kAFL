@@ -9,12 +9,12 @@ import os
 import re
 import sys
 
-import six.moves.configparser
-
-from dateutil.parser import parse as dateparser
-from common.util import is_float, is_int, Singleton
-from common.log import logger
 import six
+import six.moves.configparser
+from dateutil.parser import parse as dateparser
+
+from kafl_fuzzer.common.util import is_float, is_int, Singleton
+from kafl_fuzzer.common.logger import logger
 
 
 default_section = "Fuzzer"

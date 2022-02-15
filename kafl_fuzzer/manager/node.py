@@ -11,8 +11,8 @@ import lz4.frame
 import mmh3
 import msgpack
 
-from common.config import FuzzerConfiguration
-from common.util import read_binary_file, atomic_write
+from kafl_fuzzer.common.config import FuzzerConfiguration
+from kafl_fuzzer.common.util import read_binary_file, atomic_write
 
 
 class QueueNode:

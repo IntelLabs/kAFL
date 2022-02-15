@@ -11,8 +11,8 @@ import msgpack
 import time
 import sys
 
-from common.util import atomic_write, read_binary_file
-from common.color import FLUSH_LINE, FAIL, OKBLUE, ENDC
+from kafl_fuzzer.common.util import atomic_write, read_binary_file
+from kafl_fuzzer.common.color import FLUSH_LINE, FAIL, OKBLUE, ENDC
 
 class ManagerStatistics:
     def __init__(self, config):

@@ -9,7 +9,7 @@ import time
 
 from datetime import timedelta
 
-import common.color as color
+from kafl_fuzzer.common import color
 
 LOG_LEVEL = {
     "DEBUG": 1, # verbose/debug - enable with --debug

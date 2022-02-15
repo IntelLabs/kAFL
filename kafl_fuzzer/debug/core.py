@@ -11,17 +11,17 @@ from threading import Thread
 
 import mmh3
 
-import common.color as color
-from common.config import DebugConfiguration
-from common.log import init_logger, logger
-from common.qemu import qemu
-from common.self_check import post_self_check
-from common.util import prepare_working_dir, read_binary_file, qemu_sweep
-from fuzzer.technique.redqueen import parser
-from fuzzer.technique.redqueen.hash_fix import HashFixer
-from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
-from fuzzer.technique.helper import rand
-from common.execution_result import ExecutionResult
+import kafl_fuzzer.common.color as color
+from kafl_fuzzer.common.rand import rand
+from kafl_fuzzer.common.logger import init_logger, logger
+from kafl_fuzzer.common.config import DebugConfiguration
+from kafl_fuzzer.common.self_check import post_self_check
+from kafl_fuzzer.common.util import prepare_working_dir, read_binary_file, qemu_sweep
+from kafl_fuzzer.worker.execution_result import ExecutionResult
+from kafl_fuzzer.worker.qemu import qemu
+from kafl_fuzzer.technique.redqueen import parser
+from kafl_fuzzer.technique.redqueen.hash_fix import HashFixer
+from kafl_fuzzer.technique.redqueen.workdir import RedqueenWorkdir
 
 REFRESH = 0.25
 

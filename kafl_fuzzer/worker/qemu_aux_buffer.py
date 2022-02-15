@@ -7,10 +7,11 @@ import mmap
 import os
 import struct
 
-from common.log import logger
-from common.util import strdump
 from collections import namedtuple
 from enum import IntEnum
+
+from kafl_fuzzer.common import logger
+from kafl_fuzzer.common.util import strdump
 
 
 result_tuple = namedtuple('result_tuple', [

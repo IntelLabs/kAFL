@@ -11,8 +11,8 @@ import itertools
 import re
 import struct
 
-from common.log import logger
-from fuzzer.technique import havoc_handler
+from kafl_fuzzer.common.logger import logger
+from kafl_fuzzer.technique import havoc_handler
 from .encoding import Encoders
 
 MAX_NUMBER_PERMUTATIONS = 256  # number of trials per address, lhs and encoding

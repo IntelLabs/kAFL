@@ -7,8 +7,9 @@
 AFL-style 'interesting values' mutations (deterministic stage).
 """
 
-from fuzzer.technique.helper import *
 from binascii import hexlify
+
+from kafl_fuzzer.technique.helper import *
 
 
 def mutate_seq_8_bit_interesting(data, func, skip_null=False, effector_map=None, verbose=False):

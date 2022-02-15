@@ -7,9 +7,9 @@
 AFL-style trim algorithms (init stage)
 """
 
-from fuzzer.technique.helper import rand
-from fuzzer.bitmap import GlobalBitmap
-from common.log import logger
+from kafl_fuzzer.common.logger import logger
+from kafl_fuzzer.common.rand import rand
+from kafl_fuzzer.manager.bitmap import GlobalBitmap
 
 MAX_EXECS = 16
 MAX_ROUNDS = 32

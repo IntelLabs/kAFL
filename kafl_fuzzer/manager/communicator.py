@@ -7,11 +7,12 @@
 Abstractions for kAFL Manager/Worker communicaton.
 """
 
-import msgpack
 import select
+
+import msgpack
 from multiprocessing.connection import Listener, Client
 
-from common.log import logger
+from kafl_fuzzer.common.logger import logger
 
 MSG_READY = 0
 MSG_IMPORT = 1

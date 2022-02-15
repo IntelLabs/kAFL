@@ -10,18 +10,19 @@ Given a kAFL workdir, produce a text-based UI with status summary/overview.
 """
 
 import curses
-import string
-import msgpack
+import glob
+import locale
 import os
+import string
 import sys
 import time
-import inotify.adapters
-import glob
-import psutil
-import locale
-
-from common.util import read_binary_file
 from threading import Thread, Lock
+
+import inotify.adapters
+import msgpack
+import psutil
+
+from kafl_fuzzer.common.util import read_binary_file
 
 class Interface:
     def __init__(self, stdscr):

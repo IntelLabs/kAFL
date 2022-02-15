@@ -10,7 +10,7 @@ Redqueen Checksum Fixer
 import traceback
 from array import array
 
-from common.log import logger
+from kafl_fuzzer.common import logger
 from .parser import RedqueenRunInfo
 from .cmp import Cmp
 

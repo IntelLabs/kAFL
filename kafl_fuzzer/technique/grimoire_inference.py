@@ -4,14 +4,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 """
-Grimoire grammar inference (inference stage)
+Grimoire Grammar Inference (analysis/inference stage)
 """
 
 import re
-from collections import OrderedDict
 
-from common.log import logger
+from collections import OrderedDict
 from six.moves import map
+
+from kafl_fuzzer.common import logger
 
 
 class GrimoireInference:

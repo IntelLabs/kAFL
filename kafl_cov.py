@@ -18,26 +18,25 @@ import sys
 import time
 import glob
 import shutil
-import msgpack
-import lz4.frame as lz4
 import re
 import signal
 import multiprocessing as mp
 import subprocess
 import tempfile
-
-from tqdm import trange, tqdm
 from operator import itemgetter
+
+import msgpack
+import lz4.frame as lz4
+from tqdm import trange, tqdm
 from math import ceil
 
-from common.config import DebugConfiguration
-from common.self_check import self_check, post_self_check
-import common.color
-from common.log import init_logger, logger
-from common.util import prepare_working_dir, read_binary_file, qemu_sweep
-from common.qemu import qemu
-from common.execution_result import ExecutionResult
-from fuzzer.technique.helper import rand
+import kafl_fuzzer.common.color as color
+from kafl_fuzzer.common.config import DebugConfiguration
+from kafl_fuzzer.common.self_check import self_check, post_self_check
+from kafl_fuzzer.common.logger import init_logger, logger
+from kafl_fuzzer.common.util import prepare_working_dir, read_binary_file, qemu_sweep
+from kafl_fuzzer.worker.execution_result import ExecutionResult
+from kafl_fuzzer.worker.qemu import qemu
 
 import json
 import csv
@@ -471,8 +470,8 @@ def main():
     KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/"
     KAFL_CONFIG = KAFL_ROOT + "kafl.ini"
 
-    print("<< " + common.color.BOLD + common.color.OKGREEN +
-            " kAFL Coverage Analyzer " + common.color.ENDC + ">>\n")
+    print("<< " + color.BOLD + color.OKGREEN +
+            " kAFL Coverage Analyzer " + color.ENDC + ">>\n")
 
     if not self_check(KAFL_ROOT):
         return -1

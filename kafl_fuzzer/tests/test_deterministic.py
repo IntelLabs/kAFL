@@ -7,14 +7,14 @@ Test kAFL deterministic mutations
 
 import os
 import struct
+import random
 from binascii import hexlify
 
-from fuzzer.technique.interesting_values import *
-from fuzzer.technique.arithmetic import *
-from fuzzer.technique.bitflip import *
-from fuzzer.technique.helper import *
-
-from tests.helper import ham_distance, ham_weight, bindiff
+from kafl_fuzzer.technique.interesting_values import *
+from kafl_fuzzer.technique.arithmetic import *
+from kafl_fuzzer.technique.bitflip import *
+from kafl_fuzzer.technique.helper import *
+from kafl_fuzzer.tests.helper import ham_distance, ham_weight, bindiff
 
 def generate_effector_map(length):
     eff_map = []

@@ -7,25 +7,22 @@
 Main logic used by Worker to push nodes through various fuzzing stages/mutators.
 """
 
-
 import time
 from array import array
 
-import fuzzer.technique.arithmetic as arithmetic
-import fuzzer.technique.bitflip as bitflip
-import fuzzer.technique.grimoire_mutations as grimoire
-import fuzzer.technique.havoc as havoc
-import fuzzer.technique.radamsa as radamsa
-import fuzzer.technique.interesting_values as interesting_values
-
-from common.log import logger
-from fuzzer.node import QueueNode
-from fuzzer.technique.grimoire_inference import GrimoireInference
-from fuzzer.technique.redqueen.colorize import ColorizerStrategy
-from fuzzer.technique.redqueen.mod import RedqueenInfoGatherer
-from fuzzer.technique.redqueen.workdir import RedqueenWorkdir
-from fuzzer.technique.trim import perform_trim, perform_center_trim, perform_extend
-from fuzzer.technique.helper import rand
+from kafl_fuzzer.common.logger import logger
+from kafl_fuzzer.common.rand import rand
+from kafl_fuzzer.technique.grimoire_inference import GrimoireInference
+from kafl_fuzzer.technique.redqueen.colorize import ColorizerStrategy
+from kafl_fuzzer.technique.redqueen.mod import RedqueenInfoGatherer
+from kafl_fuzzer.technique.redqueen.workdir import RedqueenWorkdir
+from kafl_fuzzer.technique import trim, bitflip, arithmetic, interesting_values, havoc, radamsa
+from kafl_fuzzer.technique import grimoire_mutations as grimoire
+#from kafl_fuzzer.technique.trim import perform_trim, perform_center_trim, perform_extend
+#import kafl_fuzzer.technique.bitflip as bitflip
+#import kafl_fuzzer.technique.havoc as havoc
+#import kafl_fuzzer.technique.radamsa as radamsa
+#import kafl_fuzzer.technique.interesting_values as interesting_values
 
 
 class FuzzingStateLogic:
@@ -203,13 +200,13 @@ class FuzzingStateLogic:
             return None
 
         if metadata['info']['starved']:
-            return perform_extend(payload, metadata, self.execute, self.worker.payload_size_limit)
+            return trim.perform_extend(payload, metadata, self.execute, self.worker.payload_size_limit)
 
-        new_payload = perform_trim(payload, metadata, self.execute)
+        new_payload = trim.perform_trim(payload, metadata, self.execute)
 
         center_trim = True
         if center_trim:
-            new_payload = perform_center_trim(new_payload, metadata, self.execute)
+            new_payload = trim.perform_center_trim(new_payload, metadata, self.execute)
 
         self.initial_time += time.time() - time_initial_start
         if new_payload == payload:

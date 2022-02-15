@@ -7,7 +7,8 @@ Test kAFL rand() wrapper / coin toss
 
 import random
 import fastrand
-from fuzzer.technique.helper import rand
+
+from kafl_fuzzer.technique.helper import rand
 
 
 def get_int_bitmap(limit, samples):

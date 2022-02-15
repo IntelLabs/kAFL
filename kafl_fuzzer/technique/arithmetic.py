@@ -7,9 +7,9 @@
 Reimplementation of AFL-style arithmentic mutations (deterministic stage).
 """
 
-
-from fuzzer.technique.helper import *
 from binascii import hexlify
+
+from kafl_fuzzer.technique.helper import *
 
 
 def mutate_seq_8_bit_arithmetic(data, func, skip_null=False, effector_map=None, arith_max=AFL_ARITH_MAX, verbose=False):

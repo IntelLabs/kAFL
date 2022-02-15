@@ -7,7 +7,7 @@
 Queue of fuzz inputs (nodes). Interface with scheduler to determine next input to be fuzzed.
 """
 
-from fuzzer.scheduler import Scheduler
+from kafl_fuzzer.manager.scheduler import Scheduler
 
 class InputQueue:
     def __init__(self, config, statistics):

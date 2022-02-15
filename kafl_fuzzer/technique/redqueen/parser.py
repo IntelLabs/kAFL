@@ -10,8 +10,8 @@ Redqueen trace parser (inference stage)
 import re
 from binascii import unhexlify
 
-from common.util import read_binary_file
-from common.log import logger
+from kafl_fuzzer.common import logger
+from kafl_fuzzer.common.util import read_binary_file
 from .cmp import Cmp
 
 

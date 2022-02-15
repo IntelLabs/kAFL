@@ -8,7 +8,7 @@ import subprocess
 import sys
 from fcntl import ioctl
 
-from common.log import logger
+from kafl_fuzzer.common.logger import logger
 
 
 def check_if_nativ_lib_compiled(kafl_root):
@@ -186,7 +186,7 @@ def check_kafl_ini(rootdir):
     configfile = rootdir + "kafl.ini"
     if not os.path.exists(configfile):
         logger.error("Could not find kafl.ini. Creating default config at %s" % configfile)
-        from common.config import FuzzerConfiguration
+        from kafl_fuzzer.common.config import FuzzerConfiguration
         FuzzerConfiguration(configfile,skip_args=True).create_initial_config()
         return False
     return True

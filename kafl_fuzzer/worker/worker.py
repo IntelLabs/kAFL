@@ -11,25 +11,25 @@ Each Worker is associated with a single Qemu instance for executing fuzz inputs.
 """
 
 import os
-import psutil
 import time
 import signal
 import sys
 import shutil
 import tempfile
 
+import psutil
 import lz4.frame as lz4
 
-from common.config import FuzzerConfiguration
-from common.log import logger
-from common.qemu import qemu, QemuIOException
-from common.util import read_binary_file, atomic_write
-from fuzzer.bitmap import BitmapStorage, GlobalBitmap
-from fuzzer.communicator import ClientConnection, MSG_IMPORT, MSG_RUN_NODE, MSG_BUSY
-from fuzzer.node import QueueNode
-from fuzzer.state_logic import FuzzingStateLogic
-from fuzzer.statistics import WorkerStatistics
-from fuzzer.technique.helper import rand
+from kafl_fuzzer.common.config import FuzzerConfiguration
+from kafl_fuzzer.common.logger import logger
+from kafl_fuzzer.common.rand import rand
+from kafl_fuzzer.common.util import read_binary_file, atomic_write
+from kafl_fuzzer.manager.bitmap import BitmapStorage, GlobalBitmap
+from kafl_fuzzer.manager.communicator import ClientConnection, MSG_IMPORT, MSG_RUN_NODE, MSG_BUSY
+from kafl_fuzzer.manager.node import QueueNode
+from kafl_fuzzer.manager.statistics import WorkerStatistics
+from kafl_fuzzer.worker.state_logic import FuzzingStateLogic
+from kafl_fuzzer.worker.qemu import qemu, QemuIOException
 
 def worker_loader(pid):
 

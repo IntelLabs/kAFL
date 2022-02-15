@@ -6,8 +6,7 @@
 import ctypes
 import mmh3
 
-from fuzzer.bitmap import GlobalBitmap
-
+from kafl_fuzzer.manager.bitmap import GlobalBitmap
 
 class ExecutionResult:
 

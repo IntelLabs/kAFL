@@ -8,7 +8,8 @@ Redqueen Input Colorizer
 """
 
 import array
-from fuzzer.technique.helper import rand
+
+from kafl_fuzzer.common import rand
 
 
 # definition of range indicies:
