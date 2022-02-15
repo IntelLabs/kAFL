@@ -1,9 +1,8 @@
-QEMU
-KVM
-libxdc
-capstone
-targets
-radamsa
 west.yml
-zephyrproject
-edk2
+.submanifests/
+*.pyc
+kafl_fuzzer/kafl.ini
+kafl_fuzzer/native/bitmap*.so
+kafl_fuzzer/tags
+kafl_fuzzer.egg-info
+build
