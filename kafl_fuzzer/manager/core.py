@@ -42,12 +42,10 @@ def graceful_exit(workers):
 def start(config):    
 
     if not post_self_check(config):
-        #print(FAIL + ERROR_PREFIX + "Startup checks failed. Abort." + ENDC)
         logger.error("Startup checks failed. Exit.")
         return -1
         
     if not prepare_working_dir(config):
-        #print(FAIL + ERROR_PREFIX + "Refuse to operate on existing work directory. Use --purge to override." + ENDC)
         logger.error("Refuse to operate on existing work directory. Use --purge to override.")
         return 1
 
