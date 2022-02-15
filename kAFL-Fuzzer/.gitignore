@@ -1,6 +1,0 @@
-*.pyc
-debug.log
-error.log
-kafl.ini
-fuzzer/native/bitmap.so
-tags
