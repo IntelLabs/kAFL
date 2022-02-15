@@ -28,11 +28,14 @@ kAFL now leverages the greatly extended and improved [Nyx backend](https://nyx-f
 
 1. kAFL uses the `west` repo management tool. Simply create an empty new
    directory and initialize it as your west workspace using the desired
-   manifest repository and branch:
+   manifest repository and branch. The following snipped also uses pipenv to
+   setup a Python venv at the same time:
 
 ```
-$ pip3 install west
-$ mkdir -p ~/hacking; cd ~/hacking
+$ pip3 install pipenv
+$ mkdir -p ~/work; cd ~/work
+$ pipenv install west
+$ pipenv shell
 $ west init --mr $this_branch -m $this_url
 $ west update -k
 $ west list
@@ -45,7 +48,7 @@ Check `west.yml` for customizing repository locations and revisions.
    components:
 
 ```
-$ cd ~/kafl
+$ cd ~/work/kafl
 $ ./install.sh deps     # check platform and install dependencies
 $ ./install.sh perms    # allow current user to control KVM (/dev/kvm)
 $ ./install.sh qemu     # download, patch and build Qemu
@@ -79,7 +82,7 @@ $ dmesg|grep KVM
    You should be able to get a help message with all the config options:
 
 ```
-$ python3 ~/kafl/kAFL-Fuzzer/kafl_fuzz.py -h
+$ python3 ~/work/kafl/kAFL-Fuzzer/kafl_fuzz.py -h
 ```
 
 I case of errors, you may have to hunt down some python dependencies that did
@@ -95,7 +98,7 @@ started. For this purpose, please consider the supplied helper scripts and
 READMEs as your hands-on "getting started" guides:
 
 ```
-~/kafl/
+~/work/kafl/
   - targets/uefi_ovmf_64/{README.md,compile.sh}    - fuzz UEFI/OVMF and EFI apps
   - targets/zephyr_x86_32/{README.rst,run.sh}      - fuzz Zephyr (ELF images)
   - targets/{linux,windows,macOS}\*                - fuzz full VMs (snapshots)
@@ -126,21 +129,21 @@ Most of the status/state files are stored as `msgpack`. You can use
 A more intuitive user interface can be started like this:
 
 ```
-$ python3 ~/kafl/kAFL-Fuzzer/kafl_gui.py $workdir
+$ python3 ~/work/kafl/kAFL-Fuzzer/kafl_gui.py $workdir
 ```
 
 Or use the plot tool to watch as the corpus grows:
 
 ```
-$ python3 ~/kafl/kAFL-Fuzzer/kafl_plot.py $workdir
-$ python3 ~/kafl/kAFL-Fuzzer/kafl_plot.py $workdir ~/graph.dot
+$ python3 ~/work/kafl/kAFL-Fuzzer/kafl_plot.py $workdir
+$ python3 ~/work/kafl/kAFL-Fuzzer/kafl_plot.py $workdir ~/graph.dot
 $ xdot ~/graph.dot
 ```
 
 kAFL also records some basic stats to plot progress over time:
 
 ```
-$ gnuplot -c ~/kafl/scripts/stats.plot $workdir/stats.csv
+$ gnuplot -c ~/work/kafl/scripts/stats.plot $workdir/stats.csv
 ```
 
 To obtain detailed coverage analysis, you can post-process a given workdir using

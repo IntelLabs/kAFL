@@ -57,7 +57,7 @@ system_deps()
 	sudo apt-get build-dep qemu-system-x86 -y
 
 	echo "[*] Installing kAFL python dependencies ..."
-	pip3 install --user -r requirements.txt
+	pip3 install -r requirements.txt
 }
 
 find_repos()
