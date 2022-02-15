@@ -28,13 +28,11 @@ manifest:
       repo-path: IntelLabs/kafl.targets
       remote: github
       revision: master
-      path: kafl/targets
 
     - name: kvm
       repo-path: nyx-fuzz/KVM-Nyx
       remote: github
       revision: kvm-nyx-5.10.73
-      path: kafl/KVM
       groups:
         - host_kernel
 
@@ -42,7 +40,6 @@ manifest:
       repo-path: il-steffen/QEMU-Nyx
       remote: github
       revision: kafl_stable
-      path: kafl/QEMU
       groups:
         - qemu
 
@@ -50,7 +47,6 @@ manifest:
       repo-path:  il-steffen/libxdc
       remote: github
       revision: kafl_stable
-      path: kafl/libxdc
       groups:
         - qemu
 
@@ -58,14 +54,12 @@ manifest:
       repo-path: aquynh/capstone
       remote: github
       revision: v4
-      path: kafl/capstone
       groups:
         - qemu
 
     - name: radamsa
       remote: gitlab
       repo-path: akihe/radamsa
-      path: kafl/radamsa
       revision: develop
 
   group-filter: [-host_kernel]

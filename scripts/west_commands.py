@@ -38,7 +38,7 @@ class EnvCmd(WestCommand):
         qemu_path = env.get_projects(['qemu'])[0].abspath
 
 
-        kafl_bin_path = os.path.join(kafl_path, 'kAFL-Fuzzer')
+        kafl_bin_path = os.path.join(kafl_path, 'kafl_fuzz.py')
         if not os.path.exists(kafl_bin_path):
             log.wrn("Could not find kAFL-Fuzzer in %s" % kafl_path)
             kafl_bin_path = ""
@@ -90,7 +90,7 @@ class PathCmd(WestCommand):
                 try:
                     # check if manifest repo is kAFL
                     kafl_path = env.get_projects(['manifest'])[0].abspath
-                    if os.path.exists(kafl_path + '/kAFL-Fuzzer'):
+                    if os.path.exists(kafl_path + '/kafl_fuzz.py'):
                         log.wrn("Returning `manifest` repo path for query `%s`.." % query)
                         print(kafl_path)
                 except ValueError as e:
