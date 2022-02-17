@@ -13,10 +13,10 @@ import inspect
 import mmap
 import os
 
+from kafl_fuzzer.native import loader as native_loader
 
 class GlobalBitmap:
-    bitmap_native_so = ctypes.CDLL(
-        os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + '/native/bitmap.so')
+    bitmap_native_so = ctypes.CDLL(native_loader.bitmap_path())
     bitmap_native_so.are_new_bits_present_no_apply_lut.restype = ctypes.c_uint64
     bitmap_native_so.are_new_bits_present_do_apply_lut.restype = ctypes.c_uint64
     bitmap_size = None

@@ -7,6 +7,7 @@
 Helper functions used by fuzzing inference and mutation algorithms
 """
 
+import glob
 import inspect
 import os
 import struct
@@ -15,6 +16,8 @@ import ctypes
 from ctypes import c_uint8, c_uint16, c_uint32
 
 from kafl_fuzzer.common.rand import rand
+from kafl_fuzzer.native import loader as native_loader
+
 
 # TODO Align with kafl.ini payload_shm_size and other instances of payload max size!
 KAFL_MAX_FILE = 128 << 10
@@ -107,49 +110,19 @@ def swap_32(value):
 
 
 bitmap_native_so = None
-
-
-def load_native():
-    global bitmap_native_so
-    bitmap_native_so = ctypes.CDLL(
-        os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + '/../native/bitmap.so')
-
+if not bitmap_native_so:
+    bitmap_native_so = ctypes.CDLL(native_loader.bitmap_path())
+    bitmap_native_so.could_be_bitflip.restype = c_uint8
+    bitmap_native_so.could_be_arith.restype = c_uint8
+    bitmap_native_so.could_be_interest.restype = c_uint8
 
 def is_not_bitflip(value):
-    global bitmap_native_so
-    if bitmap_native_so is None:
-        load_native()
-    bitmap_native_so.could_be_bitflip.restype = c_uint8
-    result = bitmap_native_so.could_be_bitflip(c_uint32(value))
-
-    if result == 0:
-        return True
-    else:
-        return False
-
+    return 0 == bitmap_native_so.could_be_bitflip(c_uint32(value))
 
 def is_not_arithmetic(value, new_value, num_bytes, arith_max=AFL_ARITH_MAX):
-    global bitmap_native_so
-    if bitmap_native_so is None:
-        load_native()
-    bitmap_native_so.could_be_arith.restype = c_uint8
-    result = bitmap_native_so.could_be_arith(c_uint32(value), c_uint32(new_value),
-                                             c_uint8(num_bytes), c_uint8(arith_max))
-
-    if result == 0:
-        return True
-    else:
-        return False
-
+    return 0 == bitmap_native_so.could_be_arith(c_uint32(value), c_uint32(new_value),
+                                                c_uint8(num_bytes), c_uint8(arith_max))
 
 def is_not_interesting(value, new_value, num_bytes, le):
-    global bitmap_native_so
-    if bitmap_native_so is None:
-        load_native()
-    bitmap_native_so.could_be_interest.restype = c_uint8
-    result = bitmap_native_so.could_be_interest(c_uint32(value), c_uint32(new_value), c_uint8(num_bytes), c_uint8(le))
-
-    if result == 0:
-        return True
-    else:
-        return False
+    return 0 == bitmap_native_so.could_be_interest(c_uint32(value), c_uint32(new_value),
+                                                   c_uint8(num_bytes), c_uint8(le))

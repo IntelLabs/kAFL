@@ -9,21 +9,11 @@ import sys
 from fcntl import ioctl
 
 from kafl_fuzzer.common.logger import logger
+from kafl_fuzzer.native import loader as native_loader
 
 
 def check_if_nativ_lib_compiled(kafl_root):
-    if not (os.path.exists(kafl_root + "fuzzer/native/") and
-            os.path.exists(kafl_root + "fuzzer/native/bitmap.so")):
-        logger.warn("Attempting to build missing file fuzzer/native/bitmap.so ...")
-
-        p = subprocess.Popen(("make -C " + kafl_root + "fuzzer/native/").split(" "),
-                             stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        if p.wait() != 0:
-            logger.error("Build failed, please check..")
-            return False
-    return True
-
+    return native_loader.test_build()
 
 def check_if_installed(cmd):
     p = subprocess.Popen(("which " + cmd).split(" "), stdout=subprocess.PIPE, stdin=subprocess.PIPE,
