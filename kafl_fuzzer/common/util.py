@@ -128,25 +128,26 @@ def print_hprintf(msg):
     sys.stdout.write(color.FLUSH_LINE + color.HPRINTF + msg + color.ENDC)
     sys.stdout.flush()
 
-def is_float(value):
-    try:
-        float(value)
-        return True
-    except ValueError:
-        return False
-
-def print_banner(msg, quiet=False):
-    if not quiet:
-        print("""
+fancy_banner = r"""
     __                        __  ___    ________
    / /_____  _________  ___  / / /   |  / ____/ /
   / //_/ _ \/ ___/ __ \/ _ \/ / / /| | / /_  / /
  / ,< /  __/ /  / / / /  __/ / / ___ |/ __/ / /___
 /_/|_|\___/_/  /_/ /_/\___/_/ /_/  |_/_/   /_____/
 ===================================================
-""")
+"""
+
+def print_banner(msg, quiet=False):
+    if not quiet:
+        print(fancy_banner)
     print("<< " + color.BOLD + color.OKGREEN + msg + color.ENDC + " >>\n")
 
+def is_float(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
 
 def is_int(value):
     try:

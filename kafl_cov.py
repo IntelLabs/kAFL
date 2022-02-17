@@ -34,7 +34,7 @@ import kafl_fuzzer.common.color as color
 from kafl_fuzzer.common.config import DebugConfiguration
 from kafl_fuzzer.common.self_check import self_check, post_self_check
 from kafl_fuzzer.common.logger import init_logger, logger
-from kafl_fuzzer.common.util import prepare_working_dir, read_binary_file, qemu_sweep
+from kafl_fuzzer.common.util import prepare_working_dir, read_binary_file, qemu_sweep, print_banner
 from kafl_fuzzer.worker.execution_result import ExecutionResult
 from kafl_fuzzer.worker.qemu import qemu
 
@@ -467,11 +467,10 @@ def funky_trace_run(q, input_path, retry=1):
 def main():
     global null_hash
 
-    KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/"
+    KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/kafl_fuzzer/"
     KAFL_CONFIG = KAFL_ROOT + "kafl.ini"
 
-    print("<< " + color.BOLD + color.OKGREEN +
-            " kAFL Coverage Analyzer " + color.ENDC + ">>\n")
+    print_banner("kAFL Coverage Analyzer")
 
     if not self_check(KAFL_ROOT):
         return -1

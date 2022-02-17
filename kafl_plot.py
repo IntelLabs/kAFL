@@ -139,9 +139,6 @@ def main(workdir, outfile=None):
 
 if __name__ == "__main__":
 
-    KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/"
-    KAFL_CONFIG = KAFL_ROOT + "kafl.ini"
-
     print_banner("kAFL Plotter")
 
     if (len(sys.argv) == 2):   main(sys.argv[1])

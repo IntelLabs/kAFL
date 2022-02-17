@@ -16,7 +16,7 @@ from kafl_fuzzer.common.self_check import self_check
 from kafl_fuzzer.common.config import DebugConfiguration
 from kafl_fuzzer.common.util import print_banner
 
-KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/"
+KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/kafl_fuzzer/"
 KAFL_CONFIG = KAFL_ROOT + "kafl.ini"
 
 def main():
