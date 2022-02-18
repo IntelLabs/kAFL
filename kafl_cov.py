@@ -43,8 +43,6 @@ import csv
 
 null_hash = None
 
-PTDUMP_PATH = "/usr/local/bin/ptdump"
-
 class TraceParser:
 
     def __init__(self, trace_dir):
@@ -311,6 +309,8 @@ def generate_traces_worker(config, pid, work_queue):
     pname = mp.current_process().name
     pnum =   mp.current_process()._identity[0]
 
+    ptdump_path = config.config_values['PTDUMP_LOCATION']
+
     if config.argument_values['resume']:
         # spawn worker in same workdir, picking up snapshot + page_cache
         config.argument_values['purge'] = False # not needed?
@@ -371,7 +371,7 @@ def generate_traces_worker(config, pid, work_queue):
                                 shutil.copyfileobj(pt_dump_lz4, pt_tmp)
                         pt_tmp.close()
 
-                        cmd = [ PTDUMP_PATH, work_dir + "/page_cache", pt_tmp.name, tmpfile ]
+                        cmd = [ ptdump_path, work_dir + "/page_cache", pt_tmp.name, tmpfile ]
                         for i in range(2):
                             key = "ip" + str(i)
                             if key in config.argument_values and config.argument_values[key]:

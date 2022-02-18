@@ -20,7 +20,8 @@ from kafl_fuzzer.common.logger import logger
 default_section = "Fuzzer"
 default_config = {"PAYLOAD_SHM_SIZE": 131072,
                   "BITMAP_SHM_SIZE": 65536,
-                  "QEMU_KAFL_LOCATION": "",
+                  "QEMU_KAFL_LOCATION": "$HOME/kafl/qemu/x86_64-softmmu/qemu-system-x86_64",
+                  "PTDUMP_LOCATION": "/home/pepe/kafl/libxdc/build/ptdump_static",
                   "RADAMSA_LOCATION": "radamsa/bin/radamsa",
                   "ARITHMETIC_MAX": 35,
                   "APPLE-SMC-OSK": "",
