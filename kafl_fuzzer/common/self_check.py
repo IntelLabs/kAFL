@@ -15,65 +15,34 @@ from kafl_fuzzer.native import loader as native_loader
 def check_if_nativ_lib_compiled(kafl_root):
     return native_loader.test_build()
 
-def check_if_installed(cmd):
-    p = subprocess.Popen(("which " + cmd).split(" "), stdout=subprocess.PIPE, stdin=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    if p.wait() != 0:
-        return False
-    return True
-
-
 def check_version():
-    if sys.version_info < (3, 0, 0):
+    if sys.version_info < (3, 6, 0):
         logger.error("This script requires python 3!")
         return False
     return True
 
 
 def check_packages():
-    try:
-        import msgpack
-    except ImportError:
-        logger.error("Package 'msgpack' is missing!")
-        return False
 
-    if msgpack.version < (1,0,0):
-        logger.error("Package 'msgpack' is too old, try pip3 install -U msgpack!")
-        return False
+    deps = [
+            'msgpack',
+            'mmh3',
+            'lz4',
+            'psutil',
+            'fastrand',
+            'inotify',
+            'pgrep',
+            'pygraphviz',
+            'toposort',
+            ]
 
-    try:
-        import mmh3
-    except ImportError:
-        logger.error("Package 'mmh3' is missing!")
-        return False
-
-    try:
-        import lz4
-    except ImportError:
-        logger.error("Package 'lz4' is missing!")
-        return False
-
-    try:
-        import psutil
-    except ImportError:
-        logger.error("Package 'psutil' is missing!")
-        return False
-
-    if not check_if_installed("lddtree"):
-        logger.error("Tool 'lddtree' is missing (Hint: run `sudo apt install pax-utils`)!")
-        return False
-
-    try:
-        import fastrand
-    except ImportError:
-        logger.error("Package 'fastrand' is missing!")
-        return False
-
-    try:
-        import inotify
-    except ImportError:
-        logger.error("Package 'inotify' is missing!")
-        return False
+    import importlib
+    for pkg in deps:
+        try:
+            importlib.import_module(pkg)
+        except (ImportError):
+            logger.error("Failed to import package %s - check dependencies!" % pkg)
+            return False
 
     return True
 
