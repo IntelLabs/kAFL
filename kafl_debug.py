@@ -12,23 +12,25 @@ Execute a given kAFL target with individual test inputs for purpose of debug/ins
 import os
 import sys
 
-from kafl_fuzzer.common.self_check import self_check
-from kafl_fuzzer.common.config import DebugConfiguration
+from kafl_fuzzer.common.self_check import self_check, post_self_check
+from kafl_fuzzer.common.config import ConfigArgsParser
 from kafl_fuzzer.common.util import print_banner
-
-KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/kafl_fuzzer/"
-KAFL_CONFIG = KAFL_ROOT + "kafl.ini"
+from kafl_fuzzer.debug import core
 
 def main():
 
     print_banner("kAFL Debugger")
 
-    if not self_check(KAFL_ROOT):
+    if not self_check():
         return 1
 
-    import kafl_fuzzer.debug.core
-    cfg = DebugConfiguration(KAFL_CONFIG)
-    return kafl_fuzzer.debug.core.start(cfg)
+    parser = ConfigArgsParser()
+    config = parser.parse_debug_options()
+
+    if not post_self_check(config):
+        return -1
+
+    return core.start(config)
 
 
 if __name__ == "__main__":

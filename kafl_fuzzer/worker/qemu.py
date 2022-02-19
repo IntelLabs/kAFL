@@ -33,9 +33,9 @@ class qemu:
 
         self.debug_mode = debug_mode
         self.ijonmap_size = 0x1000 # quick fix - bitmaps are not processed!
-        self.bitmap_size = config.config_values['BITMAP_SHM_SIZE']
-        self.payload_size = config.config_values['PAYLOAD_SHM_SIZE']
-        self.payload_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 5
+        self.bitmap_size = config.bitmap_size
+        self.payload_size = config.payload_shm_size
+        self.payload_limit = config.payload_shm_size - 5
         self.config = config
         self.pid = pid
         self.alt_bitmap = bytearray(self.bitmap_size)
@@ -46,7 +46,7 @@ class qemu:
         self.control = None
         self.persistent_runs = 0
 
-        work_dir = self.config.argument_values['work_dir']
+        work_dir = self.config.work_dir
         project_name = work_dir.split("/")[-1]
 
         self.qemu_aux_buffer_filename = work_dir + "/aux_buffer_%d" % self.pid
@@ -57,7 +57,7 @@ class qemu:
         self.control_filename = work_dir + "/interface_%d" % self.pid
         self.qemu_trace_log = work_dir + "/qemu_trace_%02d.log" % self.pid
         self.serial_logfile = work_dir + "/serial_%02d.log" % self.pid
-        self.hprintf_log = self.config.argument_values['log_hprintf'] or self.config.argument_values['log_crashes']
+        self.hprintf_log = self.config.log_hprintf or self.config.log_crashes
         self.hprintf_logfile = work_dir + "/hprintf_%02d.log" % self.pid
 
         self.redqueen_workdir = RedqueenWorkdir(self.pid, config)
@@ -66,12 +66,12 @@ class qemu:
         self.starved = False
         self.exiting = False
 
-        self.cmd = self.config.config_values['QEMU_KAFL_LOCATION']
+        self.cmd = self.config.qemu_path
 
         # TODO: list append should work better than string concatenation, especially for str.replace() and later popen()
         self.cmd += " -enable-kvm" \
                     " -serial file:" + self.serial_logfile + \
-                    " -m " + str(config.argument_values['mem']) + \
+                    " -m " + str(config.mem) + \
                     " -net none" \
                     " -chardev socket,server,nowait,path=" + self.control_filename + \
                     ",id=nyx_socket" \
@@ -81,29 +81,28 @@ class qemu:
                     ",bitmap_size=" + str(self.bitmap_size) + \
                     ",input_buffer_size=" + str(self.payload_size)
 
-        if self.config.argument_values['trace']:
+        if self.config.trace:
             self.cmd += ",dump_pt_trace"
 
-        if self.config.argument_values['trace_cb']:
+        if self.config.trace_cb:
             self.cmd += ",edge_cb_trace"
 
-        if self.config.argument_values['sharedir']:
-            self.cmd += ",sharedir=" + self.config.argument_values['sharedir']
+        if self.config.sharedir:
+            self.cmd += ",sharedir=" + self.config.sharedir
 
         if not notifiers:
             self.cmd += ",crash_notifier=False"
 
         # qemu snapshots only work in VM mode (disk+ram image)
-        #if self.config.argument_values['kernel'] or self.config.argument_values['bios']:
+        #if self.config.kernel or self.config.bios:
         #    self.cmd += ",disable_snapshot=True"
 
         for i in range(4):
             key = "ip" + str(i)
-            if key in self.config.argument_values and self.config.argument_values[key]:
-                range_a = hex(self.config.argument_values[key][0]).replace("L", "")
-                range_b = hex(self.config.argument_values[key][1]).replace("L", "")
+            if getattr(config, key, None):
+                range_a = hex(getattr(config, key)[0]).replace("L", "")
+                range_b = hex(getattr(config, key)[1]).replace("L", "")
                 self.cmd += ",ip" + str(i) + "_a=" + range_a + ",ip" + str(i) + "_b=" + range_b
-                #self.cmd += ",filter" + str(i) + "=/dev/shm/kafl_filter" + str(i)
 
         if self.debug_mode:
             #self.cmd += " -d kafl -D " + self.qemu_trace_log
@@ -111,55 +110,48 @@ class qemu:
 
         self.cmd += " -no-reboot"
 
-        if self.config.argument_values['gdbserver']:
+        if self.config.gdbserver:
             #self.cmd += " -trace events=/tmp/events"
             self.cmd += " -s -S"
 
-        if self.config.argument_values['X']:
+        if self.config.X:
             if pid == 0 or pid == 1337:
-                self.cmd += " -display %s" % self.config.argument_values['X']
+                self.cmd += " -display %s" % self.config.X
         else:
             self.cmd += " -display none"
 
-        if self.config.argument_values['extra']:
-            self.cmd += " " + self.config.argument_values['extra']
+        if self.config.extra:
+            self.cmd += " " + self.config.extra
 
         # Lauch either as VM snapshot, direct kernel/initrd boot, or -bios boot
-        if self.config.argument_values['vm_image']:
-            self.cmd += " -drive file=" + self.config.argument_values['vm_image']
-        elif self.config.argument_values['kernel']:
-            self.cmd += " -kernel " + self.config.argument_values['kernel']
-            if self.config.argument_values['initrd']:
-                self.cmd += " -initrd " + self.config.argument_values['initrd'] + " -append BOOTPARAM "
-        elif self.config.argument_values['bios']:
-            self.cmd += " -bios " + self.config.argument_values['bios']
+        if self.config.vm_image:
+            self.cmd += " -drive file=" + self.config.vm_image
+        elif self.config.kernel:
+            self.cmd += " -kernel " + self.config.kernel
+            if self.config.initrd:
+                self.cmd += " -initrd " + self.config.initrd + " -append BOOTPARAM "
+        elif self.config.bios:
+            self.cmd += " -bios " + self.config.bios
         else:
             assert(False), "Must supply either -bios or -kernel or -vm_image option"
 
-        if self.config.argument_values["macOS"]:
-            self.cmd = self.cmd.replace("-nographic -net none",
-                    "-nographic -netdev user,id=hub0port0 -device e1000-82545em,netdev=hub0port0,id=mac_vnet0 -cpu Penryn,kvm=off,vendor=GenuineIntel -device isa-applesmc,osk=\"" + self.config.config_values["APPLE-SMC-OSK"].replace("\"", "") + "\" -machine pc-q35-2.4")
-            if self.pid == 0:
-                self.cmd = self.cmd.replace("-machine pc-q35-2.4", "-machine pc-q35-2.4 -redir tcp:5901:0.0.0.0:5900 -redir tcp:10022:0.0.0.0:22")
-        else:
-            #self.cmd += " -machine q35 " ## cannot do fast_snapshot
-            self.cmd += " -machine kAFL64-v1"
-            self.cmd += " -cpu kAFL64-Hypervisor-v1,+vmx"
-            #self.cmd += " -cpu kvm64-v1" #,+vmx
+        #self.cmd += " -machine q35 " ## cannot do fast_snapshot
+        self.cmd += " -machine kAFL64-v1"
+        self.cmd += " -cpu kAFL64-Hypervisor-v1,+vmx"
+        #self.cmd += " -cpu kvm64-v1" #,+vmx
 
-        if not self.config.argument_values['no_fast_reload']:
-            if pid == 0 or pid == 1337 and not resume:
-                if self.config.argument_values["vm_snapshot"]:
-                    self.cmd += " -fast_vm_reload path=%s,load=off,pre_path=%s " % (
-                            work_dir + "/snapshot/",
-                            self.config.argument_values['vm_snapshot'])
-                else:
-                    self.cmd += " -fast_vm_reload path=%s,load=off " % (
-                            work_dir + "/snapshot/")
+        if pid == 0 or pid == 1337 and not resume:
+            if self.config.vm_snapshot:
+                self.cmd += " -fast_vm_reload path=%s,load=off,pre_path=%s " % (
+                        work_dir + "/snapshot/",
+                        self.config.vm_snapshot)
             else:
-                # TDX: all VMs perform regular boot & race for snapshot lock
                 self.cmd += " -fast_vm_reload path=%s,load=off " % (
-                             work_dir + "/snapshot/")
+                        work_dir + "/snapshot/")
+        else:
+            # TDX: all VMs perform regular boot & race for snapshot lock
+            self.cmd += " -fast_vm_reload path=%s,load=off " % (
+                         work_dir + "/snapshot/")
 
         # split cmd into list of arguments for Popen(), replace BOOTPARAM as single element
         self.cmd = [_f for _f in self.cmd.split(" ") if _f]
@@ -321,9 +313,9 @@ class qemu:
 
         logger.debug("%s Handshake done." % self)
 
-        if not self.config.argument_values['no_fast_reload']:
+        if not self.config.no_fast_reload:
             self.qemu_aux_buffer.set_reload_mode(True)
-        self.qemu_aux_buffer.set_timeout(self.config.argument_values['timeout'])
+        self.qemu_aux_buffer.set_timeout(self.config.timeout_hard)
 
         return
 
@@ -365,7 +357,7 @@ class qemu:
         if self.hprintf_log:
             with open(self.hprintf_logfile, "a") as f:
                 f.write(msg)
-        elif not self.config.argument_values['quiet']:
+        elif not self.config.quiet:
             print_hprintf(msg)
 
     def handle_habort(self):
@@ -383,18 +375,14 @@ class qemu:
 
     # Fully stop/start Qemu instance to store logs + possibly recover
     def restart(self):
-
         # Nyx backend does not tend to die anymore so this is a NOP
         # To enable recovery again, new Qemu instances must respect the snapshot
         # settings and avoid overwriting a possibly existing snapshot
         return True
 
-    # Reset Qemu after crash/timeout - can skip if target has own forkserver
+    # Reset Qemu after crash/timeout - not required anymore
     def reload(self):
-        if self.config.argument_values['forkserver']:
-            return True
-        else:
-            return self.restart()
+        return True
 
     # Wait forever on Qemu to execute the payload - useful for interactive debug
     def debug_payload(self):

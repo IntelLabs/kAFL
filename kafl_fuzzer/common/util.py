@@ -84,9 +84,9 @@ def find_diffs(data_a, data_b):
 
 def prepare_working_dir(config):
 
-    work_dir   = config.argument_values["work_dir"]
-    purge      = config.argument_values['purge']
-    resume     = config.argument_values['resume']
+    work_dir   = config.work_dir
+    purge      = config.purge
+    resume     = config.resume
 
     folders = ["/corpus/regular", "/corpus/crash",
                "/corpus/kasan", "/corpus/timeout",

@@ -16,7 +16,6 @@ import mmh3
 import shutil
 import msgpack
 import lz4.frame as lz4
-from pprint import pformat
 
 from kafl_fuzzer.common.logger import logger
 from kafl_fuzzer.common.util import read_binary_file
@@ -36,36 +35,31 @@ class ManagerTask:
     def __init__(self, config):
         self.config = config
         self.comm = ServerConnection(self.config)
-        self.debug_mode = config.argument_values['debug']
-        self.work_dir = self.config.argument_values['work_dir']
 
         self.busy_events = 0
-        self.empty_hash = mmh3.hash(("\x00" * self.config.config_values['BITMAP_SHM_SIZE']), signed=False)
+        self.empty_hash = mmh3.hash(("\x00" * config.bitmap_size), signed=False)
 
-        self.statistics = ManagerStatistics(self.config)
+        self.statistics = ManagerStatistics(config)
         self.queue = InputQueue(self.config, self.statistics)
-        self.bitmap_storage = BitmapStorage(config, config.config_values['BITMAP_SHM_SIZE'], "main", read_only=False)
-        self.num_workers = self.config.argument_values['p']
+        self.bitmap_storage = BitmapStorage(config, "main", read_only=False)
 
         helper_init()
 
         redqueen_global_config(
-                redq_hammering=self.config.argument_values['hammer_jmp_tables'],
-                redq_do_simple=self.config.argument_values['redq_do_simple'],
-                afl_arith_max=self.config.config_values['ARITHMETIC_MAX']
+                redq_hammering=self.config.hammer_jmp_tables,
+                redq_do_simple=self.config.redq_do_simple,
+                afl_arith_max=self.config.afl_arith_max,
                 )
 
         logger.debug("Starting (pid: %d)" % os.getpid())
-        #logger.debug("Configuration dump:\n%s" % pformat(config.argument_values, indent=4, compact=True))
-        with open(self.work_dir + "/config", 'wb') as fd:
-            merged_config = {**self.config.argument_values, **self.config.config_values}
-            fd.write(msgpack.packb(merged_config))
+        with open(self.config.work_dir + "/config", 'wb') as fd:
+            fd.write(msgpack.packb(vars(self.config)))
 
 
     def send_next_task(self, conn):
         # Inputs placed to imports/ folder have priority.
         # This can also be used to inject additional seeds at runtime.
-        imports = glob.glob(self.work_dir + "/imports/*")
+        imports = glob.glob(self.config.work_dir + "/imports/*")
         if imports:
             path = imports.pop()
             logger.debug("Importing payload from %s" % path)
@@ -81,7 +75,7 @@ class ManagerTask:
         # If all Workers are waiting, check if we are getting any coverage..
         self.comm.send_busy(conn)
         self.busy_events +=1
-        if self.busy_events >= self.num_workers:
+        if self.busy_events >= self.config.workers:
             self.busy_events = 0
             main_bitmap = self.bitmap_storage.get_bitmap_for_node_type("regular").c_bitmap
             if mmh3.hash(main_bitmap) == self.empty_hash:
@@ -101,7 +95,7 @@ class ManagerTask:
                         self.queue.update_node_results(msg["node_id"], msg["results"], None)
                 elif msg["type"] == MSG_NEW_INPUT:
                     # Worker reports new interesting input
-                    if self.debug_mode:
+                    if self.config.debug:
                         logger.debug("Received new input (exit=%s): %s" % (
                            msg["input"]["info"]["exit_reason"],
                            repr(msg["input"]["payload"][:24])))
@@ -121,8 +115,8 @@ class ManagerTask:
         import time
         import datetime
 
-        t_limit = self.config.argument_values['abort_time']
-        n_limit = self.config.argument_values['abort_exec']
+        t_limit = self.config.abort_time
+        n_limit = self.config.abort_exec
         
         if t_limit:
             if t_limit*3600 < time.time() - self.statistics.data['start_time']:
@@ -133,7 +127,7 @@ class ManagerTask:
 
     def store_trace(self, node, tmp_trace):
         if tmp_trace and os.path.exists(tmp_trace):
-            trace_dump_out = "%s/traces/fuzz_%05d.bin" % (self.work_dir, node.get_id())
+            trace_dump_out = "%s/traces/fuzz_%05d.bin" % (self.config.work_dir, node.get_id())
             with open(tmp_trace, 'rb') as f_in:
                 with lz4.LZ4FrameFile(trace_dump_out + ".lz4", 'wb',
                         compression_level=lz4.COMPRESSIONLEVEL_MINHC) as f_out:
@@ -149,7 +143,7 @@ class ManagerTask:
         new_data = bitmap.copy_to_array()
         trace_dump_tmp = node_struct["info"].get("pt_dump", None)
         if should_store:
-            node = QueueNode(payload, bitmap_array, node_struct, write=False)
+            node = QueueNode(self.config, payload, bitmap_array, node_struct, write=False)
             node.set_new_bytes(new_bytes, write=False)
             node.set_new_bits(new_bits, write=False)
             self.queue.insert_input(node, bitmap)
@@ -159,7 +153,7 @@ class ManagerTask:
         if trace_dump_tmp and os.path.exists(trace_dump_tmp):
             os.remove(trace_dump_tmp)
 
-        if self.debug_mode:
+        if self.config.debug:
             logger.debug("Received duplicate payload with exit=%s, discarding." % node_struct["info"]["exit_reason"])
             for i in range(len(bitmap_array)):
                 if backup_data[i] != new_data[i]:

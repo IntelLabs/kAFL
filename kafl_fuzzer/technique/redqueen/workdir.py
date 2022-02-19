@@ -13,7 +13,7 @@ import shutil
 
 class RedqueenWorkdir:
     def __init__(self, qemu_id, config):
-        self.base_path = config.argument_values['work_dir'] + "/redqueen_workdir_" + str(qemu_id)
+        self.base_path = config.work_dir + "/redqueen_workdir_" + str(qemu_id)
 
     def init_dir(self):
         if os.path.exists(self.base_path):

@@ -8,10 +8,11 @@ Queue of fuzz inputs (nodes). Interface with scheduler to determine next input t
 """
 
 from kafl_fuzzer.manager.scheduler import Scheduler
+from kafl_fuzzer.common.logger import logger
 
 class InputQueue:
     def __init__(self, config, statistics):
-        self.num_workers = config.argument_values['p']
+        self.num_workers = config.workers
         self.scheduler = Scheduler()
         self.id_to_node = {}
         self.current_cycle = []

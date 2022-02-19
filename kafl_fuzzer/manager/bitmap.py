@@ -18,16 +18,14 @@ from kafl_fuzzer.native import loader as native_loader
 class GlobalBitmap:
     bitmap_native_so = None
 
-    def __init__(self, name, config, bitmap_size, read_only=True):
+    def __init__(self, name, config, read_only=True):
         if not GlobalBitmap.bitmap_native_so:
             GlobalBitmap.bitmap_native_so = ctypes.CDLL(native_loader.bitmap_path())
             GlobalBitmap.bitmap_native_so.are_new_bits_present_no_apply_lut.restype = ctypes.c_uint64
             GlobalBitmap.bitmap_native_so.are_new_bits_present_do_apply_lut.restype = ctypes.c_uint64
 
-        self.name = name
-        self.config = config
-        self.bitmap_size = bitmap_size
-        self.create_bitmap(name)
+        self.bitmap_size = config.bitmap_size
+        self.create_bitmap(name, config.work_dir)
         self.c_bitmap = (ctypes.c_uint8 * self.bitmap_size).from_buffer(self.bitmap)
         self.read_only = read_only
         if not read_only:
@@ -38,10 +36,10 @@ class GlobalBitmap:
         for i in range(self.bitmap_size):
             self.c_bitmap[i] = 0
 
-    def create_bitmap(self, name):
-        self.bitmap_fd = os.open(self.config.argument_values['work_dir'] + "/bitmaps/" + name,
+    def create_bitmap(self, name, work_dir):
+        self.bitmap_fd = os.open(work_dir + "/bitmaps/" + name,
                                  os.O_RDWR | os.O_SYNC | os.O_CREAT)
-        os.ftruncate(self.bitmap_fd, self.config.config_values['BITMAP_SHM_SIZE'])
+        os.ftruncate(self.bitmap_fd, self.bitmap_size)
         self.bitmap = mmap.mmap(self.bitmap_fd, self.bitmap_size, mmap.MAP_SHARED, mmap.PROT_WRITE | mmap.PROT_READ)
 
     def get_new_byte_and_bit_counts(self, local_bitmap):
@@ -106,13 +104,11 @@ class GlobalBitmap:
 
 
 class BitmapStorage:
-    def __init__(self, config, bitmap_size, prefix, read_only=True):
-        self.prefix = prefix
-        self.bitmap_size = bitmap_size
-        self.normal_bitmap = GlobalBitmap(prefix + "_normal_bitmap", config, self.bitmap_size, read_only)
-        self.crash_bitmap = GlobalBitmap(prefix + "_crash_bitmap", config, self.bitmap_size, read_only)
-        self.kasan_bitmap = GlobalBitmap(prefix + "_kasan_bitmap", config, self.bitmap_size, read_only)
-        self.timeout_bitmap = GlobalBitmap(prefix + "_timeout_bitmap", config, self.bitmap_size, read_only)
+    def __init__(self, config, prefix, read_only=True):
+        self.normal_bitmap = GlobalBitmap(prefix + "_normal_bitmap", config, read_only)
+        self.crash_bitmap = GlobalBitmap(prefix + "_crash_bitmap", config, read_only)
+        self.kasan_bitmap = GlobalBitmap(prefix + "_kasan_bitmap", config, read_only)
+        self.timeout_bitmap = GlobalBitmap(prefix + "_timeout_bitmap", config, read_only)
 
     def get_bitmap_for_node_type(self, exit_reason):
         if exit_reason == "regular":

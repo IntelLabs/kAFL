@@ -22,11 +22,12 @@ MSG_NODE_ABORT = 6
 MSG_NEW_INPUT = 4
 MSG_BUSY = 5
 
+KAFL_NAMED_SOCKET = '/kafl_socket'
 
 class ServerConnection:
     def __init__(self, config):
         Listener.fileno = lambda self: self._listener._socket.fileno()
-        self.address = config.argument_values["work_dir"] + "/kafl_socket"
+        self.address = config.work_dir + KAFL_NAMED_SOCKET
         self.listener = Listener(self.address, 'AF_UNIX', backlog=1000)
         self.clients = [self.listener]
         self.clients_seen = 0
@@ -65,7 +66,7 @@ class ServerConnection:
 class ClientConnection:
     def __init__(self, id, config):
         self.id = id
-        self.address = config.argument_values["work_dir"] + "/kafl_socket"
+        self.address = config.work_dir + KAFL_NAMED_SOCKET
         self.sock = self.connect()
         self.send_ready()
 

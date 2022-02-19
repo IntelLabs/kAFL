@@ -11,23 +11,23 @@ import lz4.frame
 import mmh3
 import msgpack
 
-from kafl_fuzzer.common.config import FuzzerConfiguration
 from kafl_fuzzer.common.util import read_binary_file, atomic_write
 
 
 class QueueNode:
     NextID = 1
 
-    def __init__(self, payload, bitmap, node_struct, write=True):
+    def __init__(self, config, payload, bitmap, node_struct, write=True):
         self.node_struct = node_struct
         self.busy = False
+        self.workdir = config.work_dir
 
         self.set_id(QueueNode.NextID, write=False)
         QueueNode.NextID += 1
 
         self.set_payload(payload, write=write)
         # store individual bitmaps only in debug mode
-        if bitmap and FuzzerConfiguration().argument_values['debug']:
+        if bitmap and config.debug:
             self.write_bitmap(bitmap)
 
         self.node_struct["attention_execs"] = 0
@@ -35,43 +35,34 @@ class QueueNode:
         self.set_state("initial", write=False)
 
     @staticmethod
-    def get_metadata(id):
-        return msgpack.unpackb(read_binary_file(QueueNode.__get_metadata_filename(id)), strict_map_key=False)
+    def get_metadata(workdir, node_id):
+        return msgpack.unpackb(read_binary_file(QueueNode.__get_metadata_filename(workdir, node_id)), strict_map_key=False)
 
     @staticmethod
-    def get_payload(exitreason, id):
-        return read_binary_file(QueueNode.__get_payload_filename(exitreason, id))
-
-    def __get_bitmap_filename(self):
-        workdir = FuzzerConfiguration().argument_values['work_dir']
-        filename = "/bitmaps/payload_%05d.lz4" % (self.get_id())
-        return workdir + filename
+    def get_payload(workdir, node_struct):
+        return read_binary_file(QueueNode.__get_payload_filename(workdir, node_struct['info']['exit_reason'], node_struct['id']))
 
     @staticmethod
-    def __get_payload_filename(exit_reason, id):
-        workdir = FuzzerConfiguration().argument_values['work_dir']
-        filename = "/corpus/%s/payload_%05d" % (exit_reason, id)
-        return workdir + filename
+    def __get_payload_filename(workdir, exit_reason, node_id):
+        return "%s/corpus/%s/payload_%05d" % (workdir, exit_reason, node_id)
 
     @staticmethod
-    def __get_metadata_filename(id):
-        workdir = FuzzerConfiguration().argument_values['work_dir']
-        return workdir + "/metadata/node_%05d" % id
+    def __get_metadata_filename(workdir, node_id):
+        return "%s/metadata/node_%05d" % (workdir, node_id)
 
     def update_file(self, write=True):
         if write:
-            atomic_write(QueueNode.__get_metadata_filename(self.get_id()), msgpack.packb(self.node_struct))
+            node_path = QueueNode.__get_metadata_filename(self.workdir, self.get_id())
+            atomic_write(node_path, msgpack.packb(self.node_struct))
 
     def write_bitmap(self, bitmap):
-        atomic_write(self.__get_bitmap_filename(), lz4.frame.compress(bitmap))
+        bitmap_path = "%s/bitmaps/payload_%05d.lz4" % (self.workdir, self.get_id())
+        atomic_write(bitmap_path, lz4.frame.compress(bitmap))
 
-    def load_metadata(self):
-        QueueNode.get_metadata(self.id)
-
-    @staticmethod
     # will be used both for the final update and the intermediate update in the statelogic. Needs to work in both occasions!
     # That means it needs to be able to apply an update to another update as well as the final meta data
     # This function must leave new_data unchanged, but may change old_data
+    @staticmethod
     def apply_metadata_update(old_data, new_data):
         new_data = new_data.copy()  # if we remove keys deeper than attention_execs and attention_secs, we need a deep copy
 
@@ -99,7 +90,7 @@ class QueueNode:
 
     def set_payload(self, payload, write=True):
         self.set_payload_len(len(payload), write=False)
-        atomic_write(QueueNode.__get_payload_filename(self.get_exit_reason(), self.get_id()), payload)
+        atomic_write(QueueNode.__get_payload_filename(self.workdir, self.get_exit_reason(), self.get_id()), payload)
 
     def get_payload_len(self):
         return self.node_struct["payload_len"]

@@ -459,7 +459,7 @@ class GuiData:
             self.config = self.read_file("config")
             if not self.config:
                 raise FileNotFoundError("$workdir/config")
-            self.bitmap_size = self.config['BITMAP_SHM_SIZE']
+            self.bitmap_size = self.config['bitmap_size']
         except (FileNotFoundError, KeyError):
             print("Could not find bitmap size in $workdir/config - using default value..")
             time.sleep(1)

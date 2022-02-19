@@ -31,7 +31,7 @@ from tqdm import trange, tqdm
 from math import ceil
 
 import kafl_fuzzer.common.color as color
-from kafl_fuzzer.common.config import DebugConfiguration
+from kafl_fuzzer.common.config import ConfigArgsParser
 from kafl_fuzzer.common.self_check import self_check, post_self_check
 from kafl_fuzzer.common.logger import init_logger, logger
 from kafl_fuzzer.common.util import prepare_working_dir, read_binary_file, qemu_sweep, print_banner
@@ -244,10 +244,10 @@ def graceful_exit(workers):
 
 def generate_traces(config, nproc, input_list):
 
-    trace_dir = config.argument_values["input"] + "/traces/"
+    trace_dir = config.input + "/traces/"
 
     # TODO What is the effect of not defining a trace region? will it trace?
-    if not config.argument_values['ip0']:
+    if not config.ip0:
         logger.warn("No trace region configured!")
         return None
 
@@ -309,22 +309,22 @@ def generate_traces_worker(config, pid, work_queue):
     pname = mp.current_process().name
     pnum =   mp.current_process()._identity[0]
 
-    ptdump_path = config.config_values['PTDUMP_LOCATION']
+    ptdump_path = config.ptdump_path
 
-    if config.argument_values['resume']:
+    if config.resume:
         # spawn worker in same workdir, picking up snapshot + page_cache
-        config.argument_values['purge'] = False # not needed?
+        config.purge = False # not needed?
         qemu_id = int(pnum) # get unique qemu ID != {0,1337}
     else:
         # spawn worker in separate workdir, booting a new VM state
-        config.argument_values['work_dir'] += "_%s" % pname
-        config.argument_values['purge'] = True # not needed?
+        config.work_dir += "_%s" % pname
+        config.purge = True # not needed?
         qemu_id = 1337 # debug instance
 
     prepare_working_dir(config)
 
-    work_dir = config.argument_values['work_dir']
-    trace_dir = config.argument_values["input"] + "/traces/"
+    work_dir = config.work_dir
+    trace_dir = config.input + "/traces/"
 
     signal.signal(signal.SIGTERM, sigterm_handler)
     os.setpgrp()
@@ -333,13 +333,13 @@ def generate_traces_worker(config, pid, work_queue):
     if dump_mode:
         print("Tracing in '-trace' mode..")
         # new dump_pt mode - translate to edge trace in separate step
-        config.argument_values['trace'] = True
-        config.argument_values['trace_cb'] = False
+        config.trace = True
+        config.trace_cb = False
     else:
         # traditional -trace mode - more noisy and no bitmap to check
         print("Tracing in legacy '-trace_cb' mode..")
-        config.argument_values['trace'] = False
-        config.argument_values['trace_cb'] = True
+        config.trace = False
+        config.trace_cb = True
 
     q = qemu(qemu_id, config, debug_mode=False)
     if not q.start():
@@ -374,10 +374,10 @@ def generate_traces_worker(config, pid, work_queue):
                         cmd = [ ptdump_path, work_dir + "/page_cache", pt_tmp.name, tmpfile ]
                         for i in range(2):
                             key = "ip" + str(i)
-                            if key in config.argument_values and config.argument_values[key]:
-                                ip_start = hex(config.argument_values[key][0]).replace("L", "")
-                                ip_end = hex(config.argument_values[key][1]).replace("L", "")
-                                cmd += [ ip_start, ip_end ]
+                            if getattr(config, key, None):
+                                range_a = hex(getattr(config, key)[0]).replace("L", "")
+                                range_b = hex(getattr(config, key)[1]).replace("L", "")
+                                cmd += [ range_a, range_b ]
 
                         try:
                             subprocess.run(cmd, timeout=180)
@@ -463,29 +463,30 @@ def funky_trace_run(q, input_path, retry=1):
 
     return None
 
-
 def main():
     global null_hash
 
-    KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/kafl_fuzzer/"
-    KAFL_CONFIG = KAFL_ROOT + "kafl.ini"
-
     print_banner("kAFL Coverage Analyzer")
 
-    if not self_check(KAFL_ROOT):
+    if not self_check():
         return -1
 
-    config = DebugConfiguration(KAFL_CONFIG)
+    parser = ConfigArgsParser()
+    config = parser.parse_debug_options()
+
     if not post_self_check(config):
         return -1
 
+    #print(repr(config))
+    #sys.exit(0)
+
     init_logger(config)
 
-    data_dir = config.argument_values["input"]
+    data_dir = config.input
 
-    null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
+    null_hash = ExecutionResult.get_null_hash(config.bitmap_size)
 
-    nproc = min(config.argument_values["p"], os.cpu_count())
+    nproc = min(config.processes, os.cpu_count())
     logger.info("Using %d/%d cores..." % (nproc, os.cpu_count()))
 
     logger.info("Scanning target data_dir »%s«..." % data_dir)
@@ -508,6 +509,9 @@ def main():
     # generate basic summary files
     trace_parser.gen_reports()
 
+    return 0
+
 if __name__ == "__main__":
-    main()
+    ret = main()
     qemu_sweep("Detected potential qemu zombies, please kill -9:")
+    sys.exit(ret)

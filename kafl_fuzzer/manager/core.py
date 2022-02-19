@@ -49,9 +49,9 @@ def start(config):
         logger.error("Refuse to operate on existing work directory. Use --purge to override.")
         return 1
 
-    work_dir   = config.argument_values["work_dir"]
-    seed_dir   = config.argument_values["seed_dir"]
-    num_worker = config.argument_values['p']
+    work_dir   = config.work_dir
+    seed_dir   = config.seed_dir
+    num_worker = config.workers
 
     init_logger(config)
 
@@ -64,14 +64,14 @@ def start(config):
         time.sleep(1)
 
     # Without -ip0, Qemu will not active PT tracing and we turn into a blind fuzzer
-    if not config.argument_values['ip0']:
-        logger.warn("No trace region configured! PT feedback disabled!")
+    if not config.ip0:
+        logger.warn("No PT trace region defined.")
 
     manager = ManagerTask(config)
 
     workers = []
     for i in range(num_worker):
-        workers.append(multiprocessing.Process(name="Worker " + str(i), target=worker_loader, args=(i,)))
+        workers.append(multiprocessing.Process(name="Worker " + str(i), target=worker_loader, args=(i,config)))
         workers[i].start()
 
     try:

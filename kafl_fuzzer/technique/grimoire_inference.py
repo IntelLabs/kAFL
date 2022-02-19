@@ -33,10 +33,10 @@ class GrimoireInference:
         return re.compile(combined)
 
     def load_strings(self):
-        if not self.config.argument_values["dict"]:
+        if not self.config.dict:
             return
 
-        path = self.config.argument_values["dict"]
+        path = self.config.dict
         strings = []
 
         for l in open(path):

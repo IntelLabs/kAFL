@@ -4,35 +4,27 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 import argparse
-import json
 import os
 import re
 import sys
 
-import six
-import six.moves.configparser
-from dateutil.parser import parse as dateparser
+import confuse
+from flatdict import FlatDict
 
 from kafl_fuzzer.common.util import is_float, is_int, Singleton
 from kafl_fuzzer.common.logger import logger
 
 
-default_section = "Fuzzer"
-default_config = {"PAYLOAD_SHM_SIZE": 131072,
-                  "BITMAP_SHM_SIZE": 65536,
-                  "QEMU_KAFL_LOCATION": "$HOME/kafl/qemu/x86_64-softmmu/qemu-system-x86_64",
-                  "PTDUMP_LOCATION": "/home/pepe/kafl/libxdc/build/ptdump_static",
-                  "RADAMSA_LOCATION": "radamsa/bin/radamsa",
-                  "ARITHMETIC_MAX": 35,
-                  "APPLE-SMC-OSK": "",
-                  }
-
-
 class ArgsParser(argparse.ArgumentParser):
     def error(self, message):
         self.print_help()
-        logger.warn('%s\n\n' % message)
+        logger.error("%s\n" % message)
         sys.exit(1)
+
+
+class FullPath(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, os.path.abspath(os.path.expanduser(values)))
 
 
 def create_dir(dirname):
@@ -99,8 +91,8 @@ def add_args_general(parser):
                         action='store_true', default=False)
     parser.add_argument('--resume', required=False, help='use VM snapshot from existing workdir (for cov/gdb)',
                         action='store_true', default=False)
-    parser.add_argument('-p', required=False, metavar='<num>', type=int, default=1,
-                        help='number of parallel Qemu instances.')
+    parser.add_argument('-p', '--workers', required=False, metavar='<num>', type=int, default=1,
+                        help='number of workers (Qemu instances)')
     parser.add_argument('-v', '--verbose', required=False, action='store_true', default=False,
                         help='use verbose console output')
     parser.add_argument('-q', '--quiet', help='only print warnings and errors to console',
@@ -120,13 +112,13 @@ def add_args_fuzzer(parser):
                         action='store_true', default=False)
     parser.add_argument('-funky', required=False, help='perform extra validation and store funky inputs.',
                         action='store_true', default=False)
-    parser.add_argument('-D', required=False, help='skip deterministic stage (dumb mode).',
-                        action='store_false', default=True)
-    parser.add_argument('-d', required=False, help='disable effector maps during deterministic stage.',
-                        action='store_false', default=True)
-    parser.add_argument('-s', required=False, help='skip zero bytes during deterministic stage.',
+    parser.add_argument('-D', '--afl-no-deterministic', required=False, help='skip deterministic stage (dumb mode).',
                         action='store_true', default=False)
-    parser.add_argument('-i', required=False, type=parse_ignore_range, metavar="[0-131072]", action='append',
+    parser.add_argument('--afl-no-effector', required=False, help='disable effector maps during deterministic stage.',
+                        action='store_true', default=False)
+    parser.add_argument('--afl-skip-zero', required=False, help='skip zero bytes during deterministic stage.',
+                        action='store_true', default=False)
+    parser.add_argument('-i', '--afl-skip-range', required=False, type=parse_ignore_range, metavar="[0-131072]", action='append',
                         help='skip byte range during deterministic stage (0-128KB).')
     parser.add_argument('-radamsa', required=False, help='enable Radamsa as additional havoc stage',
                         action='store_true', default=False)
@@ -146,12 +138,17 @@ def add_args_fuzzer(parser):
                         type=float, required=False, default=None)
     parser.add_argument('-abort_exec', metavar='<n>', help="exit after max executions",
                         type=int, required=False, default=None)
-    parser.add_argument('-ts', '--t_soft', required=False, metavar='<s>', help="soft timeout for Qemu execution (in seconds)",
+    parser.add_argument('-ts', '--timeout_soft', required=False, metavar='<s>', help="soft timeout for Qemu execution (in seconds)",
                         type=float, default=1/1000)
-    parser.add_argument('-tc', '--t_check', required=False, help="enable timeout validation (can be slow)",
+    parser.add_argument('-tc', '--timeout_check', required=False, help="enable timeout validation (can be slow)",
                         action='store_true', default=False)
     parser.add_argument('--kickstart', metavar='<n>', help="kickstart fuzzing with size <n> random strings (default 256, 0 to disable)",
                         type=int, required=False, default=256)
+
+    parser.add_argument('--afl-arith-max', metavar='<n>', help="max arithmetic range for afl_arith_n mutation",
+                        type=int, required=False, default=35)
+    parser.add_argument('--radamsa-path', metavar='<file>', help="path to radamsa executable",
+                        type=parse_is_file, required=False, default=None)
 
 # Qemu/Worker-specific launch options
 def add_args_qemu(parser):
@@ -207,156 +204,95 @@ def add_args_qemu(parser):
                         action='store_true', default=False)
     parser.add_argument('--log_crashes', required=False, help="store hprintf log on crash/timeout (not console, not logs)",
                         action='store_true', default=False)
-    parser.add_argument('-t', '--timeout', required=False, metavar='<s>', help="hard timeout for Qemu executions (seconds)",
+    parser.add_argument('-t', '--timeout_hard', required=False, metavar='<s>', help="hard timeout for Qemu executions (seconds)",
                         type=float, default=4)
 
+    parser.add_argument('--payload-shm-size', metavar='<n>', help="maximum payload size in bytes",
+                        type=int, required=False, default=131072)
+    parser.add_argument('--bitmap-size', metavar='<n>', help="size of feedback bitmap (power of 2)",
+                        type=int, required=False, default=65536)
+    parser.add_argument('--qemu-path', metavar='<file>', help=argparse.SUPPRESS,
+                        type=parse_is_file, required=True, default=None)
 
-class FullPath(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, os.path.abspath(os.path.expanduser(values)))
+# kafl_debug launch options
+def add_args_debug(parser):
 
-
-class MapFullPaths(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, [os.path.abspath(os.path.expanduser(p)) for p in values])
-
-
-class ConfigReader(object):
-
-    def __init__(self, config_file, section, default_values):
-        self.section = section
-        self.default_values = default_values
-        self.config = six.moves.configparser.ConfigParser()
-        if config_file:
-            self.config.read(config_file)
-        self.config_value = {}
-        self.__set_config_values()
-
-    def __set_config_values(self):
-        for default_value in self.default_values.keys():
-            if self.config.has_option(self.section, default_value):
-                try:
-                    self.config_value[default_value] = int(self.config.get(self.section, default_value))
-                except ValueError:
-                    if self.config.get(self.section, default_value) == "True":
-                        self.config_value[default_value] = True
-                    elif self.config.get(self.section, default_value) == "False":
-                        self.config_value[default_value] = False
-                    elif self.config.get(self.section, default_value).startswith("[") and \
-                            self.config.get(self.section, default_value).endswith("]"):
-                        self.config_value[default_value] = \
-                            self.config.get(self.section, default_value)[1:-1].replace(' ', '').split(',')
-                    elif self.config.get(self.section, default_value).startswith("{") and \
-                            self.config.get(self.section, default_value).endswith("}"):
-                        self.config_value[default_value] = json.loads(self.config.get(self.section, default_value))
-                    else:
-                        if is_float(self.config.get(self.section, default_value)):
-                            self.config_value[default_value] = float(self.config.get(self.section, default_value))
-                        elif is_int(self.config.get(self.section, default_value)):
-                            self.config_value[default_value] = int(self.config.get(self.section, default_value))
-                        else:
-                            self.config_value[default_value] = self.config.get(self.section, default_value)
-            else:
-                self.config_value[default_value] = self.default_values[default_value]
-
-    def get_values(self):
-        return self.config_value
+    debug_modes = ["benchmark", "gdb", "trace", "single", "trace-qemu", "noise", "printk", "redqueen",
+                   "redqueen-qemu", "verify"]
+    
+    debug_modes_help = '<benchmark>\tperform performance benchmark\n' \
+                       '<gdb>\t\trun payload with Qemu gdbserver (must compile without redqueen!)\n' \
+                       '<trace>\t\tperform trace run\n' \
+                       '<trace-qemu>\tperform trace run and print QEMU stdout\n' \
+                       '<noise>\t\tperform run and messure nondeterminism\n' \
+                       '<printk>\t\tredirect printk calls to kAFL\n' \
+                       '<redqueen>\trun redqueen debugger\n' \
+                       '<redqueen-qemu>\trun redqueen debugger and print QEMU stdout\n' \
+                       '<verify>\t\trun verifcation steps\n'
+    
+    parser.add_argument('-input', metavar='<file/dir>', action=FullPath, type=str,
+                        help='path to input file or workdir.')
+    parser.add_argument('-n', '--iterations', metavar='<n>', help='execute <n> times (for some actions)',
+                        default=5, type=int)
+    
+    parser.add_argument('-trace', required=False, help='capture full PT traces (for some actions)',
+                    action='store_true', default=False)
+    parser.add_argument('-action', required=False, metavar='<cmd>', choices=debug_modes,
+                        help=debug_modes_help)
+    parser.add_argument('--ptdump-path', metavar='<file>', help=argparse.SUPPRESS,
+                        type=parse_is_file, required=True, default=None)
 
 
+class ConfigArgsParser():
 
-class DebugConfiguration(six.with_metaclass(Singleton)):
-    global default_section, default_config
+    def _base_parser(self):
+        return ArgsParser(formatter_class=argparse.RawTextHelpFormatter, add_help=False)
 
-    __config_section = default_section
-    __config_default = default_config
+    def _parse_with_config(self, parser):
 
-    def __init__(self, configfile, initial=True):
-        self.config_file = configfile
-        if initial:
-            self.argument_values = None
-            self.config_values = None
-            self.__load_arguments()
-            self.__load_config()
-            self.load_old_state = False
+        config = confuse.Configuration('kafl', modname='kafl_fuzzer')
 
-    def __load_config(self):
-        self.config_values = ConfigReader(self.config_file, self.__config_section,
-                                          self.__config_default).get_values()
+        # check default config search paths
+        config.read(defaults=True, user=True)
 
-    def __load_arguments(self):
+        # local / workdir config
+        workdir_config = os.path.join(os.getcwd(), 'kafl.yaml')
+        if os.path.exists(workdir_config):
+            config.set_file(workdir_config, base_for_paths=True)
 
-        debug_modes = ["benchmark", "gdb", "trace", "single", "trace-qemu", "noise", "printk", "redqueen",
-                       "redqueen-qemu", "verify"]
+        # ENV based config
+        if 'KAFL_CONFIG' in os.environ:
+            config.set_file(os.environ['KAFL_CONFIG'], base_for_paths=True)
 
-        debug_modes_help = '<benchmark>\tperform performance benchmark\n' \
-                           '<gdb>\t\trun payload with Qemu gdbserver (must compile without redqueen!)\n' \
-                           '<trace>\t\tperform trace run\n' \
-                           '<trace-qemu>\tperform trace run and print QEMU stdout\n' \
-                           '<noise>\t\tperform run and messure nondeterminism\n' \
-                           '<printk>\t\tredirect printk calls to kAFL\n' \
-                           '<redqueen>\trun redqueen debugger\n' \
-                           '<redqueen-qemu>\trun redqueen debugger and print QEMU stdout\n' \
-                           '<verify>\t\trun verifcation steps\n'
+        # merge all configs into a flat dictionary, delimiter = ':'
+        config_values = FlatDict(config.flatten())
+        #print("Options picked up from config: %s" % str(config_values))
 
-        parser = ArgsParser(formatter_class=argparse.RawTextHelpFormatter, add_help=False)
+        # adopt defaults into parser, fixup 'required' and file/path fields
+        for action in parser._actions:
+            #print("action: %s" % repr(action))
+            if action.dest in config_values:
+                if action.type == parse_is_file:
+                    action.default = config[action.dest].as_filename()
+                action.required = False
+                config_values.pop(action.dest)
+        
+        # remove options not defined in argparse (set_defaults() imports everything)
+        for option in config_values:
+            if 'KAFL_CONFIG_DEBUG' in os.environ:
+                parser.warn("Unrecognized config option '%s'." % option)
+                sys.exit(-1)
+            config_values.pop(option)
 
-        general = parser.add_argument_group('General options')
-        add_args_general(general)
+        parser.set_defaults(**config_values)
+        args = parser.parse_args()
+        #print("args: %s" % repr(args))
+        #sys.exit(-1)
+        return args
 
-        general.add_argument('-input', metavar='<file/dir>', action=FullPath, type=str,
-                            help='path to input file or workdir.')
-        general.add_argument('-n', metavar='<num>', help='execute <num> times (for some actions)',
-                            default=5, type=int)
-        parser.add_argument('-trace', required=False, help='capture full PT traces (for some actions)',
-                        action='store_true', default=False)
-        general.add_argument('-action', required=False, metavar='<cmd>', choices=debug_modes,
-                            help=debug_modes_help)
+    def parse_fuzz_options(self):
 
-        qemu = parser.add_argument_group('Qemu options')
-        add_args_qemu(qemu)
-
-        self.argument_values = vars(parser.parse_args())
-
-
-class FuzzerConfiguration(six.with_metaclass(Singleton)):
-    global default_section, default_config
-
-    __config_section = default_section
-    __config_default = default_config
-
-    def __init__(self, configfile, emulated_arguments=None, skip_args=False):
-        self.config_file = configfile
-        if not emulated_arguments:
-            self.argument_values = None
-            self.config_values = None
-            if not skip_args:
-                self.__load_arguments()
-            self.__load_config()
-            self.load_old_state = False
-        else:
-            self.argument_values = emulated_arguments
-            self.__load_config()
-            self.load_old_state = False
-
-    def create_initial_config(self):
-        f = open(self.config_file, "w")
-        config = six.moves.configparser.ConfigParser()
-        config.add_section(self.__config_section)
-        for k, v in self.__config_default.items():
-            if v is None or (type(v) is str and v == ""):
-                config.set(self.__config_section, k, "\"\"")
-            else:
-                config.set(self.__config_section, k, v)
-        config.write(f)
-        f.close()
-
-    def __load_config(self):
-        self.config_values = ConfigReader(self.config_file, self.__config_section,
-                                          self.__config_default).get_values()
-
-    def __load_arguments(self):
-
-        parser = ArgsParser(formatter_class=argparse.RawTextHelpFormatter, add_help=False)
+        parser = self._base_parser()
 
         general = parser.add_argument_group('General options')
         add_args_general(general)
@@ -367,4 +303,19 @@ class FuzzerConfiguration(six.with_metaclass(Singleton)):
         qemu = parser.add_argument_group('Qemu options')
         add_args_qemu(qemu)
 
-        self.argument_values = vars(parser.parse_args())
+        return self._parse_with_config(parser)
+
+    def parse_debug_options(self):
+
+        parser = self._base_parser()
+
+        general = parser.add_argument_group('General options')
+        add_args_general(general)
+
+        debugger = parser.add_argument_group('Debug options')
+        add_args_debug(debugger)
+
+        qemu = parser.add_argument_group('Qemu options')
+        add_args_qemu(qemu)
+
+        return self._parse_with_config(parser)

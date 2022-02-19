@@ -51,10 +51,10 @@ class FuzzingStateLogic:
 
     def create_limiter_map(self, payload):
         limiter_map = bytearray([1 for _ in range(len(payload))])
-        if self.config.argument_values['i']:
-            for ignores in self.config.argument_values['i']:
-                # logger.debug("Ignore-range 0: " + str(ignores[0]) + " " + str(min(ignores[0], len(payload))))
-                # logger.debug("Ignore-range 1: " + str(ignores[1]) + " " + str(min(ignores[1], len(payload))))
+        if self.config.afl_skip_range:
+            for ignores in self.config.afl_skip_range:
+                logger.debug("AFL ignore-range 0: " + str(ignores[0]) + " " + str(min(ignores[0], len(payload))))
+                logger.debug("AFL ignore-range 1: " + str(ignores[1]) + " " + str(min(ignores[1], len(payload))))
                 for i in range(min(ignores[0], len(payload)), min(ignores[1], len(payload))):
                     limiter_map[i] = 0
 
@@ -158,7 +158,7 @@ class FuzzingStateLogic:
     def handle_import(self, payload, metadata):
         # for funky targets, retry seed a couple times to avoid false negatives
         retries = 1
-        if self.config.argument_values["funky"]:
+        if self.config.funky:
             retries = 8
 
         for _ in range(retries):
@@ -181,7 +181,7 @@ class FuzzingStateLogic:
     def handle_initial(self, payload, metadata):
         time_initial_start = time.time()
 
-        if self.config.argument_values["trace_cb"]:
+        if self.config.trace_cb:
             self.stage_update_label("trace")
             self.worker.trace_payload(payload, metadata)
 
@@ -218,7 +218,7 @@ class FuzzingStateLogic:
     def handle_grimoire_inference(self, payload, metadata):
         grimoire_info = {}
 
-        if not self.config.argument_values["grimoire"]:
+        if not self.config.grimoire:
             return grimoire_info
         if len(metadata["new_bytes"]) <= 0 or len(payload) >= 16384:
             return grimoire_info
@@ -261,7 +261,7 @@ class FuzzingStateLogic:
 
     def handle_redqueen(self, payload, metadata):
         redqueen_start_time = time.time()
-        if self.config.argument_values['redqueen']:
+        if self.config.redqueen:
             self.__perform_redqueen(payload, metadata)
         self.redqueen_time += time.time() - redqueen_start_time
 
@@ -273,9 +273,9 @@ class FuzzingStateLogic:
 
         havoc_afl = True
         havoc_splice = True
-        havoc_radamsa = self.config.argument_values['radamsa']
-        havoc_grimoire = self.config.argument_values["grimoire"]
-        havoc_redqueen = self.config.argument_values['redqueen']
+        havoc_radamsa = self.config.radamsa
+        havoc_grimoire = self.config.grimoire
+        havoc_redqueen = self.config.redqueen
 
         for i in range(1):
             initial_findings = self.stage_info_findings
@@ -409,12 +409,12 @@ class FuzzingStateLogic:
                     effector_map[i + j] = 1
 
     def handle_deterministic(self, payload, metadata):
-        if not self.config.argument_values['D']:
+        if self.config.afl_no_deterministic:
             return False, {}
 
-        skip_zero = self.config.argument_values['s']
-        arith_max = self.config.config_values["ARITHMETIC_MAX"]
-        use_effector_map = self.config.argument_values['d'] and len(payload) > 128
+        skip_zero = self.config.afl_skip_zero
+        arith_max = self.config.afl_arith_max
+        use_effector_map = not self.config.afl_no_effector and len(payload) > 128
         limiter_map = self.create_limiter_map(payload)
         effector_map = None
 

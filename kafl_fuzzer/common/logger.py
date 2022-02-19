@@ -83,20 +83,20 @@ def init_logger(config):
     #  --debug to enable extra debug checks, qemu tracing, etc (slow!)
     #
     # We allow some sensible combinations, e.g. --quiet --log [--debug]
-    if config.argument_values["quiet"]:
+    if config.quiet:
         stdout_level = "WARN"
-    elif config.argument_values["verbose"] or config.argument_values["debug"]:
+    elif config.verbose or config.debug:
         stdout_level = "DEBUG"
     else:
         stdout_level = "INFO"
 
-    if config.argument_values["log"]:
-        if config.argument_values["debug"]:
+    if config.log:
+        if config.debug:
             file_level = "DEBUG"
         else:
             file_level = "INFO"
     else:
         file_level = None
 
-    logger.work_dir = config.argument_values["work_dir"]
+    logger.work_dir = config.work_dir
     logger.init(stdout_level, file_level)

@@ -28,14 +28,14 @@ def load_dict(file_name):
 
 def init_havoc(config):
     global location_corpus
-    if config.argument_values["dict"]:
-        set_dict(load_dict(config.argument_values["dict"]))
+    if config.dict:
+        set_dict(load_dict(config.dict))
     # AFL havoc adds these at runtime as soon as available dicts are non-empty
-    if config.argument_values["dict"] or config.argument_values["redqueen"]:
+    if config.dict or config.redqueen:
         append_handler(havoc_dict_insert)
         append_handler(havoc_dict_replace)
 
-    location_corpus = config.argument_values['work_dir'] + "/corpus/"
+    location_corpus = config.work_dir + "/corpus/"
 
 
 def havoc_range(perf_score):

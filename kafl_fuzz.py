@@ -13,22 +13,22 @@ import os
 import sys
 
 from kafl_fuzzer.common.self_check import self_check
-from kafl_fuzzer.common.config import FuzzerConfiguration
+from kafl_fuzzer.common.config import ConfigArgsParser
 from kafl_fuzzer.common.util import print_banner
 
-KAFL_ROOT = os.path.dirname(os.path.realpath(__file__)) + "/kafl_fuzzer/"
-KAFL_CONFIG = KAFL_ROOT + "kafl.ini"
+from kafl_fuzzer.manager import core as fuzzer
 
 def main():
 
     print_banner("kAFL Fuzzer")
 
-    if not self_check(KAFL_ROOT):
+    if not self_check():
         return 1
 
-    import kafl_fuzzer.manager.core
-    cfg = FuzzerConfiguration(KAFL_CONFIG)
-    return kafl_fuzzer.manager.core.start(cfg)
+    parser = ConfigArgsParser()
+    config = parser.parse_fuzz_options()
+
+    return fuzzer.start(config)
 
 
 if __name__ == "__main__":

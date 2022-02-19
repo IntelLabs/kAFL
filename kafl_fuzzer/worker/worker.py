@@ -20,7 +20,7 @@ import tempfile
 import psutil
 import lz4.frame as lz4
 
-from kafl_fuzzer.common.config import FuzzerConfiguration
+#from kafl_fuzzer.common.config import FuzzerConfiguration
 from kafl_fuzzer.common.logger import logger
 from kafl_fuzzer.common.rand import rand
 from kafl_fuzzer.common.util import read_binary_file, atomic_write
@@ -31,7 +31,7 @@ from kafl_fuzzer.manager.statistics import WorkerStatistics
 from kafl_fuzzer.worker.state_logic import FuzzingStateLogic
 from kafl_fuzzer.worker.qemu import qemu, QemuIOException
 
-def worker_loader(pid):
+def worker_loader(pid, config):
 
     def sigterm_handler(signal, frame):
         if worker.q:
@@ -40,9 +40,9 @@ def worker_loader(pid):
 
     logger.debug(("Worker-%02d PID: " % pid) + str(os.getpid()))
     # sys.stdout = open("worker_%d.out"%pid, "w")
-    config = FuzzerConfiguration()
+    #config = FuzzerConfiguration()
 
-    psutil.Process().cpu_affinity([pid + config.argument_values["cpu_offset"]])
+    psutil.Process().cpu_affinity([pid + config.cpu_offset])
 
     connection = ClientConnection(pid, config)
 
@@ -72,20 +72,18 @@ class WorkerTask:
     def __init__(self, pid, config, connection, auto_reload=False):
         self.config = config
         self.pid = pid
-        self.debug_mode = config.argument_values['debug']
-        self.q = qemu(self.pid, self.config, debug_mode=self.debug_mode)
-        self.statistics = WorkerStatistics(self.pid, self.config)
-        self.logic = FuzzingStateLogic(self, self.config)
         self.conn = connection
-        self.work_dir = self.config.argument_values['work_dir']
-        self.payload_size_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 5
-        self.t_hard = config.argument_values['timeout']
-        self.t_soft = config.argument_values['t_soft']
-        self.t_check = config.argument_values['t_check']
+        self.q = qemu(self.pid, config)
+        self.statistics = WorkerStatistics(self.pid, config)
+        self.logic = FuzzingStateLogic(self, config)
+        self.payload_size_limit = config.payload_shm_size - 5 # function of self.q?
+        self.t_hard = config.timeout_hard
+        self.t_soft = config.timeout_soft
+        self.t_check = config.timeout_check
         self.qemu_logfiles = {'hprintf': self.q.hprintf_logfile,
                               'serial': self.q.serial_logfile}
 
-        self.bitmap_storage = BitmapStorage(self.config, self.config.config_values['BITMAP_SHM_SIZE'], "main")
+        self.bitmap_storage = BitmapStorage(self.config, "main")
 
     def __str__(self):
         return "Worker-%02d" % self.pid
@@ -104,7 +102,7 @@ class WorkerTask:
 
     def handle_busy(self):
         busy_timeout = 4
-        kickstart = self.config.argument_values['kickstart']
+        kickstart = self.config.kickstart
 
         if kickstart:
             logger.debug("%s No inputs in queue, attempting kickstart(%d).." % (self, kickstart))
@@ -116,8 +114,8 @@ class WorkerTask:
         self.conn.send_ready()
 
     def handle_node(self, msg):
-        meta_data = QueueNode.get_metadata(msg["task"]["nid"])
-        payload = QueueNode.get_payload(meta_data["info"]["exit_reason"], meta_data["id"])
+        meta_data = QueueNode.get_metadata(self.config.work_dir, msg["task"]["nid"])
+        payload = QueueNode.get_payload(self.config.work_dir, meta_data)
 
         # fixme: determine globally based on all seen regulars
         t_dyn = self.t_soft + 1.2 * meta_data["info"]["performance"]
@@ -154,7 +152,7 @@ class WorkerTask:
                 logger.error("%s Lost connection to Manager. Shutting down." % self)
                 return
 
-            if self.config.argument_values['log_crashes']:
+            if self.config.log_crashes:
                 # reset logs for each new seed/input
                 for _, logfile in self.qemu_logfiles.items():
                     if os.path.exists(logfile):
@@ -214,7 +212,7 @@ class WorkerTask:
                 return True, runtime_avg/num
 
         logger.debug("%s Funky input received %d/%d confirmations. Rejecting.." % (self, confirmations, validations))
-        if self.config.argument_values['debug']:
+        if self.config.debug:
             self.store_funky(data)
         return False, runtime_avg/num
 
@@ -223,7 +221,7 @@ class WorkerTask:
         num_funky += 1
 
         # store funky input for further analysis 
-        atomic_write(f"%s/funky/payload_%04x%02x" % (self.work_dir, num_funky, self.pid), data)
+        atomic_write(f"%s/funky/payload_%04x%02x" % (self.config.work_dir, num_funky, self.pid), data)
 
 
     def __store_crashlogs(self, reason):
@@ -237,7 +235,7 @@ class WorkerTask:
                 if os.path.getsize(logfile) > 0:
                     # qemu may keep the FD so we just copy + truncate here
                     shutil.copy(logfile, "%s/logs/%s_%s_%04x%02x.log" % (
-                        self.work_dir, reason[:5], logname, num_crashes, self.pid))
+                        self.config.work_dir, reason[:5], logname, num_crashes, self.pid))
                     os.truncate(logfile,0)
 
     def validate_bits(self, data, old_node, default_info):
@@ -280,10 +278,10 @@ class WorkerTask:
         # This is generally slower and produces different bitmaps so we execute it in
         # a different phase as part of calibration stage.
         # Optionally pickup pt_trace_dump* files as well in case both methods are enabled.
-        trace_edge_in = self.work_dir + "/redqueen_workdir_%d/pt_trace_results.txt" % self.pid
-        trace_dump_in = self.work_dir + "/pt_trace_dump_%d" % self.pid
-        trace_edge_out = self.work_dir + "/traces/fuzz_cb_%05d.lst" % info['id']
-        trace_dump_out = self.work_dir + "/traces/fuzz_cb_%05d.bin" % info['id']
+        trace_edge_in = self.config.work_dir + "/redqueen_workdir_%d/pt_trace_results.txt" % self.pid
+        trace_dump_in = self.config.work_dir + "/pt_trace_dump_%d" % self.pid
+        trace_edge_out = self.config.work_dir + "/traces/fuzz_cb_%05d.lst" % info['id']
+        trace_dump_out = self.config.work_dir + "/traces/fuzz_cb_%05d.bin" % info['id']
 
         logger.info("%s Tracing payload_%05d.." % (self, info['id']))
 
@@ -376,7 +374,7 @@ class WorkerTask:
 
         # -trace_cb causes slower execution and different bitmap computation
         # if both -trace and -trace_cb is provided, we must delay tracing to calibration stage
-        trace_pt = self.config.argument_values['trace'] and not self.config.argument_values['trace_cb']
+        trace_pt = self.config.trace and not self.config.trace_cb
 
         # store crashes and any validated new behavior
         # do not validate timeouts and crashes at this point as they tend to be nondeterministic
@@ -384,7 +382,7 @@ class WorkerTask:
             if not crash:
                 assert exec_res.is_lut_applied()
 
-                if self.config.argument_values["funky"]:
+                if self.config.funky:
                     stable, runtime = self.funky_validate(data, exec_res, trace=trace_pt)
                     exec_res.performance = runtime
                 else:
@@ -392,9 +390,9 @@ class WorkerTask:
                     exec_res.performance = (exec_res.performance + runtime)/2
 
                 if trace_pt and stable:
-                    trace_in = "%s/pt_trace_dump_%d" % (self.work_dir, self.pid)
+                    trace_in = "%s/pt_trace_dump_%d" % (self.config.work_dir, self.pid)
                     if os.path.exists(trace_in):
-                        with tempfile.NamedTemporaryFile(delete=False,dir=self.work_dir + "/traces") as f:
+                        with tempfile.NamedTemporaryFile(delete=False,dir=self.config.work_dir + "/traces") as f:
                             shutil.move(trace_in, f.name)
                             info['pt_dump'] = f.name
                 if not stable:
@@ -421,7 +419,7 @@ class WorkerTask:
                     # sub-call to execute() has submitted the payload if relevant, so we can just return its result here
                     return exec_res, is_new
 
-            if crash and self.config.argument_values['log_crashes']:
+            if crash and self.config.log_crashes:
                 self.__store_crashlogs(exec_res.exit_reason)
 
             if crash or stable:

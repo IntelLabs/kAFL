@@ -4,15 +4,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 import os
-import subprocess
 import sys
+import subprocess
+import multiprocessing
 from fcntl import ioctl
 
 from kafl_fuzzer.common.logger import logger
 from kafl_fuzzer.native import loader as native_loader
 
 
-def check_if_nativ_lib_compiled(kafl_root):
+def check_if_nativ_lib_compiled():
     return native_loader.test_build()
 
 def check_version():
@@ -47,7 +48,6 @@ def check_packages():
     return True
 
 def vmx_pt_get_addrn(verbose=True):
-    from fcntl import ioctl
 
     KVMIO = 0xAE
     KVM_VMX_PT_GET_ADDRN = KVMIO << (8) | 0xe9
@@ -68,14 +68,13 @@ def vmx_pt_get_addrn(verbose=True):
     return ret
 
 def vmx_pt_check_addrn(config):
-
-    if config.argument_values["ip3"]:
+    if config.ip3:
         ip_ranges = 4
-    elif config.argument_values["ip2"]:
+    elif config.ip2:
         ip_ranges = 3
-    elif config.argument_values["ip1"]:
+    elif config.ip1:
         ip_ranges = 2
-    elif config.argument_values["ip0"]:
+    elif config.ip0:
         ip_ranges = 1
     else:
         ip_ranges = 0
@@ -88,7 +87,6 @@ def vmx_pt_check_addrn(config):
     return True
 
 def check_vmx_pt():
-    from fcntl import ioctl
 
     KVMIO = 0xAE
     KVM_VMX_PT_SUPPORTED = KVMIO << (8) | 0xe4
@@ -112,56 +110,11 @@ def check_vmx_pt():
 
     return True
 
-
-def check_apple_osk(config):
-    if config.argument_values["macOS"]:
-        if config.config_values["APPLE-SMC-OSK"] == "":
-            logger.error("APPLE SMC OSK is missing in kafl.ini!")
-            return False
-    return True
-
-
-def check_apple_ignore_msrs(config):
-    if config.argument_values["macOS"]:
-        try:
-            f = open("/sys/module/kvm/parameters/ignore_msrs")
-            if not 'Y' in f.read(1):
-                logger.error(
-                    "KVM-PT is not properly configured! Please try the following:" \
-                    "\n\n\tsudo su\n\techo 1 > /sys/module/kvm/parameters/ignore_msrs\n")
-                return False
-            else:
-                return True
-        except:
-            pass
-        finally:
-            f.close()
-        logger.error("KVM-PT is not ready?!")
-        return False
-    return True
-
-
-def check_kafl_ini(rootdir):
-    configfile = rootdir + "kafl.ini"
-    if not os.path.exists(configfile):
-        logger.error("Could not find kafl.ini. Creating default config at %s" % configfile)
-        from kafl_fuzzer.common.config import FuzzerConfiguration
-        FuzzerConfiguration(configfile,skip_args=True).create_initial_config()
-        return False
-    return True
-
-
 def check_qemu_version(config):
-    qemu_path = os.path.expandvars(
-                    os.path.expanduser(
-                        config.config_values["QEMU_KAFL_LOCATION"]))
+    qemu_path = config.qemu_path
 
-    if not qemu_path or qemu_path == "":
-        logger.error("Please set QEMU_KAFL_LOCATION in kafl.ini!")
-        return False
-
-    if not os.path.exists(qemu_path):
-        logger.error("Could not find QEMU-PT at %s..." % qemu_path)
+    if not qemu_path or not os.path.exists(qemu_path):
+        logger.error("Could not find QEMU at %s..." % qemu_path)
         return False
 
     output = ""
@@ -179,48 +132,37 @@ def check_qemu_version(config):
         logger.error("Qemu executable at %s is missing the kAFL patch?" % qemu_path)
         return False
 
-    # store normalized + checked path
-    config.config_values["QEMU_KAFL_LOCATION"] = qemu_path
-
     return True
 
 def check_radamsa_location(config):
-    if "radamsa" not in config.argument_values or not config.argument_values["radamsa"]:
+    if 'radamsa' not in config or not config.radamsa:
         return True
 
-    radamsa_path = os.path.expandvars(
-                    os.path.expanduser(
-                        config.config_values["RADAMSA_LOCATION"]))
+    radamsa_path = config.radamsa_path
 
     if not radamsa_path or radamsa_path == "":
-        logger.error("RADAMSA_LOCATION is not set in kafl.ini!")
+        logger.error("Enabling radamsa requires --radamsa-path to be set!")
         return False
 
     if not os.path.exists(radamsa_path):
-        logger.error("RADAMSA executable does not exist. Try ./install.sh radamsa")
+        logger.error("Could not find Radamsa in %s. Try ./install.sh radamsa" % radamsa_path)
         return False
-
-    # store normalized + checked path
-    config.config_values["RADAMSA_LOCATION"] = radamsa_path
 
     return True
 
 def check_cpu_num(config):
-    import multiprocessing
 
-    if 'p' not in config.argument_values:
+    if 'p' not in config:
         return True
 
     max_cpus = int(multiprocessing.cpu_count())
-    if int(config.argument_values["p"]) > max_cpus:
+    if int(config.p) > max_cpus:
         logger.error("Only %d fuzzing processes are supported..." % max_cpus)
         return False
     return True
 
-def self_check(rootdir):
-    if not check_if_nativ_lib_compiled(rootdir):
-        return False
-    if not check_kafl_ini(rootdir):
+def self_check():
+    if not check_if_nativ_lib_compiled():
         return False
     if not check_version():
         return False
@@ -232,10 +174,6 @@ def self_check(rootdir):
 
 
 def post_self_check(config):
-    if not check_apple_ignore_msrs(config):
-        return False
-    if not check_apple_osk(config):
-        return False
     if not check_qemu_version(config):
         return False
     if not check_radamsa_location(config):

@@ -14,7 +14,6 @@ import mmh3
 import kafl_fuzzer.common.color as color
 from kafl_fuzzer.common.rand import rand
 from kafl_fuzzer.common.logger import init_logger, logger
-from kafl_fuzzer.common.config import DebugConfiguration
 from kafl_fuzzer.common.self_check import post_self_check
 from kafl_fuzzer.common.util import prepare_working_dir, read_binary_file, qemu_sweep
 from kafl_fuzzer.worker.execution_result import ExecutionResult
@@ -39,7 +38,7 @@ def hexdump(src, length=16):
 
 def benchmark(config):
     logger.info("Starting benchmark...")
-    payload_file = config.argument_values["input"]
+    payload_file = config.input
     payload = read_binary_file(payload_file)
 
     q = qemu(1337, config, debug_mode=False)
@@ -85,10 +84,10 @@ def benchmark(config):
 def gdb_session(config, qemu_verbose=True, notifiers=True):
 
     #from pprint import pprint
-    payload_file = config.argument_values["input"]
-    resume = config.argument_values["resume"]
+    payload_file = config.input
+    resume = config.resume
 
-    config.argument_values["gdbserver"] = True
+    config.gdbserver = True
     q = qemu(1337, config, notifiers=notifiers, resume=resume)
 
     logger.info("Starting Qemu + GDB with payload %s" % payload_file)
@@ -104,9 +103,9 @@ def gdb_session(config, qemu_verbose=True, notifiers=True):
         q.async_exit()
 
 def execute_once(config, qemu_verbose=False, notifiers=True):
-    payload_file = config.argument_values["input"]
-    resume = config.argument_values["resume"]
-    null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
+    payload_file = config.input
+    resume = config.resume
+    null_hash = ExecutionResult.get_null_hash(config.bitmap_size)
 
     logger.info("Execute payload %s.. " % payload_file)
 
@@ -114,14 +113,14 @@ def execute_once(config, qemu_verbose=False, notifiers=True):
     assert q.start(), "Failed to start Qemu?"
 
 
-    store_traces = config.argument_values["trace"]
+    store_traces = config.trace
     if store_traces:
-        trace_out = config.argument_values["work_dir"] + "/redqueen_workdir_1337/pt_trace_results.txt"
-        trace_dir  = config.argument_values["work_dir"] + "/traces/"
+        trace_out = config.work_dir + "/redqueen_workdir_1337/pt_trace_results.txt"
+        trace_dir  = config.work_dir + "/traces/"
 
     payload = read_binary_file(payload_file)
 
-    payload_size_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 8
+    payload_size_limit = config.payload_size - 8 # 5 ???
     if len(payload) > payload_size_limit:
         payload = payload[:payload_size_limit]
 
@@ -148,15 +147,15 @@ def execute_once(config, qemu_verbose=False, notifiers=True):
 def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
     logger.info("Starting debug execution...(%d rounds)" % execs)
 
-    payload_file = config.argument_values["input"]
-    resume = config.argument_values["resume"]
-    null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
+    payload_file = config.input
+    resume = config.resume
+    null_hash = ExecutionResult.get_null_hash(config.bitmap_size)
 
     q = qemu(1337, config, debug_mode=True, notifiers=notifiers, resume=resume)
     assert q.start(), "Failed to start Qemu?"
 
     payload = read_binary_file(payload_file)
-    payload_size_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 8
+    payload_size_limit = config.payload_size - 8
 
     if len(payload) > payload_size_limit:
         payload = payload[:payload_size_limit]
@@ -189,12 +188,12 @@ def debug_non_det(config, max_execs=0):
     logger.info("Starting non-deterministic...")
 
     delay = 0
-    payload_file = config.argument_values["input"]
-    resume = config.argument_values["resume"]
-    null_hash = ExecutionResult.get_null_hash(config.config_values['BITMAP_SHM_SIZE'])
+    payload_file = config.input
+    resume = config.resume
+    null_hash = ExecutionResult.get_null_hash(config.bitmap_size)
 
     assert os.path.isfile(payload_file), "Provided -input argument must be a file."
-    assert "ip0" in config.argument_values, "Must set -ip0 range in order to obtain PT traces."
+    assert "ip0" in config, "Must set -ip0 range in order to obtain PT traces."
     payload = read_binary_file(payload_file)
 
     q = qemu(1337, config, debug_mode=False, resume=resume)
@@ -202,13 +201,13 @@ def debug_non_det(config, max_execs=0):
 
     q.set_timeout(0)
 
-    store_traces = config.argument_values["trace"]
+    store_traces = config.trace
     if store_traces:
-        trace_out = config.argument_values["work_dir"] + "/redqueen_workdir_1337/pt_trace_results.txt"
-        trace_dir  = config.argument_values["work_dir"] + "/noise/"
+        trace_out = config.work_dir + "/redqueen_workdir_1337/pt_trace_results.txt"
+        trace_dir  = config.work_dir + "/noise/"
         os.makedirs(trace_dir, exist_ok=True)
 
-    payload_size_limit = config.config_values['PAYLOAD_SHM_SIZE'] - 8
+    payload_size_limit = config.payload_size - 8
 
     if len(payload) > payload_size_limit:
         payload = payload[:payload_size_limit]
@@ -341,7 +340,7 @@ def redqueen_dbg(config, qemu_verbose=False):
 
     q = qemu(1337, config, debug_mode=True)
     q.start()
-    payload = read_binary_file(config.argument_values["input"])
+    payload = read_binary_file(config.input)
     # q.set_payload(payload)
 
     if os.path.exists("patches"):
@@ -399,7 +398,7 @@ def verify_dbg(config, qemu_verbose=False):
 
     q.start()
 
-    orig_input = read_binary_file(config.argument_values["input"])
+    orig_input = read_binary_file(config.input)
     q.set_payload(orig_input)
 
     # result = q.send_payload()
@@ -449,24 +448,24 @@ def verify_dbg(config, qemu_verbose=False):
 
 def start(config):
 
-    assert prepare_working_dir(config), "Failed to create work_dir %s" % config.argument_values["work_dir"]
+    assert prepare_working_dir(config), "Failed to create work_dir %s" % config.work_dir
 
     if not post_self_check(config):
         return -1
 
-    work_dir = config.argument_values["work_dir"]
+    work_dir = config.work_dir
     init_logger(config)
 
     # Without -ip0, Qemu will not active PT tracing and Redqueen will not
     # attempt to handle debug traps. This is a requirement for modes like gdb.
-    if not config.argument_values['ip0']:
+    if not config.ip0:
         logger.warn("No trace region configured! Intel PT disabled!")
 
-    max_execs = config.argument_values['n']
+    max_execs = config.iterations
 
     try:
         # TODO: noise, benchmark, trace are working, others untested
-        mode = config.argument_values['action']
+        mode = config.action
         if   (mode == "noise"):         debug_non_det(config, max_execs)
         elif (mode == "benchmark"):     benchmark(config)
         elif (mode == "gdb"):           gdb_session(config, qemu_verbose=True)
