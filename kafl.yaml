@@ -1,0 +1,22 @@
+# kAFL configuration
+#
+# All configuration options can be set by config file or argument, for example
+# the argument -t or --timeout corresponds to a config entry 'timeout'
+#
+# Options are read (and overridden) in following order:
+# 1. Hardcoded defaults in config.py argparser setup
+# 2. Python package default config
+# 3. Global or user-specific configs in common search paths,
+#    e.g. $XDG_CONFIG_DIR or ~/.config/kafl/config.yaml
+# 4. File kafl.yaml in current working directory
+# 5. Path + filename provided via KAFL_CONFIG environment variable
+# 6. command line arguments, including argparse @file option
+#
+# Options 4 and 5 support setting file/paths relative to config file location
+#
+# Copy this file to one of those search paths for customization.
+# Set KAFL_CONFIG_DEBUG to report any unrecognized config options.
+#
+qemu_path: ../qemu/x86_64-softmmu/qemu-system-x86_64
+ptdump_path: ../libxdc/build/ptdump_static
+radamsa_path: ../radamsa/bin/radamsa
