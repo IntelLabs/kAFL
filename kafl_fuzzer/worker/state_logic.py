@@ -47,7 +47,7 @@ class FuzzingStateLogic:
         self.attention_execs_start = None
 
     def __str__(self):
-        return "Worker-%s " % self.worker.pid
+        return str(self.worker)
 
     def create_limiter_map(self, payload):
         limiter_map = bytearray([1 for _ in range(len(payload))])
@@ -211,8 +211,8 @@ class FuzzingStateLogic:
         self.initial_time += time.time() - time_initial_start
         if new_payload == payload:
             return None
-        #logger.debug("before trim:\t\t{}".format(repr(payload)), self.worker.pid)
-        #logger.debug("after trim:\t\t{}".format(repr(new_payload)), self.worker.pid)
+        #logger.debug("before trim:\t\t{}".format(repr(payload)), self)
+        #logger.debug("after trim:\t\t{}".format(repr(new_payload)), self)
         return new_payload
 
     def handle_grimoire_inference(self, payload, metadata):
@@ -234,8 +234,8 @@ class FuzzingStateLogic:
         grimoire_info["generalized_input"] = generalized_input
 
         self.grimoire_inference_time = time.time() - start_time
-        logger.debug("%s Grimoire generalization took {} seconds".format(self, self.grimoire_inference_time))
-        logger.debug("%s Number of unique generalized inputs: {}".format(self, len(list(self.grimoire.generalized_inputs.keys()))))
+        logger.debug("%s Grimoire generalization took %d seconds" % (self, self.grimoire_inference_time))
+        logger.debug("%s Number of unique generalized inputs: %d" % (self, len(list(self.grimoire.generalized_inputs.keys()))))
         return grimoire_info
 
     def __perform_grimoire(self, payload, metadata):
@@ -493,7 +493,7 @@ class FuzzingStateLogic:
                     if not addr in seen_addr_to_value:
                         seen_addr_to_value[addr] = set()
                     seen_addr_to_value[addr].add(repl)
-                    logger.debug("RQ-Dict: attempting %s " % repr(repl))
+                    logger.debug("%s RQ-Dict: attempting %s " % (self, repr(repl)))
                     for apply_dict in [havoc.dict_insert_sequence, havoc.dict_replace_sequence]:
                         for i in range(len(payload_array)-len(repl)):
                             counter += 1
@@ -549,7 +549,7 @@ class FuzzingStateLogic:
 
 
     def __perform_coloring(self, payload_array):
-        # logger.debug("%s Redqueen: Initial colorize..." % self)
+        logger.debug("%s Redqueen: Initial colorize..." % self)
         orig_hash = self.__get_bitmap_hash_robust(payload_array)
         if orig_hash is None:
             return None
