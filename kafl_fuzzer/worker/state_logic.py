@@ -200,7 +200,7 @@ class FuzzingStateLogic:
             return None
 
         if metadata['info']['starved']:
-            return trim.perform_extend(payload, metadata, self.execute, self.worker.payload_size_limit)
+            return trim.perform_extend(payload, metadata, self.execute, self.worker.payload_limit)
 
         new_payload = trim.perform_trim(payload, metadata, self.execute)
 

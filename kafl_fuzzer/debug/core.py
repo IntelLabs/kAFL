@@ -120,9 +120,9 @@ def execute_once(config, qemu_verbose=False, notifiers=True):
 
     payload = read_binary_file(payload_file)
 
-    payload_size_limit = config.payload_size - 8 # 5 ???
-    if len(payload) > payload_size_limit:
-        payload = payload[:payload_size_limit]
+    payload_limit = q.get_payload_limit()
+    if len(payload) > payload_limit:
+        payload = payload[:payload_limit]
 
     q.set_payload(payload)
     #q.send_payload() ## XXX first run has different trace?!
@@ -155,10 +155,10 @@ def debug_execution(config, execs, qemu_verbose=False, notifiers=True):
     assert q.start(), "Failed to start Qemu?"
 
     payload = read_binary_file(payload_file)
-    payload_size_limit = config.payload_size - 8
+    payload_limit = q.get_payload_limit()
 
-    if len(payload) > payload_size_limit:
-        payload = payload[:payload_size_limit]
+    if len(payload) > payload_limit:
+        payload = payload[:payload_limit]
 
     start = time.time()
     for i in range(execs):
@@ -207,10 +207,10 @@ def debug_non_det(config, max_execs=0):
         trace_dir  = config.work_dir + "/noise/"
         os.makedirs(trace_dir, exist_ok=True)
 
-    payload_size_limit = config.payload_size - 8
+    payload_limit = q.get_payload_limit()
 
-    if len(payload) > payload_size_limit:
-        payload = payload[:payload_size_limit]
+    if len(payload) > payload_limit:
+        payload = payload[:payload_limit]
 
     hash_value = None
     first_hash = None
