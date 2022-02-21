@@ -71,13 +71,8 @@ class qemu:
         self.cmd = self.config.qemu_path
 
         # TODO: list append should work better than string concatenation, especially for str.replace() and later popen()
-        self.cmd += " -enable-kvm" \
-                    " -serial file:" + self.serial_logfile + \
-                    " -m " + str(config.memory) + \
-                    " -net none" \
-                    " -display none" \
-                    " -chardev socket,server,nowait,path=" + self.control_filename + \
-                    ",id=nyx_socket" \
+        self.cmd += " " + self.config.qemu_base
+        self.cmd += " -chardev socket,server,nowait,id=nyx_socket,path=" + self.control_filename + \
                     " -device nyx,chardev=nyx_socket" + \
                     ",workdir=" + work_dir + \
                     ",worker_id=%d" % self.pid + \
@@ -93,13 +88,6 @@ class qemu:
         if self.config.sharedir:
             self.cmd += ",sharedir=" + self.config.sharedir
 
-        if not notifiers:
-            self.cmd += ",crash_notifier=False"
-
-        # qemu snapshots only work in VM mode (disk+ram image)
-        #if self.config.kernel or self.config.bios:
-        #    self.cmd += ",disable_snapshot=True"
-
         for i in range(4):
             key = "ip" + str(i)
             if getattr(config, key, None):
@@ -107,54 +95,52 @@ class qemu:
                 range_b = hex(getattr(config, key)[1]).replace("L", "")
                 self.cmd += ",ip" + str(i) + "_a=" + range_a + ",ip" + str(i) + "_b=" + range_b
 
-        if self.debug_mode:
-            #self.cmd += " -d kafl -D " + self.qemu_trace_log
+        self.cmd = [_f for _f in self.cmd.split(" ") if _f]
+
+        self.cmd.extend(["-serial", "file:" + self.serial_logfile])
+        self.cmd.extend(["-m", str(config.qemu_memory)])
+
+        if self.debug_mode and self.config.log:
+            #self.cmd.extend("-trace", "events=/tmp/events"])
+            #self.cmd.extend("-d", "kafl", "-D", "self.qemu_trace_log"])
             pass
 
-        self.cmd += " -no-reboot"
-
         if self.config.gdbserver:
-            #self.cmd += " -trace events=/tmp/events"
-            self.cmd += " -s -S"
+            self.cmd.extend(["-s", "-S"])
 
         # Lauch either as VM snapshot, direct kernel/initrd boot, or -bios boot
-        if self.config.vm_image:
-            self.cmd += " -drive file=" + self.config.vm_image
-        elif self.config.kernel:
-            self.cmd += " -kernel " + self.config.kernel
-            if self.config.initrd:
-                self.cmd += " -initrd " + self.config.initrd + " -append BOOTPARAM "
-        elif self.config.bios:
-            self.cmd += " -bios " + self.config.bios
+        if self.config.qemu_image:
+            self.cmd.extend(["-drive", "file=" + self.config.qemu_image])
+        elif self.config.qemu_kernel:
+            self.cmd.extend(["-kernel", self.config.qemu_kernel])
+            if self.config.qemu_initrd:
+                self.cmd.extend(["-initrd" + self.config.qemu_initrd])
+        elif self.config.qemu_bios:
+            self.cmd.extend(["-bios", self.config.qemu_bios])
         else:
-            assert(False), "Must supply either -bios or -kernel or -vm_image option"
+            assert(False), "Must supply either -bios or -kernel or -qemu_image option"
 
-        #self.cmd += " -machine q35 " ## cannot do fast_snapshot
-        self.cmd += " -machine kAFL64-v1"
-        self.cmd += " -cpu kAFL64-Hypervisor-v1,+vmx"
-        #self.cmd += " -cpu kvm64-v1" #,+vmx
+        # Fast VM snapshot configuration
+        self.cmd.append("-fast_vm_reload")
+        snapshot_path = work_dir + "/snapshot/",
 
         if pid == 0 or pid == 1337 and not resume:
-            if self.config.vm_snapshot:
-                self.cmd += " -fast_vm_reload path=%s,load=off,pre_path=%s " % (
-                        work_dir + "/snapshot/",
-                        self.config.vm_snapshot)
+            # boot and create snapshot
+            if self.config.qemu_snapshot:
+                self.cmd.append("path=%s,load=off,pre_path=%s" % (snapshot_path, self.config.qemu_snapshot))
             else:
-                self.cmd += " -fast_vm_reload path=%s,load=off " % (
-                        work_dir + "/snapshot/")
+                self.cmd.append("path=%s,load=off" % snapshot_path)
         else:
-            # TDX: all VMs perform regular boot & race for snapshot lock
-            self.cmd += " -fast_vm_reload path=%s,load=off " % (
-                         work_dir + "/snapshot/")
+            # boot and wait for snapshot creation (or load from existing file)
+            self.cmd.append("path=%s,load=on" % (snapshot_path))
 
-        # split cmd into list of arguments for Popen(), replace BOOTPARAM as single element
-        self.cmd = [_f for _f in self.cmd.split(" ") if _f]
-        c = 0
-        for i in self.cmd:
-            if i == "BOOTPARAM":
-                self.cmd[c] = "nokaslr oops=panic nopti mitigations=off console=ttyS0"
-                break
-            c += 1
+        # Qemu -append option
+        if self.config.qemu_append:
+            self.cmd.extend(["-append", str(self.config.qemu_append)])
+
+        # Qemu extra options
+        if self.config.qemu_extra:
+            self.cmd.extend(self.config.qemu_extra.split(" "))
 
         # delayed Qemu startup - launching too many at once seems to cause random crashes
         if pid != 1337:
@@ -308,7 +294,7 @@ class qemu:
         logger.debug("%s Handshake done." % self)
 
         # for -R = {0,1}, set reload_mode here just once
-        if self.config.persistent_runs == 1:
+        if self.config.reload == 1:
             self.qemu_aux_buffer.set_reload_mode(True)
         else:
             self.qemu_aux_buffer.set_reload_mode(False)
@@ -409,11 +395,11 @@ class qemu:
             sys.exit(0)
 
         # for -R > 1, count and toggle reload_mode at runtime
-        if self.config.persistent_runs > 1:
+        if self.config.reload > 1:
             self.persistent_runs += 1
             if self.persistent_runs == 1:
                 self.qemu_aux_buffer.set_reload_mode(False)
-            if self.persistent_runs >= self.config.persistent_runs:
+            if self.persistent_runs >= self.config.reload:
                 self.qemu_aux_buffer.set_reload_mode(True)
                 self.persistent_runs = 0
 

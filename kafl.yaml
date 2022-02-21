@@ -1,7 +1,7 @@
 # kAFL configuration
 #
-# All configuration options can be set by config file or argument, for example
-# the argument -t or --timeout corresponds to a config entry 'timeout'
+# All configuration options can be set by config file or argument.
+# Names of config option mostly match the supported long form argument.
 #
 # Options are read (and overridden) in following order:
 # 1. Hardcoded defaults in config.py argparser setup
@@ -17,6 +17,12 @@
 # Copy this file to one of those search paths for customization.
 # Set KAFL_CONFIG_DEBUG to report any unrecognized config options.
 #
+# TODO: allow to generate a config file with all default options,
+#       help, and auto-resolved qemu/ptdump/radamsa search paths
+#
 qemu_path: ../qemu/x86_64-softmmu/qemu-system-x86_64
 ptdump_path: ../libxdc/build/ptdump_static
 radamsa_path: ../radamsa/bin/radamsa
+qemu_append: nokaslr oops=panic nopti mitigations=off console=ttyS0
+qemu_base: -enable-kvm -machine kAFL64-v1 -cpu kAFL64-Hypervisor-v1,+vmx -no-reboot -net none -display none
+qemu_extra:

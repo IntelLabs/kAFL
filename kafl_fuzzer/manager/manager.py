@@ -46,7 +46,7 @@ class ManagerTask:
         helper_init()
 
         redqueen_global_config(
-                redq_hammering = self.config.redqueen_jmp_tables,
+                redq_hammering = self.config.redqueen_hammer,
                 redq_do_simple = self.config.redqueen_simple,
                 afl_arith_max  = self.config.afl_arith_max,
                 )

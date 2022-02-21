@@ -99,7 +99,7 @@ def add_args_general(parser):
                         required=False, action='store_true', default=False)
     parser.add_argument('-l', '--log', help='enable logging to $workdir/debug.log',
                         action='store_true', default=False)
-    parser.add_argument('-d', '--debug', help='enable extra debug checks and max logging verbosity',
+    parser.add_argument('--debug', help='enable extra debug checks and max logging verbosity',
                         action='store_true', default=False)
 
 # kAFL/Fuzzer-specific options
@@ -133,9 +133,9 @@ def add_args_fuzzer(parser):
                         action='store_true', default=False)
     parser.add_argument('--redqueen', required=False, help='enable Redqueen trace & insertion stages',
                         action='store_true', default=False)
-    parser.add_argument('--redqueen-fix-hashes', required=False, help=hidden('enable Redqueen checksum fixer (broken)'),
+    parser.add_argument('--redqueen-hashes', required=False, help=hidden('enable Redqueen checksum fixer (broken)'),
                         action='store_true', default=False)
-    parser.add_argument('--redqueen-jmp-tables', required=False, help=hidden('enable Redqueen jump table hammering'),
+    parser.add_argument('--redqueen-hammer', required=False, help=hidden('enable Redqueen jump table hammering'),
                         action='store_true', default=False)
     parser.add_argument('--redqueen-simple', required=False, help=hidden('do not ignore simple matches in Redqueen'),
                         action='store_true', default=False)
@@ -145,9 +145,9 @@ def add_args_fuzzer(parser):
                         type=float, required=False, default=None)
     parser.add_argument('--abort-exec', metavar='<n>', help="exit after max <n> executions",
                         type=int, required=False, default=None)
-    parser.add_argument('-ts', '--timeout_soft', required=False, metavar='<n>', help="soft execution timeout (in seconds)",
+    parser.add_argument('-ts', '--t-soft', dest='timeout_soft', required=False, metavar='<n>', help="soft execution timeout (in seconds)",
                         type=float, default=1/1000)
-    parser.add_argument('-tc', '--timeout_check', required=False, help="validate timeouts against hard limit (slower)",
+    parser.add_argument('-tc', '--t-check', dest='timeout_check', required=False, help="validate timeouts against hard limit (slower)",
                         action='store_true', default=False)
     parser.add_argument('--kickstart', metavar='<n>', help="kickstart fuzzing with <n> byte random strings (default 256, 0 to disable)",
                         type=int, required=False, default=256)
@@ -158,37 +158,42 @@ def add_args_fuzzer(parser):
 # Qemu/Worker-specific launch options
 def add_args_qemu(parser):
 
-    # BIOS/VM/Kernel load modes are exclusive, but we need at least one of them
-    xorarg = parser.add_mutually_exclusive_group(required=True)
+    qemu_default_base = "-enable-kvm -machine kAFL64-v1 -cpu kAFL64-Hypervisor-v1,+vmx -no-reboot -net none -display none"
+    qemu_default_append = 'nokaslr oops=panic nopti mitigations=off console=ttyS0'
 
-    xorarg.add_argument('--vm-image', metavar='<qcow2>', required=False, action=FullPath, 
+    # BIOS/Image/Kernel load modes are partly exclusive, but we need at least one of them
+    parser.add_argument('--image', dest='qemu_image', metavar='<qcow2>', required=False, action=FullPath, 
                         type=parse_is_file, help='path to Qemu disk image.')
+    parser.add_argument('--snapshot', dest='qemu_snapshot', metavar='<dir>', required=False, action=FullPath,
+                        type=parse_is_dir, help='path to VM pre-snapshot directory.')
+    parser.add_argument('--bios', dest='qemu_bios', metavar='<file>', required=False, action=FullPath, type=parse_is_file,
+                        help='path to the BIOS image.')
+    parser.add_argument('--kernel', dest='qemu_kernel', metavar='<file>', required=False, action=FullPath,
+                        type=parse_is_file, help='path to the Kernel image.')
+    parser.add_argument('--initrd', dest='qemu_initrd', metavar='<file>', required=False, action=FullPath, type=parse_is_file,
+                        help='path to the initrd/initramfs file.')
+    parser.add_argument('--qemu-append', metavar='<str>', help='Qemu -append option value',
+                        type=str, required=False, default=qemu_default_append)
+
+    parser.add_argument('-m', '--memory', dest='qemu_memory', metavar='<n>', help='size of VM RAM in MB (default: 256).',
+                        default=256, type=int)
+    parser.add_argument('--qemu-base', metavar='<str>', help='base Qemu config (check defaults!)',
+                        type=str, required=True, default=qemu_default_base)
+    parser.add_argument('--qemu-extra', metavar='<str>', help='extra Qemu config (check defaults!)',
+                        type=str, required=False, default=None)
+
+    parser.add_argument('-ip0', required=False, default=None, metavar='<n-m>', type=parse_range_ip_filter,
+                        help='set IP trace filter range 0 (should be page-aligned)')
+    parser.add_argument('-ip1', required=False, default=None, metavar='<n-m>', type=parse_range_ip_filter,
+                        help='Set IP trace filter range 1 (should be page-aligned)')
+    parser.add_argument('-ip2', required=False, default=None, metavar='<n-m>', type=parse_range_ip_filter,
+                        help=hidden('Set IP trace filter range 2 (should be page-aligned)'))
+    parser.add_argument('-ip3', required=False, default=None, metavar='<n-m>', type=parse_range_ip_filter,
+                        help=hidden('Set IP trace filter range 3 (should be page-aligned)'))
+
     parser.add_argument('--sharedir', metavar='<dir>', required=False, action=FullPath,
                         type=parse_is_dir, help='path to the page buffer share directory.')
-    xorarg.add_argument('--vm-snapshot', metavar='<dir>', required=False, action=FullPath,
-                        type=parse_is_dir, help='path to VM pre-snapshot directory.')
-
-    xorarg.add_argument('--kernel', metavar='<file>', required=False, action=FullPath, type=parse_is_file,
-                        help='path to the Kernel image.')
-    parser.add_argument('--initrd', metavar='<file>', required=False, action=FullPath, type=parse_is_file,
-                        help='path to the initrd/initramfs file.')
-
-    xorarg.add_argument('--bios', metavar='<file>', required=False, action=FullPath, type=parse_is_file,
-                        help='path to the BIOS image.')
-
-    parser.add_argument('-m', '--memory', metavar='<n>', help='size of VM RAM in MB (default: 256).',
-                        default=256, type=int)
-
-    parser.add_argument('-ip0', required=False, default=None, metavar='<start-end>', type=parse_range_ip_filter,
-                        help='set IP trace filter range 0 (must be page-aligned!)')
-    parser.add_argument('-ip1', required=False, default=None, metavar='<start-end>', type=parse_range_ip_filter,
-                        help='Set IP trace filter range 1 (must be page-aligned!)')
-    parser.add_argument('-ip2', required=False, default=None, metavar='<start-end>', type=parse_range_ip_filter,
-                        help=hidden('Set IP trace filter range 2 (must be page-aligned!)'))
-    parser.add_argument('-ip3', required=False, default=None, metavar='<start-end>', type=parse_range_ip_filter,
-                        help=hidden('Set IP trace filter range 3 (must be page-aligned!)'))
-
-    parser.add_argument('-R', '--persistent-runs', metavar='<n>', help='max persistent runs between reload (1=disable, 0=infinite)',
+    parser.add_argument('-R', '--reload', metavar='<n>', help='snapshot-reload every N execs (default: 1)',
                         type=int, required=False, default=1)
     parser.add_argument('--gdbserver', required=False, help=hidden('enable Qemu gdbserver (use via kafl_debug.py!'),
                         action='store_true', default=False)
@@ -196,9 +201,8 @@ def add_args_qemu(parser):
                         action='store_true', default=False)
     parser.add_argument('--log-crashes', required=False, help="store hprintf logs only for crashes/timeouts",
                         action='store_true', default=False)
-    parser.add_argument('-t', '--timeout_hard', required=False, metavar='<n>', help="hard execution timeout (seconds)",
+    parser.add_argument('-t', '--t-hard', dest='timeout_hard', required=False, metavar='<n>', help="hard execution timeout (seconds)",
                         type=float, default=4)
-
     parser.add_argument('--payload-size', metavar='<n>', help=hidden("maximum payload size in bytes (minus headers)"),
                         type=int, required=False, default=131072)
     parser.add_argument('--bitmap-size', metavar='<n>', help="size of feedback bitmap (must be power of 2)",
@@ -266,16 +270,20 @@ class ConfigArgsParser():
             if action.dest in config_values:
                 if action.type == parse_is_file:
                     action.default = config[action.dest].as_filename()
+                else:
+                    action.default = config[action.dest].get()
                 action.required = False
                 config_values.pop(action.dest)
         
         # remove options not defined in argparse (set_defaults() imports everything)
         for option in config_values:
             if 'KAFL_CONFIG_DEBUG' in os.environ:
-                logger.warn("Unused config option '%s'." % option)
+                logger.warn("Dropping unrecognized option '%s'." % option)
             config_values.pop(option)
 
-        parser.set_defaults(**config_values)
+        # allow unrecognized options?
+        #parser.set_defaults(**config_values)
+
         args = parser.parse_args()
         #print("args: %s" % repr(args))
         return args
@@ -290,7 +298,7 @@ class ConfigArgsParser():
         fuzzer = parser.add_argument_group('Fuzzer options')
         add_args_fuzzer(fuzzer)
 
-        qemu = parser.add_argument_group('Qemu options')
+        qemu = parser.add_argument_group('Qemu/Nyx options')
         add_args_qemu(qemu)
 
         return self._parse_with_config(parser)
