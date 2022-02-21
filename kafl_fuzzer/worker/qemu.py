@@ -307,8 +307,11 @@ class qemu:
 
         logger.debug("%s Handshake done." % self)
 
-        if self.config.persistent_runs == 0:
+        # for -R = {0,1}, set reload_mode here just once
+        if self.config.persistent_runs == 1:
             self.qemu_aux_buffer.set_reload_mode(True)
+        else:
+            self.qemu_aux_buffer.set_reload_mode(False)
         self.qemu_aux_buffer.set_timeout(self.config.timeout_hard)
 
         return
@@ -405,9 +408,17 @@ class qemu:
         if self.exiting:
             sys.exit(0)
 
+        # for -R > 1, count and toggle reload_mode at runtime
+        if self.config.persistent_runs > 1:
+            self.persistent_runs += 1
+            if self.persistent_runs == 1:
+                self.qemu_aux_buffer.set_reload_mode(False)
+            if self.persistent_runs >= self.config.persistent_runs:
+                self.qemu_aux_buffer.set_reload_mode(True)
+                self.persistent_runs = 0
+
         result = None
         old_address = 0
-        self.persistent_runs += 1
         start_time = time.time()
 
         while True:

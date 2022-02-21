@@ -188,8 +188,8 @@ def add_args_qemu(parser):
     parser.add_argument('-ip3', required=False, default=None, metavar='<start-end>', type=parse_range_ip_filter,
                         help=hidden('Set IP trace filter range 3 (must be page-aligned!)'))
 
-    parser.add_argument('-R', '--persistent-runs', metavar='<n>', help='max persistent runs between reset (default: 0)',
-                        type=int, required=False, default=0)
+    parser.add_argument('-R', '--persistent-runs', metavar='<n>', help='max persistent runs between reload (1=disable, 0=infinite)',
+                        type=int, required=False, default=1)
     parser.add_argument('--gdbserver', required=False, help=hidden('enable Qemu gdbserver (use via kafl_debug.py!'),
                         action='store_true', default=False)
     parser.add_argument('--log-hprintf', required=False, help="redirect hprintf logging to workdir/hprintf_NN.log",
