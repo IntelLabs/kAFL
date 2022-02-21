@@ -51,7 +51,7 @@ def start(config):
 
     work_dir   = config.work_dir
     seed_dir   = config.seed_dir
-    num_worker = config.workers
+    num_worker = config.processes
 
     init_logger(config)
 

@@ -34,8 +34,8 @@ class qemu:
         self.debug_mode = debug_mode
         self.ijonmap_size = 0x1000 # quick fix - bitmaps are not processed!
         self.bitmap_size = config.bitmap_size
-        self.payload_size = config.payload_shm_size
-        self.payload_limit = config.payload_shm_size - 5
+        self.payload_size = config.payload_size
+        self.payload_limit = config.payload_size - 5
         self.config = config
         self.pid = pid
         self.alt_bitmap = bytearray(self.bitmap_size)
@@ -71,8 +71,9 @@ class qemu:
         # TODO: list append should work better than string concatenation, especially for str.replace() and later popen()
         self.cmd += " -enable-kvm" \
                     " -serial file:" + self.serial_logfile + \
-                    " -m " + str(config.mem) + \
+                    " -m " + str(config.memory) + \
                     " -net none" \
+                    " -display none" \
                     " -chardev socket,server,nowait,path=" + self.control_filename + \
                     ",id=nyx_socket" \
                     " -device nyx,chardev=nyx_socket" + \
@@ -113,15 +114,6 @@ class qemu:
         if self.config.gdbserver:
             #self.cmd += " -trace events=/tmp/events"
             self.cmd += " -s -S"
-
-        if self.config.X:
-            if pid == 0 or pid == 1337:
-                self.cmd += " -display %s" % self.config.X
-        else:
-            self.cmd += " -display none"
-
-        if self.config.extra:
-            self.cmd += " " + self.config.extra
 
         # Lauch either as VM snapshot, direct kernel/initrd boot, or -bios boot
         if self.config.vm_image:
@@ -313,7 +305,7 @@ class qemu:
 
         logger.debug("%s Handshake done." % self)
 
-        if not self.config.no_fast_reload:
+        if self.config.persistent_runs == 0:
             self.qemu_aux_buffer.set_reload_mode(True)
         self.qemu_aux_buffer.set_timeout(self.config.timeout_hard)
 

@@ -25,7 +25,7 @@ class ManagerStatistics:
         self.write_last = 0
         self.write_thres = 0.5
         self.quiet = config.quiet
-        self.num_workers = config.workers
+        self.num_workers = config.processes
         self.work_dir = config.work_dir
         self.data = {
                 "start_time": time.time(),

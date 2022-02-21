@@ -12,7 +12,7 @@ from kafl_fuzzer.common.logger import logger
 
 class InputQueue:
     def __init__(self, config, statistics):
-        self.num_workers = config.workers
+        self.num_workers = config.processes
         self.scheduler = Scheduler()
         self.id_to_node = {}
         self.current_cycle = []

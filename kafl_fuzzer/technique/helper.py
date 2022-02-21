@@ -19,7 +19,7 @@ from kafl_fuzzer.common.rand import rand
 from kafl_fuzzer.native import loader as native_loader
 
 
-# TODO Align with kafl.ini payload_shm_size and other instances of payload max size!
+# TODO Align with payload_size and other instances of payload max size!
 KAFL_MAX_FILE = 128 << 10
 
 # TODO: Align havoc stage parameters with AFL or better

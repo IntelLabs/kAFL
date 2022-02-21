@@ -46,9 +46,9 @@ class ManagerTask:
         helper_init()
 
         redqueen_global_config(
-                redq_hammering=self.config.hammer_jmp_tables,
-                redq_do_simple=self.config.redq_do_simple,
-                afl_arith_max=self.config.afl_arith_max,
+                redq_hammering = self.config.redqueen_jmp_tables,
+                redq_do_simple = self.config.redqueen_simple,
+                afl_arith_max  = self.config.afl_arith_max,
                 )
 
         logger.debug("Starting (pid: %d)" % os.getpid())
@@ -75,7 +75,7 @@ class ManagerTask:
         # If all Workers are waiting, check if we are getting any coverage..
         self.comm.send_busy(conn)
         self.busy_events +=1
-        if self.busy_events >= self.config.workers:
+        if self.busy_events >= self.config.processes:
             self.busy_events = 0
             main_bitmap = self.bitmap_storage.get_bitmap_for_node_type("regular").c_bitmap
             if mmh3.hash(main_bitmap) == self.empty_hash:

@@ -76,7 +76,7 @@ class WorkerTask:
         self.q = qemu(self.pid, config)
         self.statistics = WorkerStatistics(self.pid, config)
         self.logic = FuzzingStateLogic(self, config)
-        self.payload_size_limit = config.payload_shm_size - 5 # function of self.q?
+        self.payload_size_limit = config.payload_size - 5 # function of self.q?
         self.t_hard = config.timeout_hard
         self.t_soft = config.timeout_soft
         self.t_check = config.timeout_check

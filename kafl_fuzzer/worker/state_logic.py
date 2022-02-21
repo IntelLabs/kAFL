@@ -409,7 +409,7 @@ class FuzzingStateLogic:
                     effector_map[i + j] = 1
 
     def handle_deterministic(self, payload, metadata):
-        if self.config.afl_no_deterministic:
+        if self.config.afl_dumb_mode:
             return False, {}
 
         skip_zero = self.config.afl_skip_zero
