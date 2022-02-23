@@ -118,6 +118,10 @@ class qemu:
         if self.config.qemu_bios:
             self.cmd.extend(["-bios", self.config.qemu_bios])
 
+        # Qemu -append option
+        if self.config.qemu_append:
+            self.cmd.extend(["-append", str(self.config.qemu_append)])
+
         # Fast VM snapshot configuration
         self.cmd.append("-fast_vm_reload")
         snapshot_path = work_dir + "/snapshot/",
@@ -131,10 +135,6 @@ class qemu:
         else:
             # boot and wait for snapshot creation (or load from existing file)
             self.cmd.append("path=%s,load=on" % (snapshot_path))
-
-        # Qemu -append option
-        if self.config.qemu_append:
-            self.cmd.extend(["-append", str(self.config.qemu_append)])
 
         # Qemu extra options
         if self.config.qemu_extra:
