@@ -68,10 +68,8 @@ class qemu:
         self.starved = False
         self.exiting = False
 
-        self.cmd = self.config.qemu_path
-
         # TODO: list append should work better than string concatenation, especially for str.replace() and later popen()
-        self.cmd += " " + self.config.qemu_base
+        self.cmd = self.config.qemu_base
         self.cmd += " -chardev socket,server,nowait,id=nyx_socket,path=" + self.control_filename + \
                     " -device nyx,chardev=nyx_socket" + \
                     ",workdir=" + work_dir + \
@@ -235,25 +233,28 @@ class qemu:
 
         self.persistent_runs = 0
 
-        if self.pid == 0 or self.pid == 1337: ## 1337 is debug instance!
-            logger.info(("%s Launching virtual machine...CMD:\n" % self) + ' '.join(self.cmd))
+        if self.pid not in [0, 1337]:
+            final_cmdline = ""
         else:
-            logger.info("%s Launching virtual machine..." % self)
+            final_cmdline = "\n" + self.config.qemu_path
+            for arg in self.cmd:
+                if arg[0] == '-':
+                    final_cmdline += '\n\t' + arg
+                else:
+                    final_cmdline += ' ' + arg
+
+        logger.info("%s Launching virtual machine...%s" % (self, final_cmdline))
 
 
         # Launch Qemu. stderr to stdout, stdout is logged on VM exit
         # os.setpgrp() prevents signals from being propagated to Qemu, instead allowing an
         # organized shutdown via async_exit()
-        self.process = subprocess.Popen(self.cmd,
+        self.process = subprocess.Popen([self.config.qemu_path] + self.cmd,
                 preexec_fn=os.setpgrp,
                 stdin=subprocess.DEVNULL)
-                # TODO: shutdown() fails to capture libxdc fprintf() - why?
                 #stdin=subprocess.PIPE,
                 #stdout=subprocess.PIPE,
                 #stderr=subprocess.STDOUT)
-                #stdin=subprocess.DEVNULL,
-                #stdout=subprocess.DEVNULL,
-                #stderr=subprocess.DEVNULL)
 
         try:
             self.__qemu_connect()
