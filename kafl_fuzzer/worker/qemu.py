@@ -122,7 +122,7 @@ class qemu:
 
         # Qemu -append option
         if self.config.qemu_append:
-            self.cmd.extend(["-append", str(self.config.qemu_append)])
+            self.cmd.extend(["-append", self.config.qemu_append])
 
         # Fast VM snapshot configuration
         self.cmd.append("-fast_vm_reload")

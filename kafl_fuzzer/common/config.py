@@ -173,17 +173,19 @@ def add_args_qemu(parser):
                         type=parse_is_file, help='path to the Kernel image.')
     parser.add_argument('--initrd', dest='qemu_initrd', metavar='<file>', required=False, action=FullPath, type=parse_is_file,
                         help='path to the initrd/initramfs file.')
-    parser.add_argument('--qemu-append', metavar='<str>', help='Qemu -append option value',
+    parser.add_argument('--append', dest='qemu_append', metavar='<str>', help='Qemu -append option',
                         type=str, required=False, default=config_default_append)
-    parser.add_argument('--qemu-serial', metavar='<str>', help='Qemu serial emulation (redirected to file, see defaults)',
-                        type=str, required=False, default=config_default_serial)
-
     parser.add_argument('-m', '--memory', dest='qemu_memory', metavar='<n>', help='size of VM RAM in MB (default: 256).',
                         default=256, type=int)
+
     parser.add_argument('--qemu-base', metavar='<str>', help='base Qemu config (check defaults!)',
                         type=str, required=False, default=config_default_base)
+    parser.add_argument('--qemu-serial', metavar='<str>', help='Qemu serial emulation (redirected to file, see defaults)',
+                        type=str, required=False, default=config_default_serial)
     parser.add_argument('--qemu-extra', metavar='<str>', help='extra Qemu config (check defaults!)',
                         type=str, required=False, default=None)
+    parser.add_argument('--qemu-path', metavar='<file>', help=hidden('path to Qemu-Nyx executable'),
+                        type=parse_is_file, required=True, default=None)
 
     parser.add_argument('-ip0', required=False, default=None, metavar='<n-m>', type=parse_range_ip_filter,
                         help='set IP trace filter range 0 (should be page-aligned)')
@@ -210,8 +212,6 @@ def add_args_qemu(parser):
                         type=int, required=False, default=131072)
     parser.add_argument('--bitmap-size', metavar='<n>', help="size of feedback bitmap (must be power of 2)",
                         type=int, required=False, default=65536)
-    parser.add_argument('--qemu-path', metavar='<file>', help=hidden('path to Qemu-Nyx executable'),
-                        type=parse_is_file, required=True, default=None)
 
 # kafl_debug launch options
 def add_args_debug(parser):
@@ -265,7 +265,8 @@ class ConfigArgsParser():
 
         # merge all configs into a flat dictionary, delimiter = ':'
         config_values = FlatDict(config.flatten())
-        #print("Options picked up from config: %s" % str(config_values))
+        if 'KAFL_CONFIG_DEBUG' in os.environ:
+            print("Options picked up from config: %s" % str(config_values))
 
         # adopt defaults into parser, fixup 'required' and file/path fields
         for action in parser._actions:
@@ -273,6 +274,9 @@ class ConfigArgsParser():
             if action.dest in config_values:
                 if action.type == parse_is_file:
                     action.default = config[action.dest].as_filename()
+                elif isinstance(action, argparse._AppendAction):
+                    assert("append are not supported in in yaml config")
+                    #action.default = [config[action.dest].as_str()]
                 else:
                     action.default = config[action.dest].get()
                 action.required = False
@@ -288,7 +292,9 @@ class ConfigArgsParser():
         #parser.set_defaults(**config_values)
 
         args = parser.parse_args()
-        #print("args: %s" % repr(args))
+
+        if 'KAFL_CONFIG_DEBUG' in os.environ:
+            print("Final parsed args: %s" % repr(args))
         return args
 
     def parse_fuzz_options(self):
