@@ -111,14 +111,12 @@ class qemu:
         # Lauch either as VM snapshot, direct kernel/initrd boot, or -bios boot
         if self.config.qemu_image:
             self.cmd.extend(["-drive", "file=" + self.config.qemu_image])
-        elif self.config.qemu_kernel:
+        if self.config.qemu_kernel:
             self.cmd.extend(["-kernel", self.config.qemu_kernel])
             if self.config.qemu_initrd:
-                self.cmd.extend(["-initrd" + self.config.qemu_initrd])
-        elif self.config.qemu_bios:
+                self.cmd.extend(["-initrd", self.config.qemu_initrd])
+        if self.config.qemu_bios:
             self.cmd.extend(["-bios", self.config.qemu_bios])
-        else:
-            assert(False), "Must supply either -bios or -kernel or -qemu_image option"
 
         # Fast VM snapshot configuration
         self.cmd.append("-fast_vm_reload")
