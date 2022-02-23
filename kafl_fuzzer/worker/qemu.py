@@ -95,7 +95,11 @@ class qemu:
 
         self.cmd = [_f for _f in self.cmd.split(" ") if _f]
 
-        self.cmd.extend(["-serial", "file:" + self.serial_logfile])
+        if self.config.qemu_serial:
+            # config.qemu_serial should just contain the device(s) to emulate, with id=kafl_serial
+            self.cmd.extend(self.config.qemu_serial.split(" "))
+            self.cmd.extend(["-chardev", "file,id=kafl_serial,mux=on,path=" + self.serial_logfile])
+
         self.cmd.extend(["-m", str(config.qemu_memory)])
 
         if self.debug_mode and self.config.log:

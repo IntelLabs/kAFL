@@ -158,8 +158,9 @@ def add_args_fuzzer(parser):
 # Qemu/Worker-specific launch options
 def add_args_qemu(parser):
 
-    qemu_default_base = "-enable-kvm -machine kAFL64-v1 -cpu kAFL64-Hypervisor-v1,+vmx -no-reboot -net none -display none"
-    qemu_default_append = 'nokaslr oops=panic nopti mitigations=off console=ttyS0'
+    config_default_base   = '-enable-kvm -machine kAFL64-v1 -cpu kAFL64-Hypervisor-v1,+vmx -no-reboot -net none -display none'
+    config_default_serial = '-device isa-serial,chardev=kafl_serial'
+    config_default_append = 'nokaslr oops=panic nopti mitigations=off console=ttyS0'
 
     # BIOS/Image/Kernel load modes are partly exclusive, but we need at least one of them
     parser.add_argument('--image', dest='qemu_image', metavar='<qcow2>', required=False, action=FullPath, 
@@ -173,12 +174,14 @@ def add_args_qemu(parser):
     parser.add_argument('--initrd', dest='qemu_initrd', metavar='<file>', required=False, action=FullPath, type=parse_is_file,
                         help='path to the initrd/initramfs file.')
     parser.add_argument('--qemu-append', metavar='<str>', help='Qemu -append option value',
-                        type=str, required=False, default=qemu_default_append)
+                        type=str, required=False, default=config_default_append)
+    parser.add_argument('--qemu-serial', metavar='<str>', help='Qemu serial emulation (redirected to file, see defaults)',
+                        type=str, required=False, default=config_default_serial)
 
     parser.add_argument('-m', '--memory', dest='qemu_memory', metavar='<n>', help='size of VM RAM in MB (default: 256).',
                         default=256, type=int)
     parser.add_argument('--qemu-base', metavar='<str>', help='base Qemu config (check defaults!)',
-                        type=str, required=True, default=qemu_default_base)
+                        type=str, required=False, default=config_default_base)
     parser.add_argument('--qemu-extra', metavar='<str>', help='extra Qemu config (check defaults!)',
                         type=str, required=False, default=None)
 
