@@ -111,11 +111,6 @@ def add_args_fuzzer(parser):
     parser.add_argument('--funky', required=False, help='perform extra validation and store funky inputs.',
                         action='store_true', default=False)
 
-    parser.add_argument('--trace', required=False, help='store binary PT traces of new inputs (fast).',
-                        action='store_true', default=False)
-    parser.add_argument("--trace_cb", required=False, help='store decoded PT traces of new inputs (slow).',
-                        action='store_true', default=False)
-
     parser.add_argument('-D', '--afl-dumb-mode', required=False, help='skip deterministic stage (dumb mode)',
                         action='store_true', default=False)
     parser.add_argument('--afl-no-effector', required=False, help=hidden('disable effector maps during deterministic stage'),
@@ -212,6 +207,11 @@ def add_args_qemu(parser):
                         type=int, required=False, default=131072)
     parser.add_argument('--bitmap-size', metavar='<n>', help="size of feedback bitmap (must be power of 2)",
                         type=int, required=False, default=65536)
+    parser.add_argument('--trace', required=False, help='store binary PT traces of new inputs (fast).',
+                        action='store_true', default=False)
+    parser.add_argument("--trace-cb", required=False, help='store decoded PT traces of new inputs (slow).',
+                        action='store_true', default=False)
+
 
 # kafl_debug launch options
 def add_args_debug(parser):
@@ -233,8 +233,6 @@ def add_args_debug(parser):
                         help='path to input file or workdir.')
     parser.add_argument('-n', '--iterations', metavar='<n>', help='execute <n> times (for some actions)',
                         default=5, type=int)
-    parser.add_argument('--trace', required=False, help='capture full PT traces (for some actions)',
-                        action='store_true', default=False)
     parser.add_argument('--action', required=False, metavar='<cmd>', choices=debug_modes,
                         help=debug_modes_help)
     parser.add_argument('--ptdump-path', metavar='<file>', help=hidden('path to ptdump executable'),
