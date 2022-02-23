@@ -6,9 +6,10 @@
 import ctypes
 import mmh3
 
-from kafl_fuzzer.manager.bitmap import GlobalBitmap
+from kafl_fuzzer.native import loader as native_loader
 
 class ExecutionResult:
+    bitmap_native_so = None
 
     @staticmethod
     def bitmap_from_bytearray(bitmap, exitreason, performance):
@@ -22,6 +23,9 @@ class ExecutionResult:
         return "%016x" % mmh3.hash64(bytes(bitmap_size), seed=0xaaaaaaaa, x64arch=True, signed=False)[0]
 
     def __init__(self, cbuffer, bitmap_size, exit_reason, performance):
+        if not ExecutionResult.bitmap_native_so:
+            ExecutionResult.bitmap_native_so = ctypes.CDLL(native_loader.bitmap_path())
+
         self.bitmap_size = bitmap_size
         self.cbuffer = cbuffer
         self.lut_applied = False  # By default we assume that the bucket lut has not yet been applied
@@ -62,5 +66,6 @@ class ExecutionResult:
 
     def apply_lut(self):
         if not self.lut_applied:
-            GlobalBitmap.apply_lut(self)
+            ExecutionResult.bitmap_native_so.apply_bucket_lut(self.cbuffer, ctypes.c_uint64(self.bitmap_size))
+            self.lut_applied = True
         return self

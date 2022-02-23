@@ -30,11 +30,15 @@ def test_build():
         if p.wait() != 0:
             logger.error("Build failed, please check..")
             return False
+
+    bitmap_paths = glob.glob(native_path + "/bitmap*so")
+    assert len(bitmap_paths) > 0, "Failed to resolve native bitmap.so library."
     return True
 
 def bitmap_path():
     native_path = os.path.dirname(inspect.getfile(native_pkg))
     bitmap_paths = glob.glob(native_path + "/bitmap*so")
+    assert len(bitmap_paths) > 0, "Failed to resolve native bitmap.so library."
     return bitmap_paths[0]
 
 #bitmap_native_so = None

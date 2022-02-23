@@ -16,14 +16,14 @@ import os
 from kafl_fuzzer.native import loader as native_loader
 
 class GlobalBitmap:
-    bitmap_native_so = ctypes.CDLL(native_loader.bitmap_path())
-    bitmap_native_so.are_new_bits_present_no_apply_lut.restype = ctypes.c_uint64
-    bitmap_native_so.are_new_bits_present_do_apply_lut.restype = ctypes.c_uint64
-    bitmap_size = None
+    bitmap_native_so = None
 
     def __init__(self, name, config, bitmap_size, read_only=True):
-        assert (not GlobalBitmap.bitmap_size or GlobalBitmap.bitmap_size == bitmap_size)
-        GlobalBitmap.bitmap_size = bitmap_size
+        if not GlobalBitmap.bitmap_native_so:
+            GlobalBitmap.bitmap_native_so = ctypes.CDLL(native_loader.bitmap_path())
+            GlobalBitmap.bitmap_native_so.are_new_bits_present_no_apply_lut.restype = ctypes.c_uint64
+            GlobalBitmap.bitmap_native_so.are_new_bits_present_do_apply_lut.restype = ctypes.c_uint64
+
         self.name = name
         self.config = config
         self.bitmap_size = bitmap_size
@@ -78,13 +78,6 @@ class GlobalBitmap:
             assert (len(new_bits) == bit_count)
 
         return new_bytes, new_bits
-
-    @staticmethod
-    def apply_lut(exec_result):
-        assert not exec_result.is_lut_applied()
-        c_new_bitmap = exec_result.cbuffer
-        GlobalBitmap.bitmap_native_so.apply_bucket_lut(c_new_bitmap, ctypes.c_uint64(exec_result.bitmap_size))
-        exec_result.lut_applied = True
 
     @staticmethod
     def all_new_bits_still_set(old_bits, new_bitmap):

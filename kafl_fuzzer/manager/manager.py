@@ -29,6 +29,7 @@ from kafl_fuzzer.manager.node import QueueNode
 from kafl_fuzzer.technique.redqueen.cmp import redqueen_global_config
 from kafl_fuzzer.worker.execution_result import ExecutionResult
 
+from kafl_fuzzer.technique.helper import helper_init
 
 class ManagerTask:
 
@@ -45,6 +46,8 @@ class ManagerTask:
         self.queue = InputQueue(self.config, self.statistics)
         self.bitmap_storage = BitmapStorage(config, config.config_values['BITMAP_SHM_SIZE'], "main", read_only=False)
         self.num_workers = self.config.argument_values['p']
+
+        helper_init()
 
         redqueen_global_config(
                 redq_hammering=self.config.argument_values['hammer_jmp_tables'],

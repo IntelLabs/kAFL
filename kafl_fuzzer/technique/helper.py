@@ -108,13 +108,15 @@ def swap_16(value):
 def swap_32(value):
     return struct.unpack("<I", struct.pack(">I", value))[0]
 
-
 bitmap_native_so = None
-if not bitmap_native_so:
-    bitmap_native_so = ctypes.CDLL(native_loader.bitmap_path())
-    bitmap_native_so.could_be_bitflip.restype = c_uint8
-    bitmap_native_so.could_be_arith.restype = c_uint8
-    bitmap_native_so.could_be_interest.restype = c_uint8
+
+def helper_init():
+    global bitmap_native_so
+    if not bitmap_native_so:
+        bitmap_native_so = ctypes.CDLL(native_loader.bitmap_path())
+        bitmap_native_so.could_be_bitflip.restype = c_uint8
+        bitmap_native_so.could_be_arith.restype = c_uint8
+        bitmap_native_so.could_be_interest.restype = c_uint8
 
 def is_not_bitflip(value):
     return 0 == bitmap_native_so.could_be_bitflip(c_uint32(value))
