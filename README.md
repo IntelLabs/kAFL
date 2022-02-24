@@ -38,7 +38,7 @@ $ mkdir -p ~/work; cd ~/work
 $ pipenv install west        # create a new venv and add west
 $ pipenv shell               # enter venv for further install
 
-# initialize west workspace using the desired kAFL repo + branch (i.e. _this_ repo + branch!)
+# initialize west workspace using the desired kAFL repo + branch (i.e. *this* repo!)
 $ west init --mr $this_branch -m $this_url
 
 $ west update -k     # update all repos in manifest
@@ -47,7 +47,7 @@ $ west list          # show all repos in manifest
 
 See [working with west](README.md#working-with-west) for how to work on the checked out repos.
 
-1. kAFL includes an `install.sh` helper to automate installation and building of
+2. kAFL includes an `install.sh` helper to automate setup and building of
    dependencies. These should work on any recent (2020/21) Ubuntu or Debian:
 
 ```
@@ -58,11 +58,11 @@ $ ./install.sh qemu     # download, patch and build Qemu
 $ ./install.sh radamsa  # download, patch and build radamsa plugin
 ```
 
-It is safe to re-execute any of these commands on errors,
-for example if some dependencies could not be downloaded.
-For other problems, review the individual steps inside this script.
+It is safe to re-execute any of these commands on errors, for example
+if some dependencies could not be downloaded or to re-build qemu after
+local changes. For other problems, review the detailed steps inside this script.
 
-1. (Optional) Also install kAFL itself into the Python venv so that you can
+3. (Optional) Install kAFL into the Python venv so that you can
    easily launch it from your target/project folders:
 
 ```
@@ -71,7 +71,7 @@ $ pipenv shell      # enter python venv
 $ pip install -e .  # editable installation
 ```
 
-1. kAFL requires a modified KVM-Nyx host kernel for efficient PT tracing and
+4. kAFL requires a modified KVM-Nyx host kernel for efficient PT tracing and
    snapshots. The below steps build and install a custom kernel package based on
    your current/existing kernel config:
 
@@ -82,7 +82,7 @@ $ sudo dpkg -i linux-image*kafl+_*deb
 $ sudo reboot
 ```
 
-1. On reboot, make sure the new kernel is booted and KVM-NYX confirms that PT is
+5. On reboot, make sure the new kernel is booted and KVM-NYX confirms that PT is
    supported on this CPU:
 
 ```
@@ -90,7 +90,7 @@ $ dmesg|grep KVM
  [KVM-NYX] Info:   CPU is supported!
 ```
 
-1. (Optional) Lauch `kafl_fuzz.py` to verify all python dependencies are met.
+6. (Optional) Lauch `kafl_fuzz.py` to verify all python dependencies are met.
    You should be able to see a help message with all the config options:
 
 ```
@@ -132,26 +132,26 @@ Example directory structure:
 
 ```
 /path/to/workdir/
-`- corpus/        - corpus of inputs, sorted by execution result
-`- metadata/      - metadata associated with each input
-`- stats          - overall fuzzer status
-`- worker_stats_N - individual status of Worker <N>
-`- serial_N.log   - serial logs for Worker <N>
-`- hprintf_N.log  - guest agent logging (--log-hprintf)
-`- debug.log      - debug logging (max verbosity: --log --debug)
+ - imports/       - staging folder for supplying new seeds at runtime
+ - corpus/        - corpus of inputs, sorted by execution result
+ - metadata/      - metadata associated with each input
+ - stats          - overall fuzzer status
+ - worker_stats_N - individual status of Worker <N>
+ - serial_N.log   - serial logs for Worker <N>
+ - hprintf_N.log  - guest agent logging (--log-hprintf)
+ - debug.log      - debug logging (max verbosity: --log --debug)
 
-`- traces/        - output of raw and decoded trace data (kafl_fuzz.py -trace, kafl_cov.py)
-`- imports/       - staging folder for supplying new seeds at runtime
-`- dump/          - staging folder to data uploads from guest to host
+ - traces/        - output of raw and decoded trace data (kafl_fuzz.py -trace, kafl_cov.py)
+ - dump/          - staging folder to data uploads from guest to host
 
-`- page_cache.*   - guest page cache data
-`- snapshot/      - guest snapshot data
-`- bitmaps/       - fuzzer bitmaps
- ...
+ - page_cache.*   - guest page cache data
+ - snapshot/      - guest snapshot data
+ - bitmaps/       - fuzzer bitmaps
+  [various shared memory and socket files]
 ```
 
-The stats and metadata files are in `msgpack` format. Use the included `mcat.py`
-to dump their content. A more interesting interface can be launched like this:
+The fuzzer stats and metadata files are in `msgpack` format. Use the included `mcat.py`
+to dump their content. A more interactive interface can be launched like this:
 
 ```
 $ python3 ~/work/kafl/kafl_gui.py $workdir
@@ -165,26 +165,29 @@ $ python3 ~/work/kafl/kafl_plot.py $workdir ~/graph.dot
 $ xdot ~/graph.dot
 ```
 
-kAFL also records some basic stats to plot progress over time:
+kAFL also records basic status in stats.csv to plot performance over time:
 
 ```
 $ gnuplot -c ~/work/kafl/scripts/stats.plot $workdir/stats.csv
 ```
 
+## Coverage and Debug
+
 To obtain detailed coverage data, you need to collect PT traces and decode them.
-Collecting binary PT traces is reasonably efficient during fuzzer runtime, using
+Collecting binary PT traces is reasonably efficient during fuzzer runtime, by using
 `kafl_fuzz.py --trace`. Given an existing workdir with corpus, `kafl_cov.py` tool
-will optionally re-run the corpus to collect PT traces and decode them to a list
-of edges. This file can be further processed with analysis tools like Ghidra.
-An example is provided for the Zephyr target:
+will optionally re-run the corpus to collect missing PT traces and then decode
+them to the list of seen edge transitions. This file can be further processed
+with tools like Ghidra. Example for Zephyr:
 
 ```
 $ ./targets/zephyr_x86_32/run.sh cov /dev/shm/kafl_zephyr/
 $ ls /dev/shm/kafl_zephyr/traces/
+$ ./kafl/scripts/ghidra_run.sh /dev/shm/kafl $path/to/zephyr.elf kafl/scripts/ghidra_cov_analysis.py
 ```
 
-Finally, `kafl_debug.py` contains a few more execution options such as debugging
-a single payload execution with GDB attached to Qemu.
+Finally, `kafl_debug.py` contains a few more execution options such as launching Qemu with a single
+payload and gdbserver enabled, or tracing the same payload many times to analyze non-deterministic behavior.
 
 
 ## Working with West
