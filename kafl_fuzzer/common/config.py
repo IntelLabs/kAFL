@@ -85,7 +85,7 @@ def hidden(msg, unmask=False):
 def add_args_general(parser):
     parser.add_argument('-h', '--help', action='help',
                         help='show this help message and exit')
-    parser.add_argument('-w', '--work-dir', metavar='<dir>', action=FullPath, type=parse_is_dir,
+    parser.add_argument('-w', '--work-dir', metavar='<dir>', action=FullPath, type=str,
                         required=True, help='path to the output/working directory.')
     parser.add_argument('--purge', required=False, help='purge the working directory at startup.',
                         action='store_true', default=False)
