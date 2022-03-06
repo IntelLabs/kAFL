@@ -255,11 +255,11 @@ class ConfigArgsParser():
         # local / workdir config
         workdir_config = os.path.join(os.getcwd(), 'kafl.yaml')
         if os.path.exists(workdir_config):
-            config.set_file(workdir_config, base_for_paths=True)
+            config.set_file(workdir_config)
 
         # ENV based config
-        if 'KAFL_CONFIG' in os.environ:
-            config.set_file(os.environ['KAFL_CONFIG'], base_for_paths=True)
+        if 'KAFL_CONFIG_FILE' in os.environ:
+            config.set_file(os.environ['KAFL_CONFIG_FILE'])
 
         # merge all configs into a flat dictionary, delimiter = ':'
         config_values = FlatDict(config.flatten())
@@ -271,7 +271,7 @@ class ConfigArgsParser():
             #print("action: %s" % repr(action))
             if action.dest in config_values:
                 if action.type == parse_is_file:
-                    action.default = config[action.dest].as_filename()
+                    action.default = config[action.dest].as_str_expanded()
                 elif isinstance(action, argparse._AppendAction):
                     assert("append are not supported in in yaml config")
                     #action.default = [config[action.dest].as_str()]
