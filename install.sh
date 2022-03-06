@@ -57,35 +57,19 @@ system_deps()
 	sudo apt-get build-dep qemu-system-x86 -y
 
 	echo "[*] Installing kAFL python dependencies ..."
-	pip3 install -r requirements.txt
+	pip3 install -r $KAFL_ROOT/requirements.txt
 }
 
 find_repos()
 {
-	if west topdir > /dev/null 2>&1; then
-
-		# avoid warnings when not using zephyr
-		west list zephyr > /dev/null 2>&1 || west config zephyr.base not-using-zephyr
-
-		LINUX_ROOT=$(west path kvm)
-		QEMU_ROOT=$(west path qemu)
-		LIBXDC_ROOT=$(west path libxdc)
-		CAPSTONE_ROOT=$(west path capstone)
-		RADAMSA_ROOT=$(west path radamsa)
-	else
-		echo "[!] Warning - could not detect West environment - continue at your own risk!"
-		read
-		KAFL_ROOT=$(dirname $(realpath $0))
-		LINUX_ROOT=$KAFL_ROOT/KVM
-		QEMU_ROOT=$KAFL_ROOT/QEMU
-		LIBXDC_ROOT=$QEMU_ROOT/libxdc
-		CAPSTONE_ROOT=$QEMU_ROOT/capstone_v4
-		RADAMSA_ROOT=$KAFL_ROOT/radamsa
-	fi
+	return
 }
 
 set_env()
 {
+	test -d $CAPSTONE_ROOT || fatal "Could not find CAPSTONE_ROOT. Missing env setup?"
+	test -d $LIBXDC_ROOT || fatal "Could not find LIBXDC_ROOT. Missing env setup?"
+
 	## setup environment for non-global capstone/libxdc builds
 	C_INCLUDE_PATH=$CAPSTONE_ROOT/include:$LIBXDC_ROOT
 	LIBRARY_PATH=$CAPSTONE_ROOT:$LIBXDC_ROOT/
@@ -258,6 +242,8 @@ print_help()
 jobs=$(nproc)
 [ "$1" = "-j" ] && [ -n $2 ] && [ $2 -gt 0 ] && jobs=$2 && shift 2
 #echo "Detected $(nproc) cores, building with -j $jobs..."
+
+test -d $KAFL_ROOT || fatal "Could not find KAFL_ROOT. Missing env setup?"
 
 case $1 in
 	"check")
