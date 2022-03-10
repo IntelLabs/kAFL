@@ -172,6 +172,7 @@ build_linux()
 		#make localmodconfig
 		./scripts/config --set-str CONFIG_LOCALVERSION "-kafl" --set-val CONFIG_KVM_NYX y
 		./scripts/config --set-str CONFIG_SYSTEM_TRUSTED_KEYS ""
+		./scripts/config --set-val CONFIG_SYSTEM_REVOCATION_LIST n
 		#make -j $jobs
 		make -j $jobs bindeb-pkg
 	popd
