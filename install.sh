@@ -60,11 +60,6 @@ system_deps()
 	pip3 install -r $KAFL_ROOT/requirements.txt
 }
 
-find_repos()
-{
-	return
-}
-
 set_env()
 {
 	test -d $CAPSTONE_ROOT || fatal "Could not find CAPSTONE_ROOT. Missing env setup?"
@@ -258,23 +253,19 @@ case $1 in
 		system_perms
 		;;
 	"radamsa")
-		find_repos
 		build_radamsa
 		;;
 	"qemu")
-		find_repos
 		build_capstone
 		build_libxdc
 		build_qemu
 		;;
 	"linux")
-		find_repos
 		build_linux
 		;;
 	"all")
 		system_check
 		system_deps
-		find_repos
 		build_capstone
 		build_libxdc
 		build_qemu
