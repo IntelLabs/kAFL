@@ -27,76 +27,73 @@ For details on Redqueen, Grimoire, IJON, Nyx, please visit [nyx-fuzz.com](https:
 
 ## Getting Started
 
-1. We use [west](https://docs.zephyrproject.org/latest/guides/west/) to keep
-   a handle on repositories, and [pipenv](https://pypi.org/project/pipenv/) to
-   manage Python dependencies. Simply create a new directory and initialize it as
-   your west workspace and Python venv as follows:
+### 1. Create a Workspace
 
-```
-$ pip3 install pipenv
-$ mkdir -p ~/work; cd ~/work
-$ pipenv install west        # create a new venv and add west
-$ pipenv shell               # enter venv for further install
+We use [west](https://docs.zephyrproject.org/latest/guides/west/) to keep
+a handle on repositories, and [pipenv](https://pypi.org/project/pipenv/) to
+manage Python dependencies. Simply clone the top-level repository to a new
+folder and initialize it as your kAFL workspace:
 
-# initialize west workspace using the desired kAFL repo + branch (i.e. *this* repo!)
-$ west init --mr $this_branch -m $this_url
-
-$ west update -k     # update all repos in manifest
-$ west list          # show all repos in manifest
+```shell
+git clone $this_repo ~/kafl; cd ~/kafl
+make env       # create and activate environment
+west update -k # download required sub-components
 ```
 
-See [working with west](README.md#working-with-west) for how to work on the checked out repos.
+West downloads several more components based on `manifest/west.yml`.
+See [working with west](README.md#working-with-west) for how to work on the
+checked out repos.
 
-2. kAFL includes an `install.sh` helper to automate setup and building of
-   dependencies. These should work on any recent (2020/21) Ubuntu or Debian:
+### 2. Build and Install
 
-```
-$ cd ~/work/kafl
-$ ./install.sh deps     # check platform and install dependencies
-$ ./install.sh perms    # allow current user to control KVM (/dev/kvm)
-$ ./install.sh qemu     # download, patch and build Qemu
-$ ./install.sh radamsa  # download, patch and build radamsa plugin
-```
+On supported Ubuntu or Debian distribution, the included `install.sh` script can
+be used to build all userspace components. Note that this script uses `sudo`
+to deploy any system dependencies with `apt-get`. It will also ensure that the
+current user has access to `/dev/kvm` by optionally creating a new group and
+adding the user to it.
 
-It is safe to re-execute any of these commands on errors, for example
-if some dependencies could not be downloaded or to re-build qemu after
-local changes. For other problems, review the detailed steps inside this script.
+The `make install` recipe automates all the steps and also deploys the kAFL
+python package to your Python environment:
 
-3. (Optional) Install kAFL into the Python venv so that you can
-   easily launch it from your target/project folders:
-
-```
-$ cd ~/work/kafl
-$ pipenv shell      # enter python venv
-$ pip install -e .  # editable installation
+```shell
+cd ~/kafl
+make env
+make install
 ```
 
-4. kAFL requires a modified KVM-Nyx host kernel for efficient PT tracing and
-   snapshots. The below steps build and install a custom kernel package based on
-   your current/existing kernel config:
+In case of errors or unsupported distributions, please review the indivudal
+steps in `install.sh`.
 
-```
-$ west update kvm
-$ ./install.sh linux    # download, patch and build Linux
-$ sudo dpkg -i linux-image*kafl+_*deb
-$ sudo reboot
-```
+### 3. Host kAFL Kernel
 
-5. On reboot, make sure the new kernel is booted and KVM-NYX confirms that PT is
-   supported on this CPU:
+kAFL uses the modified `KVM-Nyx` host kernel for efficient PT tracing and
+snapshots. The below steps build and install a custom kernel package based on
+your current/existing kernel config:
 
-```
-$ dmesg|grep KVM
- [KVM-NYX] Info:   CPU is supported!
+```shell
+west update kvm
+./install.sh linux
+sudo dpkg -i linux-image*kafl+_*deb
+sudo reboot
 ```
 
-6. (Optional) Lauch `kafl_fuzz.py` to verify all python dependencies are met.
-   You should be able to see a help message with all the config options:
+After reboot, make sure the new kernel is booted and KVM-NYX confirms that PT is
+supported on this CPU:
 
+```shell
+dmesg|grep KVM
+> [KVM-NYX] Info:   CPU is supported!
 ```
-$ cd ~/work; pipenv shell                # activate venv
-$ python3 ~/work/kafl/kafl_fuzz.py -h    # not installed version
-$ kafl_fuzz.py -h                        # not installed version
+
+### 4. (Optional) Lauch `kafl_fuzz.py`
+
+After activating the workspace with `make env`, the kAFL entry points and
+scripts will be made available in your PATH. Launch the fuzzer without options
+to verify the basic system setup. You should see a help message with various
+possible configuration options:
+
+```shell
+kafl_fuzz.py --help
 ```
 
 I case of errors, you may have to hunt down some python dependencies that did
