@@ -1,0 +1,77 @@
+# Copyright (C) Intel Corporation, 2022
+# SPDX-License-Identifier: MIT
+#
+# West manifest for multi-repo management
+# See also: https://docs.zephyrproject.org/latest/guides/west/manifest.html
+
+manifest:
+
+  remotes:
+    - name: github
+      url-base: https://github.com
+    - name: gitlab
+      url-base: https://gitlab.com
+
+  # put workspace repo at the top - this only works with `west init -l`
+  self:
+    path: .
+    import: manifest/imports/
+
+  projects:
+
+    - name: kafl
+      remote: github
+      repo-path: IntelLabs/kAFL
+      revision: master
+      groups:
+        - kafl_fuzzer
+
+    - name: examples
+      remote: github
+      repo-path: IntelLabs/kafl.targets
+      revision: master
+      path: examples
+      groups:
+        - examples
+
+    - name: host_kernel
+      remote: github
+      repo-path: nyx-fuzz/KVM-Nyx
+      revision: kvm-nyx-5.10.73
+      path: kafl/nyx/kvm
+      groups:
+        - host_kernel
+
+    - name: qemu
+      repo-path: IntelLabs/kafl.qemu
+      remote: github
+      revision: kafl_stable
+      path: kafl/nyx/qemu
+      groups:
+        - qemu
+
+    - name: libxdc
+      remote: github
+      repo-path: IntelLabs/kafl.libxdc
+      revision: kafl_stable
+      path: kafl/nyx/libxdc
+      groups:
+        - qemu
+
+    - name: capstone
+      remote: github
+      repo-path: aquynh/capstone
+      revision: v4
+      path: kafl/nyx/capstone
+      groups:
+        - qemu
+
+    - name: radamsa
+      remote: gitlab
+      repo-path: akihe/radamsa
+      revision: develop
+      path: kafl/radamsa
+      groups:
+        - radamsa
+
+  group-filter: [-host_kernel, -examples]
