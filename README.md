@@ -66,8 +66,16 @@ steps in `kafl/install.sh`.
 ### 3. Host kAFL Kernel
 
 kAFL uses the modified `KVM-Nyx` host kernel for efficient PT tracing and
-snapshots. The below steps download, build and install a custom kernel package
-based on your current kernel config:
+snapshots. For Debian-based distribution, you can use a
+[prebuild release](https://github.com/IntelLabs/kafl.linux/releases)
+of the _KVM-Nyx_ host kernel (not SDV!).
+
+```
+sudo dpkg -i linux-image-5.10.73-kafl*_amd64.deb
+```
+
+Alternatively, the below steps download, build and install a custom kernel
+package based on your current kernel config in `/boot/config-$(uname -r)`:
 
 ```shell
 west update host_kernel    # (not active by default)
