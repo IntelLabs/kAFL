@@ -1,9 +1,0 @@
-west-commands:
-  - file: scripts/west_commands.py
-    commands:
-      - name: env
-        class: EnvCmd
-        help: helper to source west repo setup from shells
-      - name: path
-        class: PathCmd
-        help: helper to get a project's path
