@@ -4,6 +4,8 @@ echo "================================================="
 echo "           kAFL auto-magic installer             "
 echo "================================================="
 
+set -e
+
 system_check()
 {
 	echo
@@ -152,18 +154,18 @@ build_qemu()
 build_linux()
 {
 
-	if [ ! -d "$LINUX_ROOT" ]; then
-		echo "[!] Could not find LINUX_ROOT - failed to build Linux."
+	if [ ! -d "$HOST_KERNEL" ]; then
+		echo "[!] Could not find kernel - please check \$HOST_KERNEL setting."
 		return
 	fi
 
 	echo
-	echo "[*] Building Linux at $LINUX_ROOT..."
+	echo "[*] Building Linux at $HOST_KERNEL..."
 	echo "-------------------------------------------------"
-	pushd $LINUX_ROOT > /dev/null
+	pushd $HOST_KERNEL > /dev/null
 		# use current/system config as base, but limit modules to actual used..
 		cp /boot/config-$(uname -r) .config
-		yes ""|make oldconfig
+		yes ""|make olddefconfig
 		#make localmodconfig
 		./scripts/config --set-str CONFIG_LOCALVERSION "-kafl" --set-val CONFIG_KVM_NYX y
 		./scripts/config --set-str CONFIG_SYSTEM_TRUSTED_KEYS ""
@@ -222,7 +224,7 @@ print_help()
 	echo " check   - check for basic requirements"
 	echo " deps    - install dependencies"
 	echo " qemu    - download and build modified qemu"
-	echo " linux   - download and build modified linux kernel"
+	echo " kvm     - download and build modified linux kernel"
 	echo " perms   - create kvm group and add user <$USER> for /dev/kvm access"
 	echo " radamsa - download and build radamsa plugin"
 	echo
@@ -260,7 +262,7 @@ case $1 in
 		build_libxdc
 		build_qemu
 		;;
-	"linux")
+	"kvm")
 		build_linux
 		;;
 	"all")
