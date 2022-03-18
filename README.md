@@ -29,51 +29,50 @@ For details on Redqueen, Grimoire, IJON, Nyx, please visit [nyx-fuzz.com](https:
 
 ### 1. Create a Workspace
 
-We use [west](https://docs.zephyrproject.org/latest/guides/west/) to keep
-a handle on repositories, and [pipenv](https://pypi.org/project/pipenv/) to
-manage Python dependencies. Simply clone the top-level repository to a new
-folder and initialize it as your kAFL workspace:
+To get started, checkout the `workspace` branch and initialize as a new
+project workspace:
 
 ```shell
-git clone $this_repo ~/kafl; cd ~/kafl
+git clone --single-branch -b workspace git@github.com:IntelLabs/kAFL.git ~/work
+cd ~/work
 make env       # create and activate environment
-west update -k # download required sub-components
 ```
 
-West downloads several more components based on `manifest/west.yml`.
-See [working with west](README.md#working-with-west) for how to work on the
-checked out repos.
+This uses [pipenv](https://pypi.org/project/pipenv/) to create a Python
+environment and deploys [west](https://docs.zephyrproject.org/latest/guides/west/) for managing
+sub-repositories (See also: [working with west](README.md#working-with-west).
+kAFL will be downloaded as first sub-project to `~/work/kafl`.
+
+You can exit the environment with `exit` and re-activate at any time using `make env`.
 
 ### 2. Build and Install
 
-On supported Ubuntu or Debian distribution, the included `install.sh` script can
+On supported Ubuntu or Debian distribution, the included `kafl/install.sh` script can
 be used to build all userspace components. Note that this script uses `sudo`
 to deploy any system dependencies with `apt-get`. It will also ensure that the
 current user has access to `/dev/kvm` by optionally creating a new group and
 adding the user to it.
 
-The `make install` recipe automates all the steps and also deploys the kAFL
-python package to your Python environment:
+The workspace `make install` recipe automates all the steps and also deploys the
+kAFL python package to the active environment:
 
 ```shell
-cd ~/kafl
-make env
 make install
 ```
 
 In case of errors or unsupported distributions, please review the indivudal
-steps in `install.sh`.
+steps in `kafl/install.sh`.
 
 ### 3. Host kAFL Kernel
 
 kAFL uses the modified `KVM-Nyx` host kernel for efficient PT tracing and
-snapshots. The below steps build and install a custom kernel package based on
-your current/existing kernel config:
+snapshots. The below steps download, build and install a custom kernel package
+based on your current kernel config:
 
 ```shell
-west update kvm
-./install.sh linux
-sudo dpkg -i linux-image*kafl+_*deb
+west update host_kernel    # (not active by default)
+./kafl/install.sh kvm      # uses your current config from /boot
+sudo dpkg -i kafl/nyx/linux-image*kafl+_*deb
 sudo reboot
 ```
 
@@ -102,19 +101,25 @@ distribution and ensure that a correct path to the Qemu-Nyx binary is provided
 in your local [kafl.yaml](kafl.yaml).
 
 
-## Available Sample Targets
+## Available Example Targets
 
-Once the above setup is done, you should try one of the available known-working
-examples. The following examples are suitable as out-of-the-box test cases:
+Download the optional examples project for getting started with kAFL:
+
+```
+make env
+west update -k examples
+```
+
+The following examples are suitable as out-of-the-box test cases:
 
 - Zephyr hello world. Follow the steps in
   [Zephyr/README](https://github.com/IntelLabs/kafl.targets/tree/master/zephyr_x86_32)
 
-- Other (outdated) examples can be found in the [kafl.targets/ subproject](https://github.com/IntelLabs/kafl.targets/tree/master/):
+__TODO:__ other examples need to be updated again - any help appreciated
 
   - UEFI / EDK2
-  - Linux kernel and userspace targets
-  - Windows + OSX targets
+  - Linux kernel and userspace
+  - Windows + OSX
 
 
 ## Understanding Fuzzer Status
@@ -151,14 +156,14 @@ The fuzzer stats and metadata files are in `msgpack` format. Use the included `m
 to dump their content. A more interactive interface can be launched like this:
 
 ```
-$ python3 ~/work/kafl/kafl_gui.py $workdir
+$ kafl_gui.py $workdir
 ```
 
 Or use the `plot` tool to see how the corpus is evolving over time:
 
 ```
-$ python3 ~/work/kafl/kafl_plot.py $workdir
-$ python3 ~/work/kafl/kafl_plot.py $workdir ~/graph.dot
+$ kafl_plot.py $workdir
+$ kafl_plot.py $workdir ~/graph.dot
 $ xdot ~/graph.dot
 ```
 
@@ -175,10 +180,10 @@ Collecting binary PT traces is reasonably efficient during fuzzer runtime, by us
 `kafl_fuzz.py --trace`. Given an existing workdir with corpus, `kafl_cov.py` tool
 will optionally re-run the corpus to collect missing PT traces and then decode
 them to the list of seen edge transitions. This file can be further processed
-with tools like Ghidra. Example for Zephyr:
+with tools like Ghidra. For instance, for the Zephyr example:
 
 ```
-$ ./targets/zephyr_x86_32/run.sh cov /dev/shm/kafl_zephyr/
+$ ./examples/zephyr_x86_32/run.sh cov /dev/shm/kafl_zephyr/
 $ ls /dev/shm/kafl_zephyr/traces/
 $ ./kafl/scripts/ghidra_run.sh /dev/shm/kafl $path/to/zephyr.elf kafl/scripts/ghidra_cov_analysis.py
 ```
@@ -189,23 +194,32 @@ payload and gdbserver enabled, or tracing the same payload many times to analyze
 
 ## Working with West
 
-Check `west.yml` for customizing repository locations and revisions. Check [west
-basics](https://docs.zephyrproject.org/latest/guides/west/basics.html) to learn
-more. To work on one of the checked out repos, fetch the upstream git refs and
-create a custom branch. To work with your own fork, change the manifest URL or
-just add your fork as a remote:
+West aims to provide a [more flexible
+alternative](https://docs.zephyrproject.org/latest/guides/west/why.html) to repo
+management. It stays mostly out of your way as long as you avoid the `import`
+feature.
+
+To work on one of the checked out repos, fetch the upstream git refs and switch
+to a custom branch. To work with your own fork, change the manifest URL or just add
+your fork as a remote:
 
 ```
-cd ~/work/targets
-git remote -v        # show remotes
-git fetch github     # fetch refs
-git switch -c myfork # create + switch to own branch
-git remote add myrepo https://foobar.com/myrepo.git # add own repo as git remote
-git push -u myrepo myfork # push your branch
+cd ~/work/examples
+git remote -v                    # show defined remotes, e.g. 'github'
+git fetch github                 # fetch refs from 'github' remote
+git switch -c mybranch           # create + switch to own branch
+git remote add myrepo <repo_url> # add own repo as git remote
+git push -u myrepo mybranch      # push own branch to own repo
 ```
 
-When running `west update -k`, west will keep your branches intact or print
-a message on how to restore them.
+When running `west update -k`, west will keep your branches and changes intact,
+or print a message on how to restore them. If you do not restore changes or
+commit them to a branch/fork, local modifications will eventually be lost(!).
+See [west basics](https://docs.zephyrproject.org/latest/guides/west/basics.html) to learn more. 
+
+Check out the [west
+manifest](https://docs.zephyrproject.org/latest/guides/west/manifest.html)
+(`manifest/west.yml`) to define your own repositories and revisions.
 
 
 ## Further Reading (need updating!)
