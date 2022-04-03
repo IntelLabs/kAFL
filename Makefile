@@ -36,10 +36,10 @@ install:
 ifneq ($(PIPENV_ACTIVE), 1)
 	@echo "Error: Need to run inside pipenv. Abort."
 else
-	make -C $(KAFL_ROOT) install
 	./kafl/install.sh check
 	./kafl/install.sh deps
 	./kafl/install.sh perms
 	./kafl/install.sh qemu
 	./kafl/install.sh radamsa
+	make -C $(KAFL_ROOT) install
 endif
