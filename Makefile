@@ -3,6 +3,8 @@
 #
 # Makefile recipies for managing kAFL workspace
 
+export PIPENV_VENV_IN_PROJECT := 1
+
 all: env update install
 .PHONY: clean tags
 
@@ -13,21 +15,20 @@ else
 	pipenv shell
 endif
 
-.env: .west .pipenv manifest/create_env.sh
+.env: .west .venv manifest/create_env.sh
 	@# do not write .env on script failure
 	pipenv run bash ./manifest/create_env.sh > .env.out
 	mv .env.out .env
 
-.west: | .pipenv
+.west: | .venv
 	pipenv run west init -l manifest
 	@# minimum install for manifest import!
 	pipenv run west update kafl
 
-.pipenv:
+.venv:
 	sudo apt install python3-pip
 	pip install -U pipenv
 	pipenv install west
-	@touch .pipenv
 
 update:
 	west update -k
