@@ -16,8 +16,7 @@ system_check()
 		exit 1
 	fi
 
-	grep -q ^flags.*intel_pt /proc/cpuinfo
-	if [ $? -ne 0 ]; then
+	if ! grep -q ^flags.*intel_pt /proc/cpuinfo; then
 		echo "According to /proc/cpuinfo this system has no intel_pt."
 		exit 1
 	fi
@@ -195,8 +194,7 @@ system_perms()
 	echo
 	echo "[*] Fix permissions for user access to /dev/kvm..."
 	echo
-	sudo groupmod kvm
-	if [ $? -ne 0 ]; then
+	if ! sudo groupmod kvm; then
 		echo "Creating group kvm for user $USER to access /dev/kvm.."
 
 		echo "KERNEL==\"kvm\", GROUP=\"kvm\"" | sudo -Eu root tee /etc/udev/rules.d/40-permissions.rules > /dev/null
@@ -204,8 +202,7 @@ system_perms()
 		sudo usermod -a -G kvm $USER
 		sudo root service udev restart
 	else
-		id|grep -q '(kvm)'
-		if [ $? -eq 0 ]; then
+		if id|grep -q '(kvm)'; then
 			echo "KVM already seems to be setup for user $USER, skipping.."
 		else
 			echo "Group KVM already exists, adding this user $USER.."
