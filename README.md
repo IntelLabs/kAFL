@@ -45,7 +45,7 @@ kAFL will be downloaded as first sub-project to `~/work/kafl`.
 
 You can exit the environment with `exit` and re-activate at any time using `make env`.
 
-### 2. Build and Install
+### 2. Fetch and Build Components
 
 On supported Ubuntu or Debian distribution, the included `kafl/install.sh` script can
 be used to build all userspace components. Note that this script uses `sudo`
@@ -53,15 +53,13 @@ to deploy any system dependencies with `apt-get`. It will also ensure that the
 current user has access to `/dev/kvm` by optionally creating a new group and
 adding the user to it.
 
-The workspace `make install` recipe automates all the steps and also deploys the
-kAFL python package to the active environment:
-
 ```shell
-make install
+make update   # pull or update sub-components
+make install  # build or rebuild components
 ```
 
 In case of errors or unsupported distributions, please review the indivudal
-steps in `kafl/install.sh`.
+steps in `Makefile` and `kafl/install.sh`.
 
 ### 3. Host kAFL Kernel
 
