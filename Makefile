@@ -28,7 +28,7 @@ endif
 .venv:
 	sudo apt install python3-pip
 	pip install -U pipenv
-	pipenv install west
+	pipenv install
 
 update:
 	west update -k
