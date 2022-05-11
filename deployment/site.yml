@@ -36,3 +36,8 @@
       args:
         chdir: "{{ repo_root }}"
         creates: .env
+
+    - name: Checking for intel_pt support in cpuinfo
+      shell: grep intel_pt /proc/cpuinfo
+      register: res
+      failed_when: res.rc != 0
