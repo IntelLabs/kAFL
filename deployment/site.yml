@@ -37,6 +37,11 @@
         chdir: "{{ repo_root }}"
         creates: .env
 
+    - name: West update
+      command: west update -k
+      args:
+        chdir: "{{ repo_root }}"
+
     - name: Checking for intel_pt support in cpuinfo
       shell: grep intel_pt /proc/cpuinfo
       register: res
