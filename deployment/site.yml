@@ -1,6 +1,7 @@
 - hosts: all
   vars:
     repo_root: "{{ playbook_dir }}/.."
+    kafl_root: "{{ repo_root }}/kafl"
   environment:
     PIPENV_VENV_IN_PROJECT: 1
     # ignore current ansible venv and force Pipenv to create it's own
@@ -54,3 +55,6 @@
       with_items:
         - sudo
         - dpkg
+
+  roles:
+    - capstone

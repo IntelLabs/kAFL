@@ -1,0 +1,5 @@
+- name: Build capstone
+  make:
+    chdir: "{{ capstone_root }}"
+    params:
+      NUM_THREADS: "{{ ansible_processor_nproc }}"
