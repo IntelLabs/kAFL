@@ -30,4 +30,9 @@
     - name: Update kafl
       command:
         cmd: pipenv run west update kafl
+
+    - name: Creates env
+      shell: pipenv run bash manifest/create_env.sh > .env
+      args:
         chdir: "{{ repo_root }}"
+        creates: .env
