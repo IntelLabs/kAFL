@@ -16,20 +16,19 @@
         name: pipenv==2022.5.2
 
     - name: Install west via Pipenv
-      command:
-        cmd: pipenv install
+      command: pipenv install
+      args:
         chdir: "{{ repo_root }}"
 
     - name: Init manifest
-      command:
-        cmd: pipenv run west init -l manifest
+      command: pipenv run west init -l manifest
+      args:
         chdir: "{{ repo_root }}"
         creates: "{{ repo_root }}/.west"
 
     # minimum install for manifest import!
     - name: Update kafl
-      command:
-        cmd: pipenv run west update kafl
+      command: pipenv run west update kafl
 
     - name: Creates env
       shell: pipenv run bash manifest/create_env.sh > .env
