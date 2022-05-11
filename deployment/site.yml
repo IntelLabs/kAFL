@@ -1,4 +1,33 @@
 - hosts: all
-  tasks:
-    - name: ping
-      ping:
+  vars:
+    repo_root: "{{ playbook_dir }}/.."
+  environment:
+    PIPENV_VENV_IN_PROJECT: 1
+    # ignore current ansible venv and force Pipenv to create it's own
+    PIPENV_IGNORE_VIRTUALENVS: 1
+  pre_tasks:
+    - name: Ensure python3-pip is available
+      package:
+        name: python3-pip
+        state: present
+
+    - name: Install Pipenv
+      pip:
+        name: pipenv==2022.5.2
+
+    - name: Install west via Pipenv
+      command:
+        cmd: pipenv install
+        chdir: "{{ repo_root }}"
+
+    - name: Init manifest
+      command:
+        cmd: pipenv run west init -l manifest
+        chdir: "{{ repo_root }}"
+        creates: "{{ repo_root }}/.west"
+
+    # minimum install for manifest import!
+    - name: Update kafl
+      command:
+        cmd: pipenv run west update kafl
+        chdir: "{{ repo_root }}"
