@@ -1,0 +1,5 @@
+- name: Build radamsa
+  make:
+    chdir: "{{ radamsa_root }}"
+    params:
+      NUM_THREADS: "{{ ansible_processor_nproc }}"

@@ -1,0 +1,1 @@
+radamsa_root: "{{ kafl_root }}/radamsa"
