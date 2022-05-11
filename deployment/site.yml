@@ -41,3 +41,12 @@
       shell: grep intel_pt /proc/cpuinfo
       register: res
       failed_when: res.rc != 0
+
+    - name: Ensure minimal deps are available
+      package:
+        name: "{{ item }}"
+        state: present
+      become: yes
+      with_items:
+        - sudo
+        - dpkg
