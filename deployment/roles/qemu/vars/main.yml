@@ -1,4 +1,1 @@
 qemu_root: "{{ kafl_root }}/nyx/qemu"
-# TODO: duplicated vars
-libxdc_root: "{{ kafl_root }}/nyx/libxdc"
-capstone_root: "{{ kafl_root }}/nyx/capstone"
