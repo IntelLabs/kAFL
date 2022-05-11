@@ -1,0 +1,9 @@
+- name: Build libxdc
+  make:
+    chdir: "{{ libxdc_root }}"
+    params:
+      NUM_THREADS: "{{ ansible_processor_nproc }}"
+  environment:
+    C_INCLUDE_PATH: "{{ capstone_root }}/include:{{ libxdc_root }}"
+    LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
+    LD_LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
