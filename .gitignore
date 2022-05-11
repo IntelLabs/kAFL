@@ -7,3 +7,10 @@ manifest
 kafl
 examples
 zephyrproject
+
+# IDE
+.vscode/
+
+# Python venvs
+venv/
+.venv/
