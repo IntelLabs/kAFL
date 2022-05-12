@@ -1,3 +1,17 @@
+- name: Install build dependencies
+  apt:
+    name: qemu-system-x86
+    state: build-dep
+  become: yes
+
+- name: Install build dependencies for virtfs
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - libcap-dev
+    - libattr1-dev
+
 - name: Configure QEMU
   command:
     argv:
