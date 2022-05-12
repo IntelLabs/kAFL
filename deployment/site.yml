@@ -9,6 +9,11 @@
     # ignore current ansible venv and force Pipenv to create it's own
     PIPENV_IGNORE_VIRTUALENVS: 1
   pre_tasks:
+    - name: Checking for intel_pt support in cpuinfo
+      shell: grep intel_pt /proc/cpuinfo
+      register: res
+      failed_when: res.rc != 0
+
     - name: Ensure python3-pip is available
       package:
         name: python3-pip
@@ -43,11 +48,6 @@
       command: west update -k
       args:
         chdir: "{{ repo_root }}"
-
-    - name: Checking for intel_pt support in cpuinfo
-      shell: grep intel_pt /proc/cpuinfo
-      register: res
-      failed_when: res.rc != 0
 
     - name: Ensure minimal deps are available
       package:
