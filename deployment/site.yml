@@ -63,3 +63,10 @@
     - libxdc
     - qemu
     - radamsa
+
+  post_tasks:
+    - name: Ensure current user is in kvm group
+      user:
+        name: "{{ ansible_user_id }}"
+        groups: kvm
+        append: yes
