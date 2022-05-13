@@ -20,5 +20,6 @@ jobs:
 
       - name: Test userspace deployment
         run: |
+          apt update && apt install -y make python3-venv
           make venv
           venv/bin/ansible-playbook -i 'localhost,' -c local site.yml --extra-vars 'ignore_intel_pt_check=yes'
