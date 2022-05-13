@@ -33,3 +33,8 @@
         name: "{{ ansible_user_id }}"
         groups: kvm
         append: yes
+
+    - name: Create .env file
+      template:
+        src: env.j2
+        dest: "{{ install_root }}/.env"
