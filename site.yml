@@ -20,6 +20,7 @@
       with_items:
         - sudo
         - dpkg
+        - git
 
   roles:
     - kafl
