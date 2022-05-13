@@ -30,18 +30,10 @@ For details on Redqueen, Grimoire, IJON, Nyx, please visit [nyx-fuzz.com](https:
 - `python3`
 - `python3-venv`
 
-## Setup
-
-~~~
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-~~~
-
 ## Deploy
 
 ~~~
-(venv) $ ansible-playbook -i 'localhost,' -c local site.yml
+make deploy
 ~~~
 
 
