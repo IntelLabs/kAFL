@@ -21,6 +21,7 @@
         - sudo
         - dpkg
         - git
+        - build-essential
 
   roles:
     - kafl
