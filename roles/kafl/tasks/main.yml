@@ -3,6 +3,12 @@
     path: "{{ install_root | dirname }}"
     state: directory
 
+- name: Ensure virtualenv command is available (Ansible pip module requirement)
+  package:
+    name: virtualenv
+    state: present
+  become: yes
+
 - name: Clone repo
   git:
     repo: "{{ repo.kafl.url }}"
