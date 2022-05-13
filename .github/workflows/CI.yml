@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - workspace
+  pull_request:
+    branches:
+      - workspace
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Test userspace deployment
+        run: make deploy
