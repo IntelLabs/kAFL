@@ -1,3 +1,10 @@
+- name: Add deb-src URL
+  apt_repository:
+    repo: "deb-src http://archive.canonical.com/ubuntu {{ ansible_distribution_release }} main"
+    state: present
+    filename: kafl-qemu-src
+  become: yes
+
 - name: Install build dependencies
   apt:
     name: qemu-system-x86
