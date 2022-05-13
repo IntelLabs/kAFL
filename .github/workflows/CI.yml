@@ -16,4 +16,6 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Test userspace deployment
-        run: make deploy
+        run: |
+          make venv
+          venv/bin/ansible-playbook -i 'localhost,' -c local site.yml --extra-vars 'ignore_intel_pt_check=yes'
