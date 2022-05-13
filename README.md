@@ -25,69 +25,25 @@ kAFL now leverages the greatly extended and improved [Nyx backend](https://nyx-f
 
 For details on Redqueen, Grimoire, IJON, Nyx, please visit [nyx-fuzz.com](https://nyx-fuzz.com).
 
-## Getting Started
+## Requirements
 
-### 1. Create the environment
+- `python3`
+- `python3-venv`
 
-To get started, clone the repository and initialize the project with `make env`:
+## Setup
 
-```shell
-git clone https://github.com/IntelLabs/kAFL.git
-cd kAFL
-make env       # create and activate environment
-```
+~~~
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+~~~
 
-This uses [pipenv](https://pypi.org/project/pipenv/) to create a Python
-environment and deploys [west](https://docs.zephyrproject.org/latest/guides/west/) for managing
-sub-repositories (See also: [working with west](README.md#working-with-west).
-kAFL will be downloaded as first sub-project to `~/work/kafl`.
+## Deploy
 
-You can exit the environment with `exit` and re-activate at any time using `make env`.
+~~~
+(venv) $ ansible-playbook -i 'localhost,' -c local site.yml
+~~~
 
-### 2. Fetch and Build Components
-
-On supported Ubuntu or Debian distribution, the included `kafl/install.sh` script can
-be used to build all userspace components. Note that this script uses `sudo`
-to deploy any system dependencies with `apt-get`. It will also ensure that the
-current user has access to `/dev/kvm` by optionally creating a new group and
-adding the user to it.
-
-```shell
-make update   # pull or update sub-components
-make install  # build or rebuild components
-```
-
-In case of errors or unsupported distributions, please review the individual
-steps in `Makefile` and `kafl/install.sh`.
-
-### 3. Host kAFL Kernel
-
-kAFL uses the modified `KVM-Nyx` host kernel for efficient PT tracing and
-snapshots. For Debian-based distribution, you can use a
-[prebuild release](https://github.com/IntelLabs/kafl.linux/releases)
-of the _KVM-Nyx_ host kernel (not SDV!).
-
-```
-sudo dpkg -i linux-image-5.10.73-kafl*_amd64.deb
-```
-
-Alternatively, the below steps download, build and install a custom kernel
-package based on your current kernel config in `/boot/config-$(uname -r)`:
-
-```shell
-west update host_kernel    # (not active by default)
-./kafl/install.sh kvm      # uses your current config from /boot
-sudo dpkg -i kafl/nyx/linux-image*kafl+_*deb
-sudo reboot
-```
-
-After reboot, make sure the new kernel is booted and KVM-NYX confirms that PT is
-supported on this CPU:
-
-```shell
-dmesg|grep KVM
-> [KVM-NYX] Info:   CPU is supported!
-```
 
 ### 4. (Optional) Lauch `kafl_fuzz.py`
 
@@ -233,4 +189,3 @@ manifest](https://docs.zephyrproject.org/latest/guides/west/manifest.html)
 * [Userspace fuzzing with sharedir](docs/sharedir_tutorial.md)
 * [kAFL/Nyx hypercall API documentation](docs/hypercall_api.md)
 * Papers and background at [nyx-fuzz.com](https://nyx-fuzz.com)
-
