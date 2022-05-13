@@ -12,6 +12,13 @@
     - libcap-dev
     - libattr1-dev
 
+- name: Clone repo
+  git:
+    repo: "{{ repo.qemu.url }}"
+    dest: "{{ repo.qemu.root }}"
+    version: "{{ repo.qemu.revision | default(omit) }}"
+    force: yes
+
 - name: Configure QEMU
   command:
     argv:
@@ -26,19 +33,19 @@
       - --enable-nyx
       - --enable-nyx-static
       - --disable-tools
-    chdir: "{{ qemu_root }}"
+    chdir: "{{ repo.qemu.root }}"
   # TODO: duplicated env
   environment:
-    C_INCLUDE_PATH: "{{ capstone_root }}/include:{{ libxdc_root }}"
-    LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
-    LD_LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
+    C_INCLUDE_PATH: "{{ repo.capstone.root }}/include:{{ repo.libxdc.root }}"
+    LIBRARY_PATH: "{{ repo.capstone.root }}:{{ repo.libxdc.root }}/"
+    LD_LIBRARY_PATH: "{{ repo.capstone.root }}:{{ repo.libxdc.root }}/"
 
 - name: Build QEMU
   make:
-    chdir: "{{ qemu_root }}"
+    chdir: "{{ repo.qemu.root }}"
     params:
       NUM_THREADS: "{{ ansible_processor_nproc }}"
   environment:
-    C_INCLUDE_PATH: "{{ capstone_root }}/include:{{ libxdc_root }}"
-    LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
-    LD_LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
+    C_INCLUDE_PATH: "{{ repo.capstone.root }}/include:{{ repo.libxdc.root }}"
+    LIBRARY_PATH: "{{ repo.capstone.root }}:{{ repo.libxdc.root }}/"
+    LD_LIBRARY_PATH: "{{ repo.capstone.root }}:{{ repo.libxdc.root }}/"

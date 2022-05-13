@@ -1,0 +1,16 @@
+- name: Ensure kAFL parent directory exists
+  file:
+    path: "{{ install_root | dirname }}"
+    state: directory
+
+- name: Clone repo
+  git:
+    repo: "{{ repo.kafl.url }}"
+    dest: "{{ repo.kafl.root }}"
+    version: "{{ repo.kafl.revision | default('master') }}"
+
+- name: Install kAFL fuzzer
+  pip:
+    name: "file://{{ repo.kafl.root }}"
+    editable: yes
+    virtualenv: "{{ install_root }}/venv"

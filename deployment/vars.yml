@@ -1,0 +1,21 @@
+install_root: "{{ ansible_env.HOME }}/.local/kAFL"
+repo:
+  kafl:
+    url: 'https://github.com/IntelLabs/kAFL'
+    root: "{{ install_root }}"
+  qemu:
+    url: 'https://github.com/IntelLabs/kafl.qemu'
+    root: "{{ install_root }}/nyx/qemu"
+    revision: kafl_stable
+  libxdc:
+    url: 'https://github.com/IntelLabs/kafl.libxdc'
+    root: "{{ install_root }}/nyx/libxdc"
+    revision: kafl_stable
+  capstone:
+    url: 'https://github.com/aquynh/capstone'
+    root: "{{ install_root }}/nyx/capstone"
+    revision: v4
+  radamsa:
+    url: 'https://gitlab.com/akihe/radamsa'
+    root: "{{ install_root }}/radamsa"
+    revision: develop

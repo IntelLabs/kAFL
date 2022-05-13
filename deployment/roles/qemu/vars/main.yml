@@ -1,1 +1,0 @@
-qemu_root: "{{ kafl_root }}/nyx/qemu"

@@ -1,9 +1,6 @@
 - hosts: all
-  vars:
-    repo_root: "{{ playbook_dir }}/.."
-    kafl_root: "{{ repo_root }}/kafl"
-    libxdc_root: "{{ kafl_root }}/nyx/libxdc"
-    capstone_root: "{{ kafl_root }}/nyx/capstone"
+  vars_files:
+    - vars.yml
   environment:
     PIPENV_VENV_IN_PROJECT: 1
     # ignore current ansible venv and force Pipenv to create it's own
@@ -13,41 +10,6 @@
       shell: grep intel_pt /proc/cpuinfo
       register: res
       failed_when: res.rc != 0
-
-    - name: Ensure python3-pip is available
-      package:
-        name: python3-pip
-        state: present
-
-    - name: Install Pipenv
-      pip:
-        name: pipenv==2022.5.2
-
-    - name: Install west via Pipenv
-      command: pipenv install
-      args:
-        chdir: "{{ repo_root }}"
-
-    - name: Init manifest
-      command: pipenv run west init -l manifest
-      args:
-        chdir: "{{ repo_root }}"
-        creates: "{{ repo_root }}/.west"
-
-    # minimum install for manifest import!
-    - name: Update kafl
-      command: pipenv run west update kafl
-
-    - name: Creates env
-      shell: pipenv run bash manifest/create_env.sh > .env
-      args:
-        chdir: "{{ repo_root }}"
-        creates: .env
-
-    - name: West update
-      command: west update -k
-      args:
-        chdir: "{{ repo_root }}"
 
     - name: Ensure minimal deps are available
       package:
@@ -59,6 +21,7 @@
         - dpkg
 
   roles:
+    - kafl
     - capstone
     - libxdc
     - qemu

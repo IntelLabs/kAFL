@@ -1,1 +1,0 @@
-capstone_root: "{{ kafl_root }}/nyx/capstone"

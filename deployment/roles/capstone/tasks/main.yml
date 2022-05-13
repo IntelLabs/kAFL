@@ -1,5 +1,11 @@
+- name: Clone repo
+  git:
+    repo: "{{ repo.capstone.url }}"
+    dest: "{{ repo.capstone.root }}"
+    version: "{{ repo.capstone.revision | default('master') }}"
+
 - name: Build capstone
   make:
-    chdir: "{{ capstone_root }}"
+    chdir: "{{ repo.capstone.root }}"
     params:
       NUM_THREADS: "{{ ansible_processor_nproc }}"
