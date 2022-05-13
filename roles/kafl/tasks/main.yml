@@ -3,6 +3,14 @@
     path: "{{ install_root | dirname }}"
     state: directory
 
+- name: Install kAFL system dependencies
+  package:
+    name: "{{ item }}"
+  become: yes
+  with_items:
+    - libgraphviz-dev
+    - python3-dev
+
 - name: Ensure virtualenv command is available (Ansible pip module requirement)
   package:
     name: virtualenv
