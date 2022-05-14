@@ -19,6 +19,3 @@ repo:
     url: 'https://gitlab.com/akihe/radamsa'
     root: "{{ install_root }}/radamsa"
     revision: develop
-
-# turn this on for CI pipeline
-ignore_intel_pt_check: no
