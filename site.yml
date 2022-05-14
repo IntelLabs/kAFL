@@ -31,11 +31,29 @@
     - radamsa
 
   post_tasks:
+    - name: Ensure kvm group exists matching Ubuntu's packaging expected GID
+      group:
+        name: kvm
+        state: present
+        gid: 108
+      become: yes
+
     - name: Ensure current user is in kvm group
       user:
         name: "{{ ansible_user_id }}"
         groups: kvm
         append: yes
+      become: yes
+
+    - name: Ensure /dev/kvm has right permissions
+      file:
+        path: /dev/kvm
+        owner: root
+        group: kvm
+        mode: '0660'
+      become: yes
+      tags:
+        - kvm_device
 
     - name: Create .env file
       template:
