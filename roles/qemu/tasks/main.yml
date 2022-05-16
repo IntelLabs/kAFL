@@ -1,20 +1,17 @@
-- name: Add deb-src URL
-  apt_repository:
-    repo: "deb-src http://archive.canonical.com/ubuntu {{ ansible_distribution_release }} main"
-    state: present
-    filename: kafl-qemu-src
-  become: yes
-
 - name: Install build dependencies
   apt:
-    name: qemu-system-x86
-    state: build-dep
+    name: "{{ item }}"
   become: yes
+  with_items:
+    - pkg-config
+    - libglib2.0-dev
+    - libpixman-1-dev
 
 - name: Install build dependencies for virtfs
   package:
     name: "{{ item }}"
     state: present
+  become: yes
   with_items:
     - libcap-dev
     - libattr1-dev
