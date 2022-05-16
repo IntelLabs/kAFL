@@ -13,6 +13,11 @@
       tags:
         - hardware_check
 
+    - name: Checking that pmu_name is not broadwell
+      shell: grep --invert-match broadwell /sys/devices/cpu/caps/pmu_name
+      tags:
+        - hardware_check
+
     - name: Ensure minimal deps are available
       package:
         name: "{{ item }}"
