@@ -48,7 +48,7 @@
   make:
     chdir: "{{ repo.qemu.root }}"
     params:
-      NUM_THREADS: "{{ ansible_processor_nproc }}"
+      --jobs: "{{ ansible_processor_nproc }}"
   environment:
     C_INCLUDE_PATH: "{{ repo.capstone.root }}/include:{{ repo.libxdc.root }}"
     LIBRARY_PATH: "{{ repo.capstone.root }}:{{ repo.libxdc.root }}/"

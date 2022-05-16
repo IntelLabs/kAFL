@@ -8,4 +8,4 @@
   make:
     chdir: "{{ repo.capstone.root }}"
     params:
-      NUM_THREADS: "{{ ansible_processor_nproc }}"
+      --jobs: "{{ ansible_processor_nproc }}"
