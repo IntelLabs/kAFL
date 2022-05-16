@@ -1,3 +1,11 @@
+- name: Install radamsa dependencies
+  package:
+    name: "{{ item }}"
+  become: yes
+  with_items:
+    - wget
+    - curl
+
 - name: Clone repo
   git:
     repo: "{{ repo.radamsa.url }}"
