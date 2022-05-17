@@ -15,9 +15,17 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # skip tags related to non-existent hardware/configuration in the CI runner environment
-      - name: Test userspace deployment
+
+      - name: Setup ansible
         run: |
           apt update && apt install -y make python3-venv
           make venv
-          venv/bin/ansible-playbook -i 'localhost,' -c local site.yml --skip-tags "hardware_check,kvm_device"
+
+      # skip tags related to non-existent hardware/configuration in the CI runner environment
+      - name: Test userspace deployment
+        run: >
+            venv/bin/ansible-playbook
+            --inventory 'localhost,'
+            --connection local
+            site.yml
+            --skip-tags "hardware_check,kvm_device"
