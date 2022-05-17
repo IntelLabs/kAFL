@@ -1,15 +1,15 @@
 - name: Clone repo
   git:
-    repo: "{{ repo.libxdc.url }}"
-    dest: "{{ repo.libxdc.root }}"
-    version: "{{ repo.libxdc.revision | default(omit) }}"
+    repo: "{{ libxdc_url }}"
+    dest: "{{ libxdc_root }}"
+    version: "{{ libxdc_revision | default(omit) }}"
 
 - name: Build libxdc
   make:
-    chdir: "{{ repo.libxdc.root }}"
+    chdir: "{{ libxdc_root }}"
     params:
       --jobs: "{{ ansible_processor_nproc }}"
   environment:
-    C_INCLUDE_PATH: "{{ repo.capstone.root }}/include:{{ repo.libxdc.root }}"
-    LIBRARY_PATH: "{{ repo.capstone.root }}:{{ repo.libxdc.root }}/"
-    LD_LIBRARY_PATH: "{{ repo.capstone.root }}:{{ repo.libxdc.root }}/"
+    C_INCLUDE_PATH: "{{ capstone_root }}/include:{{ libxdc_root }}"
+    LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
+    LD_LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"

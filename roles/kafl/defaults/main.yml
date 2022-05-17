@@ -1,0 +1,2 @@
+kafl_url: 'https://github.com/IntelLabs/kAFL'
+kafl_root: "{{ install_root }}"

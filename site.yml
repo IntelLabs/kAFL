@@ -30,7 +30,8 @@
         - build-essential
 
   roles:
-    - kafl
+    - role: kafl
+
 
   post_tasks:
     - name: Ensure kvm group exists matching Ubuntu's packaging expected GID

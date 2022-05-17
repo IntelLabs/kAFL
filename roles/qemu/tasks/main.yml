@@ -18,9 +18,9 @@
 
 - name: Clone repo
   git:
-    repo: "{{ repo.qemu.url }}"
-    dest: "{{ repo.qemu.root }}"
-    version: "{{ repo.qemu.revision | default(omit) }}"
+    repo: "{{ qemu_url }}"
+    dest: "{{ qemu_root }}"
+    version: "{{ qemu_revision | default(omit) }}"
     force: yes
 
 - name: Configure QEMU
@@ -37,19 +37,19 @@
       - --enable-nyx
       - --enable-nyx-static
       - --disable-tools
-    chdir: "{{ repo.qemu.root }}"
+    chdir: "{{ qemu_root }}"
   # TODO: duplicated env
   environment:
-    C_INCLUDE_PATH: "{{ repo.capstone.root }}/include:{{ repo.libxdc.root }}"
-    LIBRARY_PATH: "{{ repo.capstone.root }}:{{ repo.libxdc.root }}/"
-    LD_LIBRARY_PATH: "{{ repo.capstone.root }}:{{ repo.libxdc.root }}/"
+    C_INCLUDE_PATH: "{{ capstone_root }}/include:{{ libxdc_root }}"
+    LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
+    LD_LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
 
 - name: Build QEMU
   make:
-    chdir: "{{ repo.qemu.root }}"
+    chdir: "{{ qemu_root }}"
     params:
       --jobs: "{{ ansible_processor_nproc }}"
   environment:
-    C_INCLUDE_PATH: "{{ repo.capstone.root }}/include:{{ repo.libxdc.root }}"
-    LIBRARY_PATH: "{{ repo.capstone.root }}:{{ repo.libxdc.root }}/"
-    LD_LIBRARY_PATH: "{{ repo.capstone.root }}:{{ repo.libxdc.root }}/"
+    C_INCLUDE_PATH: "{{ capstone_root }}/include:{{ libxdc_root }}"
+    LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
+    LD_LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"

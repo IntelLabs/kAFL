@@ -8,12 +8,12 @@
 
 - name: Clone repo
   git:
-    repo: "{{ repo.radamsa.url }}"
-    dest: "{{ repo.radamsa.root }}"
-    version: "{{ repo.radamsa.revision | default(omit) }}"
+    repo: "{{ radamsa_url }}"
+    dest: "{{ radamsa_root }}"
+    version: "{{ radamsa_revision | default(omit) }}"
 
 - name: Build radamsa
   make:
-    chdir: "{{ repo.radamsa.root }}"
+    chdir: "{{ radamsa_root }}"
     params:
       --jobs: "{{ ansible_processor_nproc }}"
