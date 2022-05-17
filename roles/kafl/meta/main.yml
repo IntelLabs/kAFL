@@ -1,3 +1,7 @@
 dependencies:
   - role: qemu
+    tags:
+      - qemu
   - role: radamsa
+    tags:
+      - radamsa

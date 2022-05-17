@@ -1,3 +1,7 @@
 dependencies:
   - role: capstone
+    tags:
+      - capstone
   - role: libxdc
+    tags:
+      - libxdc

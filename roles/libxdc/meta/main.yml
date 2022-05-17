@@ -1,2 +1,4 @@
 dependencies:
   - role: capstone
+    tags:
+      - capstone
