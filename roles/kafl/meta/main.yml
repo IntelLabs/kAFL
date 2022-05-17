@@ -1,0 +1,3 @@
+dependencies:
+  - role: qemu
+  - role: radamsa

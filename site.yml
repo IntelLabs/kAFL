@@ -31,10 +31,6 @@
 
   roles:
     - kafl
-    - capstone
-    - libxdc
-    - qemu
-    - radamsa
 
   post_tasks:
     - name: Ensure kvm group exists matching Ubuntu's packaging expected GID
