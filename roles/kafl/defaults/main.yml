@@ -1,2 +1,2 @@
 kafl_url: 'https://github.com/IntelLabs/kAFL'
-kafl_root: "{{ install_root }}"
+kafl_root: "{{ install_root }}/fuzzer"
