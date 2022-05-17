@@ -1,3 +1,12 @@
+- name: Ensure minimal deps are available
+  package:
+    name: "{{ item }}"
+    state: present
+  become: yes
+  with_items:
+    - git
+    - build-essential
+
 - name: Clone repo
   git:
     repo: "{{ capstone_url }}"

@@ -5,62 +5,8 @@
     PIPENV_VENV_IN_PROJECT: 1
     # ignore current ansible venv and force Pipenv to create it's own
     PIPENV_IGNORE_VIRTUALENVS: 1
-  pre_tasks:
-    - name: Checking for intel_pt support in cpuinfo
-      shell: grep intel_pt /proc/cpuinfo
-      register: res
-      failed_when: res.rc != 0
-      tags:
-        - hardware_check
-
-    - name: Checking that pmu_name is not broadwell
-      shell: grep --invert-match broadwell /sys/devices/cpu/caps/pmu_name
-      tags:
-        - hardware_check
-
-    - name: Ensure minimal deps are available
-      package:
-        name: "{{ item }}"
-        state: present
-      become: yes
-      with_items:
-        - sudo
-        - dpkg
-        - git
-        - build-essential
 
   roles:
     - role: kafl
       tags:
         - kafl
-
-
-  post_tasks:
-    - name: Ensure kvm group exists matching Ubuntu's packaging expected GID
-      group:
-        name: kvm
-        state: present
-        gid: 108
-      become: yes
-
-    - name: Ensure current user is in kvm group
-      user:
-        name: "{{ ansible_user_id }}"
-        groups: kvm
-        append: yes
-      become: yes
-
-    - name: Ensure /dev/kvm has right permissions
-      file:
-        path: /dev/kvm
-        owner: root
-        group: kvm
-        mode: '0660'
-      become: yes
-      tags:
-        - kvm_device
-
-    - name: Create .env file
-      template:
-        src: env.j2
-        dest: "{{ install_root }}/.env"
