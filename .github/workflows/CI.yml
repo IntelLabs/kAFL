@@ -20,6 +20,7 @@ jobs:
         run: |
           apt update && apt install -y make python3-venv
           make venv
+          venv/bin/ansible-galaxy install -r requirements.yml
 
       # skip tags related to non-existent hardware/configuration in the CI runner environment
       - name: Test userspace deployment

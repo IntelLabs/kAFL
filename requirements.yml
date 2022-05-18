@@ -1,0 +1,3 @@
+collections:
+  - source: ./wenzel/kafl
+    type: dir

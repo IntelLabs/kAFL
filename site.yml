@@ -7,6 +7,6 @@
     PIPENV_IGNORE_VIRTUALENVS: 1
 
   roles:
-    - role: kafl
+    - role: wenzel.kafl.kafl
       tags:
         - kafl
