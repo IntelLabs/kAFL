@@ -7,3 +7,6 @@ zephyrproject
 # Python venvs
 venv/
 .venv/
+
+# Ansible collection artifacts
+*.tar.gz
