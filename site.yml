@@ -1,6 +1,4 @@
 - hosts: all
-  vars_files:
-    - vars.yml
   environment:
     PIPENV_VENV_IN_PROJECT: 1
     # ignore current ansible venv and force Pipenv to create it's own

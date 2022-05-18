@@ -1,4 +1,0 @@
-install_root: "{{ ansible_env.HOME }}/.local/kAFL"
-# these variables are shared between libxdc and QEMU roles
-libxdc_root: "{{ install_root }}/nyx/libxdc"
-capstone_root: "{{ install_root }}/nyx/capstone"
