@@ -25,6 +25,7 @@
     repo: "{{ kafl_url }}"
     dest: "{{ kafl_root }}"
     version: "{{ kafl_revision | default('master') }}"
+    depth: "{{ git_clone_depth | default(omit) }}"
 
 - name: Install kAFL fuzzer
   pip:

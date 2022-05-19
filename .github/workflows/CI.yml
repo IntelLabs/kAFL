@@ -22,5 +22,6 @@ jobs:
           make venv
 
       # skip tags related to non-existent hardware/configuration in the CI runner environment
+      # shallow clone for CI speed
       - name: Test userspace deployment
-        run: make deploy -- --skip-tags "hardware_check,kvm_device"
+        run: make deploy_ci

@@ -21,6 +21,7 @@
     repo: "{{ qemu_url }}"
     dest: "{{ qemu_root }}"
     version: "{{ qemu_revision | default(omit) }}"
+    depth: "{{ git_clone_depth | default(omit) }}"
     force: yes
 
 - name: Configure QEMU

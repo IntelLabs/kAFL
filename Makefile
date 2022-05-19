@@ -25,6 +25,12 @@ deploy: venv
 	venv/bin/ansible-galaxy install -r requirements.yml
 	venv/bin/ansible-playbook -i 'localhost,' -c local site.yml $(EXTRA_ARGS)
 
+deploy_ci: venv
+	venv/bin/ansible-galaxy install -r requirements.yml
+	venv/bin/ansible-playbook -i 'localhost,' -c local site.yml \
+		--skip-tags "hardware_check,kvm_device" \
+		--extra-vars "git_clone_depth=1"
+
 venv:
 	python3 -m venv venv
 	venv/bin/pip install wheel
