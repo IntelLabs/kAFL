@@ -15,10 +15,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+          cache: 'pip'
 
       - name: Setup ansible
         run: |
-          apt update && apt install -y make python3-venv
           make venv
 
       # skip tags related to non-existent hardware/configuration in the CI runner environment
