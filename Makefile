@@ -4,7 +4,7 @@
 # Makefile recipies for managing kAFL workspace
 
 # declare all targets in this variable
-ALL_TARGETS:=deploy
+ALL_TARGETS:=deploy_local deploy
 # declare all target as PHONY
 .PHONY: $(ALL_TARGETS)
 
@@ -21,15 +21,17 @@ endif
 
 all: deploy
 
-deploy: venv
+deploy_local: venv
 	venv/bin/ansible-galaxy install -r requirements.yml
 	venv/bin/ansible-playbook -i 'localhost,' -c local site.yml $(EXTRA_ARGS)
 
-deploy_ci: venv
+deploy: venv inventory
 	venv/bin/ansible-galaxy install -r requirements.yml
-	venv/bin/ansible-playbook -i 'localhost,' -c local site.yml \
-		--skip-tags "hardware_check,kvm_device" \
-		--extra-vars "git_clone_depth=1"
+	venv/bin/ansible-playbook -i inventory site.yml $(EXTRA_ARGS)
+
+inventory:
+	@echo "Please create a file named 'inventory'"
+	@exit 1
 
 venv:
 	python3 -m venv venv

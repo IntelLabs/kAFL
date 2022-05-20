@@ -24,7 +24,14 @@ jobs:
         run: |
           make venv
 
-      # skip tags related to non-existent hardware/configuration in the CI runner environment
       # shallow clone for CI speed
+      - name: Setup ansible extra vars in JSON file
+        run: |
+          echo '{"git_clone_depth": 1}' >> parameters.json
+
+      # skip tags related to non-existent hardware/configuration in the CI runner environment
       - name: Test userspace deployment
-        run: make deploy_ci
+        run: > 
+          make deploy_local --
+          --skip-tags "hardware_check,kvm_device"
+          --extra-vars "@parameters.json"
