@@ -1,4 +1,4 @@
-name: CI
+name: Deployment
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - workspace
 
 jobs:
-  deploy:
+  local:
     runs-on: ubuntu-20.04
 
     steps:
@@ -33,5 +33,54 @@ jobs:
       - name: Test userspace deployment
         run: > 
           make deploy_local --
+          --skip-tags "hardware_check,kvm_device"
+          --extra-vars "@parameters.json"
+
+  remote:
+    runs-on: ubuntu-20.04
+
+    services:
+      ssh:
+        image: eilandert/openssh:debian
+        ports:
+          # open SSH
+          - 5000:22
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+          cache: 'pip'
+
+      - name: Setup ansible
+        run: |
+          make venv
+
+      # shallow clone for CI speed
+      - name: Setup ansible extra vars in JSON file
+        run: |
+          echo '{"git_clone_depth": 1}' >> parameters.json
+
+      # the service container runs is accessible on 127.0.0.1:5000
+      - name: Setup inventory
+        run: >
+          echo 'localhost
+          ansible_port=5000
+          ansible_user=root
+          ansible_ssh_pass=toor
+          ansible_ssh_common_args="-o StrictHostKeyChecking=no"'
+          >> inventory
+
+      - name: Install Python3 on service container
+        run: |
+          venv/bin/ansible all -i inventory -m raw -a "apt update"
+          venv/bin/ansible all -i inventory -m raw -a "apt install -y python3"
+
+      # skip tags related to non-existent hardware/configuration in the CI runner environment
+      - name: Test userspace deployment
+        run: >
+          make deploy --
           --skip-tags "hardware_check,kvm_device"
           --extra-vars "@parameters.json"
