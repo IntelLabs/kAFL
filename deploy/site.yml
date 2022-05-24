@@ -4,6 +4,11 @@
     # ignore current ansible venv and force Pipenv to create it's own
     PIPENV_IGNORE_VIRTUALENVS: 1
 
+  pre_tasks:
+    - set_fact:
+        install_root: "{{ playbook_dir }}/../kafl"
+      when: ansible_connection == 'local'
+
   roles:
     - role: wenzel.kafl.kafl
       tags:

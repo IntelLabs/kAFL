@@ -1,5 +1,6 @@
 # define shared variables here, since kafl is the top-level role
-install_root: "{{ ansible_env.HOME }}/.local/kAFL"
+install_root: "{{ ansible_env.HOME }}/kAFL"
+
 libxdc_root: "{{ install_root }}/nyx/libxdc"
 capstone_root: "{{ install_root }}/nyx/capstone"
 
