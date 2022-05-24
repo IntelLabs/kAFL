@@ -3,6 +3,8 @@
     PIPENV_VENV_IN_PROJECT: 1
     # ignore current ansible venv and force Pipenv to create it's own
     PIPENV_IGNORE_VIRTUALENVS: 1
+    http_proxy: "{{ proxy_env.http_proxy | default(omit) }}"
+    https_proxy: "{{ proxy_env.https_proxy | default(omit) }}"
 
   pre_tasks:
     - set_fact:
