@@ -6,11 +6,6 @@
     http_proxy: "{{ proxy_env.http_proxy | default(omit) }}"
     https_proxy: "{{ proxy_env.https_proxy | default(omit) }}"
 
-  pre_tasks:
-    - set_fact:
-        install_root: "{{ playbook_dir }}/../kafl"
-      when: ansible_connection == 'local'
-
   roles:
     - role: wenzel.kafl.fuzzer
       tags:

@@ -1,8 +1,8 @@
 # define shared variables here, since kafl is the top-level role
-install_root: "{{ ansible_env.HOME }}/kAFL"
+kafl_install_root: "{{ playbook_dir | dirname if ansible_connection == 'local' else ansible_env.HOME }}/kafl"
 
-libxdc_root: "{{ install_root }}/libxdc"
-capstone_root: "{{ install_root }}/capstone"
+libxdc_root: "{{ kafl_install_root }}/libxdc"
+capstone_root: "{{ kafl_install_root }}/capstone"
 
 fuzzer_url: 'https://github.com/IntelLabs/kafl.fuzzer'
-fuzzer_root: "{{ install_root }}/fuzzer"
+fuzzer_root: "{{ kafl_install_root }}/fuzzer"

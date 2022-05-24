@@ -1,3 +1,3 @@
 radamsa_url: 'https://gitlab.com/akihe/radamsa'
 radamsa_revision: 'develop'
-radamsa_root: "{{ install_root }}/radamsa"
+radamsa_root: "{{ kafl_install_root }}/radamsa"

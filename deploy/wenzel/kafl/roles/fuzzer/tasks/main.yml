@@ -3,7 +3,7 @@
 
 - name: Ensure kAFL parent directory exists
   file:
-    path: "{{ install_root | dirname }}"
+    path: "{{ kafl_install_root | dirname }}"
     state: directory
 
 - name: Install kAFL system dependencies
@@ -31,7 +31,7 @@
   pip:
     name: "file://{{ fuzzer_root }}"
     editable: yes
-    virtualenv: "{{ install_root }}/venv"
+    virtualenv: "{{ kafl_install_root }}/venv"
 
 - name: Import post_tasks
   import_tasks: post_tasks.yml
