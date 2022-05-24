@@ -4,5 +4,5 @@ install_root: "{{ ansible_env.HOME }}/kAFL"
 libxdc_root: "{{ install_root }}/nyx/libxdc"
 capstone_root: "{{ install_root }}/nyx/capstone"
 
-kafl_url: 'https://github.com/IntelLabs/kAFL'
-kafl_root: "{{ install_root }}/fuzzer"
+fuzzer_url: 'https://github.com/IntelLabs/kAFL'
+fuzzer_root: "{{ install_root }}/fuzzer"

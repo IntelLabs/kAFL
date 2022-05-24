@@ -22,14 +22,14 @@
 
 - name: Clone repo
   git:
-    repo: "{{ kafl_url }}"
-    dest: "{{ kafl_root }}"
-    version: "{{ kafl_revision | default('master') }}"
+    repo: "{{ fuzzer_url }}"
+    dest: "{{ fuzzer_root }}"
+    version: "{{ fuzzer_revision | default('master') }}"
     depth: "{{ git_clone_depth | default(omit) }}"
 
 - name: Install kAFL fuzzer
   pip:
-    name: "file://{{ kafl_root }}"
+    name: "file://{{ fuzzer_root }}"
     editable: yes
     virtualenv: "{{ install_root }}/venv"
 

@@ -10,6 +10,6 @@
       when: ansible_connection == 'local'
 
   roles:
-    - role: wenzel.kafl.kafl
+    - role: wenzel.kafl.fuzzer
       tags:
-        - kafl
+        - fuzzer
