@@ -23,11 +23,13 @@ jobs:
       - name: Setup ansible
         run: |
           make venv
+        working-directory: deploy
 
       # shallow clone for CI speed
       - name: Setup ansible extra vars in JSON file
         run: |
           echo '{"git_clone_depth": 1}' >> parameters.json
+        working-directory: deploy
 
       # skip tags related to non-existent hardware/configuration in the CI runner environment
       - name: Test userspace deployment
@@ -35,6 +37,7 @@ jobs:
           make deploy_local --
           --skip-tags "hardware_check,kvm_device"
           --extra-vars "@parameters.json"
+        working-directory: deploy
 
   remote:
     runs-on: ubuntu-20.04
@@ -57,11 +60,13 @@ jobs:
       - name: Setup ansible
         run: |
           make venv
+        working-directory: deploy
 
       # shallow clone for CI speed
       - name: Setup ansible extra vars in JSON file
         run: |
           echo '{"git_clone_depth": 1}' >> parameters.json
+        working-directory: deploy
 
       # the service container runs is accessible on 127.0.0.1:5000
       - name: Setup inventory
@@ -72,11 +77,13 @@ jobs:
           ansible_ssh_pass=toor
           ansible_ssh_common_args="-o StrictHostKeyChecking=no"'
           >> inventory
+        working-directory: deploy
 
       - name: Install Python3 on service container
         run: |
           venv/bin/ansible all -i inventory -m raw -a "apt update"
           venv/bin/ansible all -i inventory -m raw -a "apt install -y python3"
+        working-directory: deploy
 
       # skip tags related to non-existent hardware/configuration in the CI runner environment
       - name: Test userspace deployment
@@ -84,3 +91,4 @@ jobs:
           make deploy --
           --skip-tags "hardware_check,kvm_device"
           --extra-vars "@parameters.json"
+        working-directory: deploy
