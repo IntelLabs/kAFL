@@ -42,7 +42,7 @@ kAFL's deployment offers the possibility of local or remote installation.
 
 In both cases, you will find in the installation directory:
 - `.env` file: useful environment variables for your scripts
-- `venv` Python virtual environment: where kAFL fuzzer is installed
+- `.venv` Python virtual environment: where kAFL fuzzer is installed
 
 
 ### Local
