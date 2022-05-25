@@ -25,18 +25,29 @@ kAFL now leverages the greatly extended and improved [Nyx backend](https://nyx-f
 
 For details on Redqueen, Grimoire, IJON, Nyx, please visit [nyx-fuzz.com](https://nyx-fuzz.com).
 
+## Components
+
+The project is structured around multiple components:
+
+- [`IntelLabs/kAFL`](https://github.com/IntelLabs/kAFL): The main repository which organises all subcomponents
+- [`IntelLabs/kafl.fuzzer`](https://github.com/IntelLabs/kafl.fuzzer): The fuzzer frontend
+- [`IntelLabs/kafl.qemu`](https://github.com/IntelLabs/kafl.qemu): Modified QEMU with snapshots
+- [`IntelLabs/kafl.libxdc`](https://github.com/IntelLabs/kafl.libxdc): Fast Intel PT decoding library
+- [`IntelLabs/kafl.targets`](https://github.com/IntelLabs/kafl.targets): Example kAFL targets
+
+
+# Getting started
+
 ## Requirements
 
 - `python3`
 - `python3-venv`
 
-## Setup
-
 ~~~
 sudo apt-get install python3 python3-venv
 ~~~
 
-## Deploy
+## Setup
 
 kAFL's deployment offers the possibility of local or remote installation.
 
@@ -47,7 +58,7 @@ In both cases, you will find in the installation directory:
 
 ### Local
 
-- installation directory: `kafl`
+- installation directory: `<repo_root>/kafl`
 
 ~~~
 make deploy_local
