@@ -23,7 +23,10 @@ all: deploy
 
 deploy_local: venv
 	venv/bin/ansible-galaxy install -r requirements.yml
-	venv/bin/ansible-playbook -i 'localhost,' -c local site.yml $(EXTRA_ARGS)
+	@echo "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
+	@echo "┃ Ansible BECOME password: if you are using a passwordless SUDO, skip by pressing enter.┃"
+	@echo "└━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┘"
+	venv/bin/ansible-playbook -i 'localhost,' -c local site.yml -K $(EXTRA_ARGS)
 
 deploy: venv inventory
 	venv/bin/ansible-galaxy install -r requirements.yml
