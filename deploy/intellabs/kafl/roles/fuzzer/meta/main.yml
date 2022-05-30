@@ -1,4 +1,7 @@
 dependencies:
+  - role: kernel
+    tags:
+      - kernel
   - role: qemu
     tags:
       - qemu
