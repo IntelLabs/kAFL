@@ -8,7 +8,7 @@ ALL_TARGETS:=deploy_local deploy
 # declare all target as PHONY
 .PHONY: $(ALL_TARGETS)
 
-# This small chunk of code allows us to pass arbitrary argument to our make targets
+# This small chunk of code allows us to pass arbitrary arguments to our make targets
 # see the solution on SO:
 # https://stackoverflow.com/a/14061796/3017219
 # If the first argument is contained in ALL_TARGETS
@@ -19,7 +19,7 @@ ifneq ($(filter $(firstword $(MAKECMDGOALS)), $(ALL_TARGETS)),)
   $(eval $(EXTRA_ARGS):;@:)
 endif
 
-all: deploy
+all: deploy_local
 
 deploy_local: venv
 	venv/bin/ansible-galaxy install -r requirements.yml --force
