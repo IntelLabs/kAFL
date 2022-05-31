@@ -22,11 +22,6 @@ jobs:
           python-version: '3.8'
           cache: 'pip'
 
-      - name: Setup ansible
-        run: |
-          make venv
-        working-directory: deploy
-
       # shallow clone for CI speed
       - name: Setup ansible extra vars in JSON file
         run: |
@@ -39,7 +34,6 @@ jobs:
           make deploy_local --
           --skip-tags "hardware_check,kvm_device"
           --extra-vars "@parameters.json"
-        working-directory: deploy
 
   remote:
     runs-on: ubuntu-20.04
@@ -59,11 +53,6 @@ jobs:
           python-version: '3.8'
           cache: 'pip'
 
-      - name: Setup ansible
-        run: |
-          make venv
-        working-directory: deploy
-
       # shallow clone for CI speed
       - name: Setup ansible extra vars in JSON file
         run: |
@@ -81,6 +70,11 @@ jobs:
           >> inventory
         working-directory: deploy
 
+      - name: Setup ansible
+        run: |
+          make venv
+        working-directory: deploy
+
       - name: Install Python3 on service container
         run: |
           venv/bin/ansible all -i inventory -m raw -a "apt update"
@@ -93,7 +87,6 @@ jobs:
           make deploy --
           --skip-tags "hardware_check,kvm_device,update_grub,reboot_kernel"
           --extra-vars "@parameters.json"
-        working-directory: deploy
 
   release:
     # this job makes an official Github release
