@@ -1,3 +1,5 @@
+[![CI](https://github.com/Wenzel/kAFL/actions/workflows/CI.yml/badge.svg)](https://github.com/Wenzel/kAFL/actions/workflows/CI.yml)
+
 # kAFL: HW-assisted Feedback Fuzzer for x86 VMs
 
 kAFL/Nyx is a fast guided fuzzer for the x86 VM. It is great for anything that
