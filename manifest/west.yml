@@ -21,7 +21,7 @@ manifest:
 
     - name: kafl
       remote: github
-      repo-path: IntelLabs/kAFL
+      repo-path: IntelLabs/kafl.fuzzer
       revision: master
       groups:
         - kafl_fuzzer
