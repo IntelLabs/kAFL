@@ -27,6 +27,7 @@
         regexp: ^GRUB_DEFAULT=
         line: GRUB_DEFAULT="{{ kernel_grub_default }}"
         dest: /etc/default/grub
+        backup: yes
       become: yes
       tags:
         - update_grub
