@@ -10,3 +10,6 @@ venv/
 
 # Ansible collection artifacts
 *.tar.gz
+
+# kAFL local install dir at repo root
+/kafl/
