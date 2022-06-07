@@ -6,9 +6,13 @@ on:
       - workspace
     tags:
       - '*'
+    paths-ignore:
+      - '**/README.md'
   pull_request:
     branches:
       - workspace
+    paths-ignore:
+      - '**/README.md'
 
 jobs:
   local:
