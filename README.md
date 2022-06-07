@@ -91,3 +91,18 @@ make deploy
 ~~~
 
 Note: if your nodes require a proxy setup, update the `group_vars/all.yml`.
+
+# Available Example Targets
+
+Now that kAFL has been installed, you can continue by checking one of the example targets available.
+
+This command will clone the [kafl.targets](https://github.com/IntelLabs/kafl.targets) repo into `<install_dir>/examples`
+
+~~~
+make deploy -- --tags targets
+~~~
+
+The following examples are suitable as out-of-the-box test cases:
+- [Linux kernel](https://github.com/IntelLabs/kafl.targets/tree/master/linux-kernel): Fuzz an OS kernel with a kAFL agent (harness) directly in the target
+- [Zephyr hello world](https://github.com/IntelLabs/kafl.targets/tree/master/zephyr_x86_32)
+- [Windows](https://github.com/IntelLabs/kAFL/issues/53): This links to an opened issue since it's a WIP
