@@ -2,4 +2,3 @@ kernel_deb_urls:
   - https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.10.75/amd64/linux-image-unsigned-5.10.75-051075-generic_5.10.75-051075.202110201038_amd64.deb
   - https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.10.75/amd64/linux-modules-5.10.75-051075-generic_5.10.75-051075.202110201038_amd64.deb
 kernel_grub_default: 'gnulinux-advanced-3c49041d-17e8-45e5-b207-121483bdd4b9>gnulinux-5.10.75-051075-generic-advanced-3c49041d-17e8-45e5-b207-121483bdd4b9'
-kernel_search_uname: 5.10.75-051075-generic

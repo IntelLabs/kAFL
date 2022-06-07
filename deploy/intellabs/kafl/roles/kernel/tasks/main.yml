@@ -1,52 +1,35 @@
-- name: Install kAFL kernel and configure boot entry
-  block:
-    - name: Install dependencies
-      package:
-        name:
-          - linux-base
-          - kmod
-      become: yes
+- block:
+  - name: Install required dependencies
+    package:
+      name:
+        - build-essential
+    become: yes
 
-    - name: Create tempory directory for downloaded packages
-      tempfile:
-        state: directory
-      register: down_dir
+  - name: Create temporary directory
+    tempfile:
+      state: directory
+    register: temp_compile
 
-    - name: Download deb packages
-      get_url:
-        url: "{{ item }}"
-        dest: "{{ down_dir.path }}"
-      with_items: "{{ kernel_deb_urls }}"
+  - name: Upload support_test.c
+    copy:
+      src: files/support_test.c
+      dest: "{{ temp_compile.path }}/support_test.c"
 
-    - name: Install kAFL kernel
-      shell: dpkg -i "{{ down_dir.path }}"/*.deb
-      become: yes
+  - name: Compile support_test.c
+    command: gcc "{{ temp_compile.path }}/support_test.c" -o "{{ temp_compile.path }}/support_test"
 
-    - name: Configure boot entry to select new kernel
-      lineinfile:
-        regexp: ^GRUB_DEFAULT=
-        line: GRUB_DEFAULT="{{ kernel_grub_default }}"
-        dest: /etc/default/grub
-        backup: yes
-      become: yes
-      tags:
-        - update_grub
+  - name: Run support_test
+    command: "{{ temp_compile.path }}/support_test"
+    ignore_errors: yes
+    register: support_test
 
-    - name: Update GRUB
-      command: update-grub
-      become: yes
-      tags:
-        - update_grub
+  - name: Remove temp directory
+    file:
+      path: "{{ temp_compile.path }}"
+      state: absent
 
-    - name: Remove temporary download directory
-      file:
-        path: "{{ down_dir.path }}"
-        state: absent
-
-    - name: Reboot on new kernel
-      reboot:
-      become: yes
-      when: ansible_connection != 'local'
-      tags:
-        - reboot_kernel
-  when: not kernel_search_uname in ansible_kernel
+  - name: Install kernel if needed
+    include_tasks: install_kernel.yml
+    when: support_test.rc != 0
+  tags:
+    - hardware_check
