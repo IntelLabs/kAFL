@@ -8,3 +8,8 @@ dependencies:
   - role: radamsa
     tags:
       - radamsa
+  # optional targets dependency
+  - role: targets
+    tags:
+      - targets
+      - never
