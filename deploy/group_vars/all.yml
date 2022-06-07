@@ -1,3 +1,4 @@
 proxy_env:
-  http_proxy:
-  https_proxy:
+  # set your proxy here.
+  # http_proxy:
+  # https_proxy:

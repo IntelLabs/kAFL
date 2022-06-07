@@ -1,7 +1,7 @@
 - hosts: all
   environment:
-    http_proxy: "{{ proxy_env.http_proxy | default(omit) }}"
-    https_proxy: "{{ proxy_env.https_proxy | default(omit) }}"
+    http_proxy: "{{ proxy_env.http_proxy | default(lookup('env', 'HTTP_PROXY')) }}"
+    https_proxy: "{{ proxy_env.https_proxy | default(lookup('env', 'HTTPS_PROXY')) }}"
 
   roles:
     - role: intellabs.kafl.fuzzer
