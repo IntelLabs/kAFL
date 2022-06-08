@@ -1,35 +1,35 @@
-- block:
-  - name: Install required dependencies
-    package:
-      name:
-        - build-essential
-    become: yes
+- name: Install required dependencies
+  package:
+    name:
+      - build-essential
+  become: yes
 
-  - name: Create temporary directory
-    tempfile:
-      state: directory
-    register: temp_compile
+- name: Create temporary directory
+  tempfile:
+    state: directory
+  register: temp_compile
 
-  - name: Upload support_test.c
-    copy:
-      src: files/support_test.c
-      dest: "{{ temp_compile.path }}/support_test.c"
+- name: Upload support_test.c
+  copy:
+    src: files/support_test.c
+    dest: "{{ temp_compile.path }}/support_test.c"
 
-  - name: Compile support_test.c
-    command: gcc "{{ temp_compile.path }}/support_test.c" -o "{{ temp_compile.path }}/support_test"
+- name: Compile support_test.c
+  command: gcc "{{ temp_compile.path }}/support_test.c" -o "{{ temp_compile.path }}/support_test"
 
-  - name: Run support_test
-    command: "{{ temp_compile.path }}/support_test"
-    ignore_errors: yes
-    register: support_test
-
-  - name: Remove temp directory
-    file:
-      path: "{{ temp_compile.path }}"
-      state: absent
-
-  - name: Install kernel if needed
-    include_tasks: install_kernel.yml
-    when: support_test.rc != 0
+- name: Run support_test
+  command: "{{ temp_compile.path }}/support_test"
+  ignore_errors: yes
+  register: support_test
   tags:
     - hardware_check
+
+- name: Remove temp directory
+  file:
+    path: "{{ temp_compile.path }}"
+    state: absent
+
+# check if hardware_check in skip-tags -> to force CI run
+- name: Install kernel if needed
+  include_tasks: install_kernel.yml
+  when: "'hardware_check' in ansible_skip_tags or support_test.rc != 0"

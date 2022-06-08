@@ -5,7 +5,7 @@
       - kmod
   become: yes
 
-- name: Create tempory directory for downloaded packages
+- name: Create temporary directory for downloaded packages
   tempfile:
     state: directory
   register: down_dir
@@ -13,8 +13,10 @@
 - name: Download deb packages
   get_url:
     url: "{{ item }}"
-    dest: "{{ down_dir.path }}"
-  with_items: "{{ kernel_deb_urls }}"
+    dest: "{{ down_dir.path }}/{{ index }}.deb"
+  loop: "{{ kernel_deb_urls }}"
+  loop_control:
+    index_var: index
 
 - name: Install kAFL kernel
   shell: dpkg -i "{{ down_dir.path }}"/*.deb
