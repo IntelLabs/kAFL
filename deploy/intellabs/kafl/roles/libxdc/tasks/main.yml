@@ -4,13 +4,3 @@
     dest: "{{ libxdc_root }}"
     version: "{{ libxdc_revision | default(omit) }}"
     depth: "{{ git_clone_depth | default(omit) }}"
-
-- name: Build libxdc
-  make:
-    chdir: "{{ libxdc_root }}"
-    params:
-      --jobs: "{{ ansible_processor_nproc }}"
-  environment:
-    C_INCLUDE_PATH: "{{ capstone_root }}/include:{{ libxdc_root }}"
-    LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
-    LD_LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"

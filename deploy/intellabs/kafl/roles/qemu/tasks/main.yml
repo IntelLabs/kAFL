@@ -3,9 +3,12 @@
     name: "{{ item }}"
   become: yes
   with_items:
+    - git
     - pkg-config
+    - build-essential
     - libglib2.0-dev
     - libpixman-1-dev
+    - libgtk-3-dev
 
 - name: Install build dependencies for virtfs
   package:
@@ -24,33 +27,10 @@
     depth: "{{ git_clone_depth | default(omit) }}"
     force: yes
 
-- name: Configure QEMU
-  command:
-    argv:
-      - ./configure
-      - --target-list=x86_64-softmmu
-      - --disable-gtk
-      - --disable-docs
-      - --disable-werror
-      - --disable-capstone
-      - --disable-libssh
-      - --enable-virtfs
-      - --enable-nyx
-      - --enable-nyx-static
-      - --disable-tools
-    chdir: "{{ qemu_root }}"
-  # TODO: duplicated env
-  environment:
-    C_INCLUDE_PATH: "{{ capstone_root }}/include:{{ libxdc_root }}"
-    LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
-    LD_LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
-
 - name: Build QEMU
-  make:
+  command: ./compile_qemu_nyx.sh lto
+  args:
     chdir: "{{ qemu_root }}"
-    params:
-      --jobs: "{{ ansible_processor_nproc }}"
   environment:
-    C_INCLUDE_PATH: "{{ capstone_root }}/include:{{ libxdc_root }}"
-    LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
-    LD_LIBRARY_PATH: "{{ capstone_root }}:{{ libxdc_root }}/"
+    CAPSTONE_ROOT: "{{ capstone_root }}"
+    LIBXDC_ROOT: "{{ libxdc_root }}"
