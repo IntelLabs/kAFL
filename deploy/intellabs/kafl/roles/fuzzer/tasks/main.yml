@@ -13,12 +13,7 @@
   with_items:
     - libgraphviz-dev
     - python3-dev
-
-- name: Ensure virtualenv command is available (Ansible pip module requirement)
-  package:
-    name: virtualenv
-    state: present
-  become: yes
+    - python3-venv
 
 - name: Clone repo
   git:
@@ -27,11 +22,15 @@
     version: "{{ fuzzer_revision | default('master') }}"
     depth: "{{ git_clone_depth | default(omit) }}"
 
+- name: Create venv
+  command: python3 -m venv .venv
+  args:
+    chdir: "{{ kafl_install_root }}"
+
 - name: Install kAFL fuzzer
-  pip:
-    name: "file://{{ fuzzer_root }}"
-    editable: yes
-    virtualenv: "{{ kafl_install_root }}/.venv"
+  command: .venv/bin/python -m pip install -e "file://{{ fuzzer_root }}"
+  args:
+    chdir: "{{ kafl_install_root }}"
 
 - name: Import post_tasks
   import_tasks: post_tasks.yml
