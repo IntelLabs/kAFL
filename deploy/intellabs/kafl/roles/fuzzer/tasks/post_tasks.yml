@@ -1,8 +1,7 @@
-- name: Ensure kvm group exists matching Ubuntu's packaging expected GID
+- name: Ensure kvm group exists
   group:
     name: kvm
     state: present
-    gid: 108
   become: yes
 
 - name: Ensure current user is in kvm group
