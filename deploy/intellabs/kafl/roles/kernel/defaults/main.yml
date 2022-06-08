@@ -1,4 +1,3 @@
 kernel_deb_urls:
-  - https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.10.75/amd64/linux-image-unsigned-5.10.75-051075-generic_5.10.75-051075.202110201038_amd64.deb
-  - https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.10.75/amd64/linux-modules-5.10.75-051075-generic_5.10.75-051075.202110201038_amd64.deb
-kernel_grub_default: 'gnulinux-advanced-3c49041d-17e8-45e5-b207-121483bdd4b9>gnulinux-5.10.75-051075-generic-advanced-3c49041d-17e8-45e5-b207-121483bdd4b9'
+  - https://github.com/IntelLabs/kafl.linux/releases/download/kvm-nyx-5.10.73/linux-image-5.10.73-kafl+_5.10.73-kafl+-1_amd64.deb
+kernel_grub_default: 'gnulinux-advanced-49764e08-5aba-4fc8-ab39-e9d3b268e429>gnulinux-5.10.73-kafl+-advanced-49764e08-5aba-4fc8-ab39-e9d3b268e429'
