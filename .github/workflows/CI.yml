@@ -35,7 +35,7 @@ jobs:
       # skip tags related to non-existent hardware/configuration in the CI runner environment
       - name: Test userspace deployment
         run: > 
-          make deploy_local --
+          make deploy --
           --skip-tags "hardware_check,kvm_device"
           --extra-vars "@parameters.json"
 
@@ -71,7 +71,7 @@ jobs:
           ansible_user=root
           ansible_ssh_pass=toor
           ansible_ssh_common_args="-o StrictHostKeyChecking=no"'
-          >> inventory
+          > inventory
         working-directory: deploy
 
       - name: Setup ansible

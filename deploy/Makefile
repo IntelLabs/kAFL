@@ -4,7 +4,10 @@
 # Makefile recipies for managing kAFL workspace
 
 # declare all targets in this variable
-ALL_TARGETS:=deploy_local deploy
+ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+ALL_TARGETS:=deploy
+LOCALHOST_INVENTORY:=$(shell grep 'localhost ansible_connection=local' $(ROOT_DIR)/inventory)
+ASK_BECOME_PASS:=""
 # declare all target as PHONY
 .PHONY: $(ALL_TARGETS)
 
@@ -19,22 +22,17 @@ ifneq ($(filter $(firstword $(MAKECMDGOALS)), $(ALL_TARGETS)),)
   $(eval $(EXTRA_ARGS):;@:)
 endif
 
-all: deploy_local
+all: deploy
 
-deploy_local: venv
+deploy: venv
 	venv/bin/ansible-galaxy install -r requirements.yml --force
+ifeq ($(GREP_FINDINGS),)
+	$(eval ASK_BECOME_PASS := -K)
 	@echo "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
 	@echo "┃ Ansible BECOME password: if you are using a passwordless SUDO, skip by pressing enter.┃"
 	@echo "└━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┘"
-	venv/bin/ansible-playbook -i 'localhost,' -c local site.yml -K $(EXTRA_ARGS)
-
-deploy: venv inventory
-	venv/bin/ansible-galaxy install -r requirements.yml --force
-	venv/bin/ansible-playbook -i inventory site.yml $(EXTRA_ARGS)
-
-inventory:
-	@echo "Please create a file named 'inventory'"
-	@exit 1
+endif
+	venv/bin/ansible-playbook -i $(ROOT_DIR)/inventory $(ROOT_DIR)/site.yml $(ASK_BECOME_PASS) $(EXTRA_ARGS)
 
 venv:
 	python3 -m venv venv

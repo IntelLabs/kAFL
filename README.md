@@ -73,8 +73,9 @@ In both cases, you will find in the installation directory:
 
 - installation directory: `<repo_root>/kafl`
 
+Run the depployment with:
 ~~~
-make deploy_local
+make deploy
 ~~~
 
 You will be prompted for your root password.
@@ -84,7 +85,14 @@ If you are using a _passwordless sudo_ setup, just skip this by pressing enter.
 
 - installation directory: `$HOME/kafl`
 
-You will have to create an `inventory` file to describe your nodes, according to [Ansible's inventory guide](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html)
+You will have to update the `deploy/inventory` file to describe your nodes, according to [Ansible's inventory guide](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html).
+Make sure to **remove** the first line:
+
+~~~
+localhost ansible_connection=local
+~~~
+
+And run the deployment:
 
 ~~~
 make deploy

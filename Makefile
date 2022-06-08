@@ -4,7 +4,7 @@
 # Makefile recipies for managing kAFL workspace
 
 # declare all targets in this variable
-ALL_TARGETS:=deploy_local deploy
+ALL_TARGETS:=deploy
 # declare all target as PHONY
 .PHONY: $(ALL_TARGETS)
 
@@ -19,10 +19,7 @@ ifneq ($(filter $(firstword $(MAKECMDGOALS)), $(ALL_TARGETS)),)
   $(eval $(EXTRA_ARGS):;@:)
 endif
 
-all: deploy_local
-
-deploy_local:
-	make -C deploy $@ -- $(EXTRA_ARGS)
+all: deploy
 
 deploy:
 	make -C deploy $@ -- $(EXTRA_ARGS)
