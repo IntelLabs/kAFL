@@ -3,14 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - workspace
-    tags:
-      - '*'
+      - 'master'
     paths-ignore:
       - '**/README.md'
   pull_request:
-    branches:
-      - workspace
     paths-ignore:
       - '**/README.md'
 
