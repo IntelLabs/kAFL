@@ -1,9 +1,12 @@
-.env
-.pipenv
-.west
-Pipfile
-Pipfile.lock
-manifest
-kafl
-examples
-zephyrproject
+# IDE
+.vscode/
+
+# Python venvs
+venv/
+.venv/
+
+# Ansible collection artifacts
+*.tar.gz
+
+# kAFL local install dir at repo root
+/kafl/

@@ -1,0 +1,27 @@
+- name: Ensure kvm group exists
+  group:
+    name: kvm
+    state: present
+  become: yes
+
+- name: Ensure current user is in kvm group
+  user:
+    name: "{{ ansible_user_id }}"
+    groups: kvm
+    append: yes
+  become: yes
+
+- name: Ensure /dev/kvm has right permissions
+  file:
+    path: /dev/kvm
+    owner: root
+    group: kvm
+    mode: '0660'
+  become: yes
+  tags:
+    - kvm_device
+
+- name: Create .env file
+  template:
+    src: env.j2
+    dest: "{{ kafl_install_root }}/.env"

@@ -1,0 +1,20 @@
+- name: Checking for intel_pt support in cpuinfo
+  shell: grep intel_pt /proc/cpuinfo
+  register: res
+  failed_when: res.rc != 0
+  tags:
+    - hardware_check
+
+- name: Checking that pmu_name is not broadwell
+  shell: grep --invert-match broadwell /sys/devices/cpu/caps/pmu_name
+  tags:
+    - hardware_check
+
+- name: Ensure minimal deps are available
+  package:
+    name: "{{ item }}"
+    state: present
+  become: yes
+  with_items:
+    - dpkg
+    - sudo

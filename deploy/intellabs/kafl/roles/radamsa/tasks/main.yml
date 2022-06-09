@@ -1,0 +1,20 @@
+- name: Install radamsa dependencies
+  package:
+    name: "{{ item }}"
+  become: yes
+  with_items:
+    - wget
+    - curl
+
+- name: Clone repo
+  git:
+    repo: "{{ radamsa_url }}"
+    dest: "{{ radamsa_root }}"
+    version: "{{ radamsa_revision | default(omit) }}"
+    depth: "{{ git_clone_depth | default(omit) }}"
+
+- name: Build radamsa
+  make:
+    chdir: "{{ radamsa_root }}"
+    params:
+      --jobs: "{{ ansible_processor_nproc }}"

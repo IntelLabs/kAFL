@@ -1,0 +1,36 @@
+- name: Import pre_tasks
+  import_tasks: pre_tasks.yml
+
+- name: Ensure kAFL parent directory exists
+  file:
+    path: "{{ kafl_install_root | dirname }}"
+    state: directory
+
+- name: Install kAFL system dependencies
+  package:
+    name: "{{ item }}"
+  become: yes
+  with_items:
+    - libgraphviz-dev
+    - python3-dev
+    - python3-venv
+
+- name: Clone repo
+  git:
+    repo: "{{ fuzzer_url }}"
+    dest: "{{ fuzzer_root }}"
+    version: "{{ fuzzer_revision | default('master') }}"
+    depth: "{{ git_clone_depth | default(omit) }}"
+
+- name: Create venv
+  command: python3 -m venv .venv
+  args:
+    chdir: "{{ kafl_install_root }}"
+
+- name: Install kAFL fuzzer
+  command: .venv/bin/python -m pip install -e "file://{{ fuzzer_root }}"
+  args:
+    chdir: "{{ kafl_install_root }}"
+
+- name: Import post_tasks
+  import_tasks: post_tasks.yml

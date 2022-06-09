@@ -1,0 +1,3 @@
+collections:
+  - source: ./intellabs/kafl
+    type: dir
