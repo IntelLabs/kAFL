@@ -6,7 +6,7 @@
 # declare all targets in this variable
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 ALL_TARGETS:=deploy
-LOCALHOST_INVENTORY:=$(shell grep 'localhost ansible_connection=local' $(ROOT_DIR)/inventory)
+LOCALHOST_INVENTORY:=$(shell grep 'localhost ansible_connection=local' $(ROOT_DIR)/inventory > /dev/null 2>&1; echo $$?)
 ASK_BECOME_PASS:=""
 # declare all target as PHONY
 .PHONY: $(ALL_TARGETS)
@@ -26,7 +26,7 @@ all: deploy
 
 deploy: venv
 	venv/bin/ansible-galaxy install -r requirements.yml --force
-ifeq ($(GREP_FINDINGS),)
+ifeq ($(LOCALHOST_INVENTORY),0)
 	$(eval ASK_BECOME_PASS := -K)
 	@echo "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
 	@echo "┃ Ansible BECOME password: if you are using a passwordless SUDO, skip by pressing enter.┃"
