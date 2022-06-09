@@ -7,7 +7,6 @@
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 ALL_TARGETS:=deploy
 LOCALHOST_INVENTORY:=$(shell grep 'localhost ansible_connection=local' $(ROOT_DIR)/inventory > /dev/null 2>&1; echo $$?)
-ASK_BECOME_PASS:=""
 # declare all target as PHONY
 .PHONY: $(ALL_TARGETS)
 
