@@ -5,7 +5,7 @@
 
 # declare all targets in this variable
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-ALL_TARGETS:=deploy
+ALL_TARGETS:=deploy clean
 LOCALHOST_INVENTORY:=$(shell grep 'localhost ansible_connection=local' $(ROOT_DIR)/inventory > /dev/null 2>&1; echo $$?)
 # declare all target as PHONY
 .PHONY: $(ALL_TARGETS)
@@ -37,3 +37,6 @@ venv:
 	python3 -m venv venv
 	venv/bin/pip install wheel
 	venv/bin/pip install -r requirements.txt
+
+clean:
+	rm -rf "$(ROOT_DIR)/venv"

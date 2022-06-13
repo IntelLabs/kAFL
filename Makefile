@@ -4,7 +4,7 @@
 # Makefile recipies for managing kAFL workspace
 
 # declare all targets in this variable
-ALL_TARGETS:=deploy
+ALL_TARGETS:=deploy clean
 # declare all target as PHONY
 .PHONY: $(ALL_TARGETS)
 
@@ -23,3 +23,6 @@ all: deploy
 
 deploy:
 	make -C deploy $@ -- $(EXTRA_ARGS)
+
+clean:
+	make -C deploy $@
