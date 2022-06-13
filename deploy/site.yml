@@ -3,6 +3,12 @@
     http_proxy: "{{ proxy_env.http_proxy | default(lookup('env', 'HTTP_PROXY')) }}"
     https_proxy: "{{ proxy_env.https_proxy | default(lookup('env', 'HTTPS_PROXY')) }}"
 
+  pre_tasks:
+    - name: apt update to ensure root access is available (or fail early)
+      apt:
+        update_cache: yes
+      become: yes
+
   roles:
     - role: intellabs.kafl.fuzzer
       tags:
