@@ -21,6 +21,13 @@
   tags:
     - kvm_device
 
+- name: Update kvm_intel module loading options
+  copy:
+    dest: /etc/modprobe.d/kafl-kvm-intel.conf
+    content: |
+      options kvm-intel nested=1 ve_injection=1 halt_on_triple_fault=1
+  become: yes
+
 - name: Create .env file
   template:
     src: env.j2
