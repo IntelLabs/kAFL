@@ -26,6 +26,9 @@
     version: "{{ qemu_revision | default(omit) }}"
     depth: "{{ git_clone_depth | default(omit) }}"
     force: yes
+  tags:
+    - clone
+
 
 - name: Build QEMU
   command: ./compile_qemu_nyx.sh lto

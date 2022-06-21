@@ -12,6 +12,8 @@
     dest: "{{ radamsa_root }}"
     version: "{{ radamsa_revision | default(omit) }}"
     depth: "{{ git_clone_depth | default(omit) }}"
+  tags:
+    - clone
 
 - name: Build radamsa
   make:
