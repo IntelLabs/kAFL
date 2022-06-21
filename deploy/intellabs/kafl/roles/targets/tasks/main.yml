@@ -4,3 +4,5 @@
     dest: "{{ targets_dest }}"
     version: "{{ targets_revision | default(omit) }}"
     depth: "{{ git_clone_depth | default(omit) }}"
+  tags:
+    - clone
