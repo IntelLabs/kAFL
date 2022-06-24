@@ -1,0 +1,3 @@
+nyx_packer_url: https://github.com/il-steffen/packer
+nyx_packer_revision: kafl_stable
+nyx_packer_root: "{{ kafl_install_root }}/packer"
