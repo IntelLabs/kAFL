@@ -1,0 +1,8 @@
+- name: Clone Nyx Packer
+  git:
+    repo: "{{ nyx_packer_url }}"
+    dest: "{{ nyx_packer_root }}"
+    version: "{{ nyx_packer_revision | default(omit) }}"
+    force: yes
+  tags:
+    - clone
