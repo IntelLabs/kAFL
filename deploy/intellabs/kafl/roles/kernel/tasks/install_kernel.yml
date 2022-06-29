@@ -31,13 +31,14 @@
   block:
   - name: Determine Grub menuentry
     shell: |
+      awk -F\' '/submenu.*Advanced\ / {print $4}' /boot/grub/grub.cfg
       awk -F\' '/menuentry.*{{ kernel_grep_string }}/ {print $4}' /boot/grub/grub.cfg |head -1
-    register: grub_menuentry_id
+    register: grub_menuentry_ids
 
   - name: Update /etc/default/grub
     lineinfile:
       regexp: ^GRUB_DEFAULT=
-      line: GRUB_DEFAULT="{{ grub_menuentry_id.stdout }}"
+      line: GRUB_DEFAULT="{{ grub_menuentry_ids.stdout_lines |join('>') }}"
       dest: /etc/default/grub
       backup: yes
     become: yes
