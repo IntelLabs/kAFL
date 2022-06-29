@@ -103,7 +103,7 @@ Note: if your nodes require a proxy setup, update the `group_vars/all.yml`.
 
 Now that kAFL has been installed, you can continue by checking one of the example targets available.
 
-This command will clone the [kafl.targets](https://github.com/IntelLabs/kafl.targets) repo into `<install_dir>/examples`
+This command will clone the [kafl.targets](https://github.com/IntelLabs/kafl.targets) repo into `<install_dir>/targets`
 
 ~~~
 make deploy -- --tags targets
