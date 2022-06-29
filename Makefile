@@ -4,7 +4,7 @@
 # Makefile recipies for managing kAFL workspace
 
 # declare all targets in this variable
-ALL_TARGETS:=deploy clean
+ALL_TARGETS:=deploy clean env
 # declare all target as PHONY
 .PHONY: $(ALL_TARGETS)
 
@@ -26,3 +26,8 @@ deploy:
 
 clean:
 	make -C deploy $@
+
+env: SHELL:=bash
+env: env.sh
+	@echo "Entering environment in sub-shell. Exit with 'Ctrl-d'."
+	@PROMPT_COMMAND='source env.sh; unset PROMPT_COMMAND' $(SHELL)
