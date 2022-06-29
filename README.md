@@ -16,8 +16,6 @@ kAFL/Nyx is a fast guided fuzzer for the x86 VM. It is great for anything that
 executes as Qemu/KVM guest, in particular x86 firmware, kernels and full-blown
 operating systems.
 
-kAFL now leverages the greatly extended and improved [Nyx backend](https://nyx-fuzz.com).
-
 ## Features
 
 - kAFL/Nyx uses Intel VT, Intel PML and Intel PT to achieve efficient execution,
@@ -37,6 +35,8 @@ kAFL now leverages the greatly extended and improved [Nyx backend](https://nyx-f
 
 For details on Redqueen, Grimoire, IJON, Nyx, please visit [nyx-fuzz.com](https://nyx-fuzz.com).
 
+**Note: All components and scripts are provided for research and validation purposes only.**
+
 ## Components
 
 The project is structured around multiple components:
@@ -50,48 +50,38 @@ The project is structured around multiple components:
 
 # Getting started
 
-## Requirements
+## Platform Requirements
 
-- `python3`
-- `python3-venv`
+- The setup requires a Gen-6 or newer Intel CPU (for Intel PT) and sufficient
+  RAM to run several VMs at once.
+- A modifed Linux host kernel is required for VM-based snapshot fuzzing with
+  Intel PT coverage feedback. This setup does not run inside a VM or container!
 
-~~~
+## Local Installation
+
+The userspace installation and fuzzing workflow has been tested for recent
+Ubuntu (>=20.04) and Debian (>=bullseye). The base installation is captured
+as an Ansible workflow which you can bootstrap using Python:
+
+~~
 sudo apt-get install python3 python3-venv
-~~~
-
-## Setup
-
-kAFL's deployment offers the possibility of local or remote installation.
-
-In both cases, you will find in the installation directory:
-- `.env` file: useful environment variables for your scripts
-- `.venv` Python virtual environment: where kAFL fuzzer is installed
-
-
-### Local
-
-- installation directory: `<repo_root>/kafl`
-
-Run the depployment with:
-~~~
 make deploy
-~~~
+~~
 
 You will be prompted for your root password.
 If you are using a _passwordless sudo_ setup, just skip this by pressing enter.
 
-### Remote
+## Remote Installation
 
-- installation directory: `$HOME/kafl`
-
-You will have to update the `deploy/inventory` file to describe your nodes, according to [Ansible's inventory guide](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html).
+kAFL's deployment offers the possibility of remote installation using Ansible.
+Update the file `deploy/inventory` to describe your target nodes according to
+the [Ansible inventory guide](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html).
 Make sure to **remove** the first line:
 
-~~~
-localhost ansible_connection=local
-~~~
+> localhost ansible_connection=local
 
-And run the deployment:
+
+Deployment will install kAFL to `$HOME/kafl` of the target machines:
 
 ~~~
 make deploy
@@ -99,11 +89,29 @@ make deploy
 
 Note: if your nodes require a proxy setup, update the `group_vars/all.yml`.
 
-# Available Example Targets
+
+# Next Steps
+
+## Activate the Environment
+
+The installation is made available as shell and python environment. You can
+activate it by sourcing the provided `env.sh`:
+
+```sh
+source env.sh
+```
+
+Alternatively, you can activate the environment in a sub-shell:
+
+```
+make env
+```
+
+## Example Targets
 
 Now that kAFL has been installed, you can continue by checking one of the example targets available.
 
-This command will clone the [kafl.targets](https://github.com/IntelLabs/kafl.targets) repo into `<install_dir>/targets`
+Clone the [kafl.targets](https://github.com/IntelLabs/kafl.targets) repo into `<install_dir>/targets`:
 
 ~~~
 make deploy -- --tags targets
@@ -111,5 +119,5 @@ make deploy -- --tags targets
 
 The following examples are suitable as out-of-the-box test cases:
 - [Linux kernel](https://github.com/IntelLabs/kafl.targets/tree/master/linux-kernel): Fuzz an OS kernel with a kAFL agent (harness) directly in the target
-- [Zephyr hello world](https://github.com/IntelLabs/kafl.targets/tree/master/zephyr_x86_32)
+- [Zephyr RTOS](https://github.com/IntelLabs/kafl.targets/tree/master/zephyr_x86_32): Simple fuzzing test cases based on Zephyr RTOS
 - [Windows](https://github.com/IntelLabs/kAFL/issues/53): This links to an opened issue since it's a WIP
