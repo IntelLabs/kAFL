@@ -1,7 +1,9 @@
 # IDE
 .vscode/
+ctags
 
 # Python venvs
+/env.sh
 venv/
 .venv/
 

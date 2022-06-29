@@ -24,4 +24,4 @@
 - name: Create .env file
   template:
     src: env.j2
-    dest: "{{ kafl_install_root }}/.env"
+    dest: "{{ install_root }}/env.sh"
