@@ -20,8 +20,3 @@
   become: yes
   tags:
     - kvm_device
-
-- name: Create .env file
-  template:
-    src: env.j2
-    dest: "{{ kafl_install_root }}/.env"
