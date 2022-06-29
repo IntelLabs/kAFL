@@ -21,7 +21,7 @@
   tags:
     - kvm_device
 
-- name: Create .env file
+- name: Create env.sh file
   template:
     src: env.j2
-    dest: "{{ install_root }}/env.sh"
+    dest: "{{ playbook_dir|dirname }}/env.sh"
