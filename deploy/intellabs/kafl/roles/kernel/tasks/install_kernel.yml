@@ -22,26 +22,32 @@
   shell: dpkg -i "{{ down_dir.path }}"/*.deb
   become: yes
 
-- name: Configure boot entry to select new kernel
-  lineinfile:
-    regexp: ^GRUB_DEFAULT=
-    line: GRUB_DEFAULT="{{ kernel_grub_default }}"
-    dest: /etc/default/grub
-    backup: yes
-  become: yes
-  tags:
-    - update_grub
-
-- name: Update GRUB
-  command: update-grub
-  become: yes
-  tags:
-    - update_grub
-
 - name: Remove temporary download directory
   file:
     path: "{{ down_dir.path }}"
     state: absent
+
+- name: Configure boot entry to select new kernel
+  block:
+  - name: Determine Grub menuentry
+    shell: |
+      awk -F\' '/submenu.*Advanced\ / {print $4}' /boot/grub/grub.cfg
+      awk -F\' '/menuentry.*{{ kernel_grep_string }}/ {print $4}' /boot/grub/grub.cfg |head -1
+    register: grub_menuentry_ids
+
+  - name: Update /etc/default/grub
+    lineinfile:
+      regexp: ^GRUB_DEFAULT=
+      line: GRUB_DEFAULT="{{ grub_menuentry_ids.stdout_lines |join('>') }}"
+      dest: /etc/default/grub
+      backup: yes
+    become: yes
+
+  - name: Update GRUB
+    command: update-grub
+    become: yes
+  tags:
+    - update_grub
 
 - name: Reboot on new kernel
   reboot:
