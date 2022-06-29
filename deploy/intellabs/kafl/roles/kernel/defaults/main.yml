@@ -1,3 +1,4 @@
+# keep these in sync so we can find the grub entry matching the kernel
+kernel_grep_string: '5.10.73-kafl+'
 kernel_deb_urls:
   - https://github.com/IntelLabs/kafl.linux/releases/download/kvm-nyx-5.10.73/linux-image-5.10.73-kafl+_5.10.73-kafl+-1_amd64.deb
-kernel_grub_default: 'gnulinux-advanced-49764e08-5aba-4fc8-ab39-e9d3b268e429>gnulinux-5.10.73-kafl+-advanced-49764e08-5aba-4fc8-ab39-e9d3b268e429'
