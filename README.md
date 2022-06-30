@@ -16,6 +16,8 @@ kAFL/Nyx is a fast guided fuzzer for the x86 VM. It is great for anything that
 executes as Qemu/KVM guest, in particular x86 firmware, kernels and full-blown
 operating systems.
 
+**Note: All components are provided for research and validation purposes only.**
+
 ## Features
 
 - kAFL/Nyx uses Intel VT, Intel PML and Intel PT to achieve efficient execution,
@@ -34,8 +36,6 @@ operating systems.
   more clever large-scale mutations.
 
 For details on Redqueen, Grimoire, IJON, Nyx, please visit [nyx-fuzz.com](https://nyx-fuzz.com).
-
-**Note: All components and scripts are provided for research and validation purposes only.**
 
 ## Components
 
