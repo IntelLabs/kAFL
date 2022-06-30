@@ -55,7 +55,7 @@ The project is structured around multiple components:
 - The setup requires a Gen-6 or newer Intel CPU (for Intel PT) and sufficient
   RAM to run several VMs at once.
 - A modifed Linux host kernel is required for VM-based snapshot fuzzing with
-  Intel PT coverage feedback. This setup does not run inside a VM or container!
+  Intel PT coverage feedback. Setup inside VM or container is currently not supported!
 
 ## Local Installation
 
@@ -89,21 +89,14 @@ make deploy
 
 Note:
 - If your nodes require a proxy setup, update the `group_vars/all.yml`.
-- Remote deployment assumes password-less ssh and sudo.
+- Check Ansible documentation for how to manage remote access.
 
 
 # Next Steps
 
 ## Activate the Environment
 
-The installation is made available as shell and python environment. You can
-activate it by sourcing the provided `env.sh`:
-
-~~~sh
-source env.sh
-~~~
-
-Alternatively, you can activate the environment in a sub-shell:
+To work with the installation, activate the environment in your shell:
 
 ~~~sh
 make env
