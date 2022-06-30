@@ -68,7 +68,7 @@ sudo apt-get install python3 python3-venv
 make deploy
 ~~~
 
-You will be prompted for your root password.
+Ansible setup will ask for your root password.
 If you are using a _passwordless sudo_ setup, just skip this by pressing enter.
 
 ## Remote Installation
@@ -87,7 +87,9 @@ Deployment will install kAFL to `$HOME/kafl` of the target machines:
 make deploy
 ~~~
 
-Note: if your nodes require a proxy setup, update the `group_vars/all.yml`.
+Note:
+- If your nodes require a proxy setup, update the `group_vars/all.yml`.
+- Remote deployment assumes password-less ssh and sudo.
 
 
 # Next Steps
