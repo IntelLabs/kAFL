@@ -63,10 +63,10 @@ The userspace installation and fuzzing workflow has been tested for recent
 Ubuntu (>=20.04) and Debian (>=bullseye). The base installation is captured
 as an Ansible workflow which you can bootstrap using Python:
 
-~~
+~~~sh
 sudo apt-get install python3 python3-venv
 make deploy
-~~
+~~~
 
 You will be prompted for your root password.
 If you are using a _passwordless sudo_ setup, just skip this by pressing enter.
@@ -83,7 +83,7 @@ Make sure to **remove** the first line:
 
 Deployment will install kAFL to `$HOME/kafl` of the target machines:
 
-~~~
+~~~sh
 make deploy
 ~~~
 
@@ -97,15 +97,15 @@ Note: if your nodes require a proxy setup, update the `group_vars/all.yml`.
 The installation is made available as shell and python environment. You can
 activate it by sourcing the provided `env.sh`:
 
-```sh
+~~~sh
 source env.sh
-```
+~~~
 
 Alternatively, you can activate the environment in a sub-shell:
 
-```
+~~~sh
 make env
-```
+~~~
 
 ## Example Targets
 
@@ -113,7 +113,7 @@ Now that kAFL has been installed, you can continue by checking one of the exampl
 
 Clone the [kafl.targets](https://github.com/IntelLabs/kafl.targets) repo into `<install_dir>/targets`:
 
-~~~
+~~~sh
 make deploy -- --tags targets
 ~~~
 
