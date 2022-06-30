@@ -4,9 +4,10 @@
 # Makefile recipies for managing kAFL workspace
 
 # declare all targets in this variable
+ALL_TARGETS:=deploy clean update build
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-ALL_TARGETS:=deploy clean
 LOCALHOST_INVENTORY:=$(shell grep 'localhost ansible_connection=local' $(ROOT_DIR)/inventory > /dev/null 2>&1; echo $$?)
+ANSIBLE_COMMAND:=venv/bin/ansible-playbook -i $(ROOT_DIR)/inventory $(ROOT_DIR)/site.yml
 # declare all target as PHONY
 .PHONY: $(ALL_TARGETS)
 
@@ -31,7 +32,7 @@ ifeq ($(LOCALHOST_INVENTORY),0)
 	@echo "┃ Ansible BECOME password: if you are using a passwordless SUDO, skip by pressing enter.┃"
 	@echo "└━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┘"
 endif
-	venv/bin/ansible-playbook -i $(ROOT_DIR)/inventory $(ROOT_DIR)/site.yml $(ASK_BECOME_PASS) $(EXTRA_ARGS)
+	$(ANSIBLE_COMMAND) $(ASK_BECOME_PASS) $(EXTRA_ARGS)
 
 venv:
 	python3 -m venv venv
@@ -40,3 +41,15 @@ venv:
 
 clean:
 	rm -rf "$(ROOT_DIR)/venv"
+
+# Developer targets
+#------------------
+# pull the latest changes from all components
+# assumes local deployment
+update: venv
+	venv/bin/ansible-galaxy install -r requirements.yml --force
+	$(ANSIBLE_COMMAND) -K --tags clone $(EXTRA_ARGS)
+
+# rebuild all components
+build: venv
+	$(ANSIBLE_COMMAND) -K --tags build $(EXTRA_ARGS)
