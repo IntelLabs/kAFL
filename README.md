@@ -74,9 +74,9 @@ If you are using a _passwordless sudo_ setup, just skip this by pressing enter.
 ## Remote Installation
 
 kAFL's deployment offers the possibility of remote installation using Ansible.
-Update the file `deploy/inventory` to describe your target nodes according to
-the [Ansible inventory guide](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html).
-Make sure to **remove** the first line:
+Update the `deploy/inventory` file according to the [Ansible inventory
+guide](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html)
+and make sure to **remove** the first line:
 
 > localhost ansible_connection=local
 
