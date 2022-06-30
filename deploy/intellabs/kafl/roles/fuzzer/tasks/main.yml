@@ -33,6 +33,8 @@
   command: .venv/bin/python -m pip install -e "file://{{ fuzzer_root }}"
   args:
     chdir: "{{ kafl_install_root }}"
+  tags:
+    - build
 
 - name: Import post_tasks
   import_tasks: post_tasks.yml
