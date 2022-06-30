@@ -20,3 +20,5 @@
     chdir: "{{ radamsa_root }}"
     params:
       --jobs: "{{ ansible_processor_nproc }}"
+  tags:
+    - build
