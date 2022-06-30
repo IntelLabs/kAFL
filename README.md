@@ -55,13 +55,14 @@ The project is structured around multiple components:
 - The setup requires a Gen-6 or newer Intel CPU (for Intel PT) and sufficient
   RAM to run several VMs at once.
 - A modifed Linux host kernel is required for VM-based snapshot fuzzing with
-  Intel PT coverage feedback. Setup inside VM or container is currently not supported!
+  Intel PT coverage feedback. Setup inside VM or container is not supported at
+  this point.
 
 ## Local Installation
 
 The userspace installation and fuzzing workflow has been tested for recent
 Ubuntu (>=20.04) and Debian (>=bullseye). The base installation is captured
-as an Ansible workflow which you can bootstrap using Python:
+as an Ansible playbook which you can launch as follows:
 
 ~~~sh
 sudo apt-get install python3 python3-venv
