@@ -1,0 +1,6 @@
+# Collection level default variables
+# not supported by Ansible, so workaround is to created a dedicated
+# role and make other roles depend on it
+
+# discard any modified files in the git repositories
+force_clone: true

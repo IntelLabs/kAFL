@@ -21,6 +21,7 @@
     dest: "{{ fuzzer_root }}"
     version: "{{ fuzzer_revision | default('master') }}"
     depth: "{{ git_clone_depth | default(omit) }}"
+    force: "{{ force_clone }}"
   tags:
     - clone
 
@@ -33,6 +34,8 @@
   command: .venv/bin/python -m pip install -e "file://{{ fuzzer_root }}"
   args:
     chdir: "{{ kafl_install_root }}"
+  tags:
+    - build
 
 - name: Import post_tasks
   import_tasks: post_tasks.yml

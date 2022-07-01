@@ -12,6 +12,7 @@
     dest: "{{ radamsa_root }}"
     version: "{{ radamsa_revision | default(omit) }}"
     depth: "{{ git_clone_depth | default(omit) }}"
+    force: "{{ force_clone }}"
   tags:
     - clone
 
@@ -20,3 +21,5 @@
     chdir: "{{ radamsa_root }}"
     params:
       --jobs: "{{ ansible_processor_nproc }}"
+  tags:
+    - build
