@@ -3,4 +3,4 @@
 # role and make other roles depend on it
 
 # discard any modified files in the git repositories
-deploy_force_clone: true
+force_clone: true

@@ -12,7 +12,7 @@
     dest: "{{ radamsa_root }}"
     version: "{{ radamsa_revision | default(omit) }}"
     depth: "{{ git_clone_depth | default(omit) }}"
-    force: "{{ deploy_force_clone }}"
+    force: "{{ force_clone }}"
   tags:
     - clone
 

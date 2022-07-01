@@ -13,6 +13,6 @@
     dest: "{{ capstone_root }}"
     version: "{{ capstone_revision | default('master') }}"
     depth: "{{ git_clone_depth | default(omit) }}"
-    force: "{{ deploy_force_clone }}"
+    force: "{{ force_clone }}"
   tags:
     - clone

@@ -3,6 +3,6 @@
     repo: "{{ nyx_packer_url }}"
     dest: "{{ nyx_packer_root }}"
     version: "{{ nyx_packer_revision | default(omit) }}"
-    force: "{{ deploy_force_clone }}"
+    force: "{{ force_clone }}"
   tags:
     - clone
