@@ -48,7 +48,7 @@ clean:
 # assumes local deployment
 update: venv
 	venv/bin/ansible-galaxy install -r requirements.yml --force
-	$(ANSIBLE_COMMAND) -K --tags clone $(EXTRA_ARGS)
+	$(ANSIBLE_COMMAND) -K --tags clone --extra-vars "force_clone=false" $(EXTRA_ARGS)
 
 # rebuild all components
 build: venv
