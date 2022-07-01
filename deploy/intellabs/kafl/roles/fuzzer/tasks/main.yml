@@ -21,6 +21,7 @@
     dest: "{{ fuzzer_root }}"
     version: "{{ fuzzer_revision | default('master') }}"
     depth: "{{ git_clone_depth | default(omit) }}"
+    force: "{{ deploy_force_clone }}"
   tags:
     - clone
 
