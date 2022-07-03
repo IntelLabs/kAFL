@@ -8,8 +8,8 @@
   pre_tasks:
     - name: apt update to ensure root access is available (or fail early)
       apt:
-        update_cache: yes
-      become: yes
+        update_cache: true
+      become: true
 
   roles:
     - role: intellabs.kafl.fuzzer
@@ -17,7 +17,7 @@
         - fuzzer
 
   post_tasks:
-  - name: Create env.sh file
-    template:
-      src: env.j2
-      dest: "{{ workspace_root }}/env.sh"
+    - name: Create env.sh file
+      template:
+        src: env.j2
+        dest: "{{ workspace_root }}/env.sh"

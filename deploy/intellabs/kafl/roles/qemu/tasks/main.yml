@@ -1,7 +1,7 @@
 - name: Install build dependencies
   apt:
     name: "{{ item }}"
-  become: yes
+  become: true
   with_items:
     - git
     - pkg-config
@@ -14,7 +14,7 @@
   package:
     name: "{{ item }}"
     state: present
-  become: yes
+  become: true
   with_items:
     - libcap-dev
     - libattr1-dev
@@ -28,7 +28,6 @@
     force: "{{ force_clone }}"
   tags:
     - clone
-
 
 - name: Build QEMU
   command: ./compile_qemu_nyx.sh lto

@@ -1,7 +1,7 @@
 - name: Install radamsa dependencies
   package:
     name: "{{ item }}"
-  become: yes
+  become: true
   with_items:
     - wget
     - curl
