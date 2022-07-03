@@ -14,7 +14,7 @@
   package:
     name: "{{ item }}"
     state: present
-  become: yes
+  become: true
   with_items:
     - dpkg
     - sudo

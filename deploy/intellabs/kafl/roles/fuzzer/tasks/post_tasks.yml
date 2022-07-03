@@ -2,14 +2,14 @@
   group:
     name: kvm
     state: present
-  become: yes
+  become: true
 
 - name: Ensure current user is in kvm group
   user:
     name: "{{ ansible_user_id }}"
     groups: kvm
-    append: yes
-  become: yes
+    append: true
+  become: true
 
 - name: Ensure /dev/kvm has right permissions
   file:
@@ -17,6 +17,6 @@
     owner: root
     group: kvm
     mode: '0660'
-  become: yes
+  become: true
   tags:
     - kvm_device
