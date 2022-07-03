@@ -2,7 +2,7 @@
   package:
     name:
       - build-essential
-  become: yes
+  become: true
 
 - name: Create temporary directory
   tempfile:
@@ -19,7 +19,7 @@
 
 - name: Run support_test
   command: "{{ temp_compile.path }}/support_test"
-  ignore_errors: yes
+  ignore_errors: true
   register: support_test
   tags:
     - hardware_check

@@ -1,14 +1,15 @@
+---
 - name: Ensure minimal deps are available
-  package:
+  ansible.builtin.package:
     name: "{{ item }}"
     state: present
-  become: yes
+  become: true
   with_items:
     - git
     - build-essential
 
 - name: Clone repo
-  git:
+  ansible.builtin.git:
     repo: "{{ capstone_url }}"
     dest: "{{ capstone_root }}"
     version: "{{ capstone_revision | default('master') }}"
