@@ -1,18 +1,18 @@
 - name: Ensure kvm group exists
-  group:
+  ansible.builtin.group:
     name: kvm
     state: present
   become: true
 
 - name: Ensure current user is in kvm group
-  user:
+  ansible.builtin.user:
     name: "{{ ansible_user_id }}"
     groups: kvm
     append: true
   become: true
 
 - name: Ensure /dev/kvm has right permissions
-  file:
+  ansible.builtin.file:
     path: /dev/kvm
     owner: root
     group: kvm

@@ -1,35 +1,38 @@
 - name: Install required dependencies
-  package:
+  ansible.builtin.package:
     name:
       - build-essential
   become: true
 
 - name: Create temporary directory
-  tempfile:
+  ansible.builtin.tempfile:
     state: directory
   register: temp_compile
 
 - name: Upload support_test.c
-  copy:
+  ansible.builtin.copy:
     src: files/support_test.c
     dest: "{{ temp_compile.path }}/support_test.c"
+    mode: 0644
 
 - name: Compile support_test.c
-  command: gcc "{{ temp_compile.path }}/support_test.c" -o "{{ temp_compile.path }}/support_test"
+  ansible.builtin.command: |
+    gcc "{{ temp_compile.path }}/support_test.c" -o "{{ temp_compile.path }}/support_test"
 
 - name: Run support_test
-  command: "{{ temp_compile.path }}/support_test"
+  ansible.builtin.command: |
+    "{{ temp_compile.path }}/support_test"
   ignore_errors: true
   register: support_test
   tags:
     - hardware_check
 
 - name: Remove temp directory
-  file:
+  ansible.builtin.file:
     path: "{{ temp_compile.path }}"
     state: absent
 
 # check if hardware_check in skip-tags -> to force CI run
 - name: Install kernel if needed
-  import_tasks: install_kernel.yml
+  ansible.builtin.import_tasks: install_kernel.yml
   when: "'update_grub' in ansible_run_tags or 'hardware_check' in ansible_skip_tags or support_test.rc != 0"
