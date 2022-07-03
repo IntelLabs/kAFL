@@ -1,5 +1,5 @@
 - name: Clone Nyx Packer
-  git:
+  ansible.builtin.git:
     repo: "{{ nyx_packer_url }}"
     dest: "{{ nyx_packer_root }}"
     version: "{{ nyx_packer_revision | default(omit) }}"

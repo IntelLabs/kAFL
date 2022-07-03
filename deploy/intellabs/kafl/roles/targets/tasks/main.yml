@@ -1,5 +1,5 @@
 - name: Clone repo
-  git:
+  ansible.builtin.git:
     repo: "{{ targets_url }}"
     dest: "{{ targets_dest }}"
     version: "{{ targets_revision | default(omit) }}"
