@@ -1,5 +1,5 @@
 # define shared variables here, since kafl is the top-level role
-kafl_install_root: "{{ playbook_dir | dirname if ansible_connection == 'local' else ansible_env.HOME }}/kafl"
+kafl_install_root: "{{ workspace_root }}/kafl"
 
 libxdc_root: "{{ kafl_install_root }}/libxdc"
 capstone_root: "{{ kafl_install_root }}/capstone"
