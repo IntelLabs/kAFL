@@ -13,6 +13,29 @@ on:
       - '**/README.md'
 
 jobs:
+  ansible-lint:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+          
+      - name: Setup ansible venv
+        working-directory: deploy
+        run: |
+          make venv
+
+      - name: Install ansible-lint
+        working-directory: deploy
+        run: |
+          ./venv/bin/pip install ansible-lint
+
+      - name: Run ansible-lint
+        working-directory: deploy
+        run: |
+          ./venv/bin/ansible-lint
+      
   local:
     strategy:
         matrix:
