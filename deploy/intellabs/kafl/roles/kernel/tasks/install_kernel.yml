@@ -22,6 +22,8 @@
 - name: Install kAFL kernel
   ansible.builtin.shell: dpkg -i "{{ down_dir.path }}"/*.deb
   become: true
+  register: install_kernel
+  changed_when: false
 
 - name: Remove temporary download directory
   ansible.builtin.file:

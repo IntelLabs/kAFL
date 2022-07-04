@@ -3,6 +3,7 @@
     grep intel_pt /proc/cpuinfo
   register: res
   failed_when: res.rc != 0
+  changed_when: false
   tags:
     - hardware_check
 
@@ -11,6 +12,7 @@
     grep --invert-match broadwell /sys/devices/cpu/caps/pmu_name
   register: result
   failed_when: result.rc != 0
+  changed_when: false
   tags:
     - hardware_check
 

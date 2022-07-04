@@ -37,7 +37,7 @@ jobs:
         working-directory: deploy
         run: |
           ./venv/bin/ansible-lint -x 'meta-no-info'
-      
+
   local:
     strategy:
         matrix:
