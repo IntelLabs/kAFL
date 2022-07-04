@@ -29,7 +29,8 @@ jobs:
       - name: Install ansible-lint
         working-directory: deploy
         run: |
-          ./venv/bin/pip install ansible-lint
+          ./venv/bin/pip install wheel
+          ./venv/bin/pip install ansible-lint==6.3.0
 
       - name: Run ansible-lint
         working-directory: deploy
