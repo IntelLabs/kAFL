@@ -5,6 +5,7 @@
   ansible.builtin.file:
     path: "{{ kafl_install_root | dirname }}"
     state: directory
+    mode: 0775
 
 - name: Install kAFL system dependencies
   ansible.builtin.package:
