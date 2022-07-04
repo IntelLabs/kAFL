@@ -32,10 +32,11 @@ jobs:
           ./venv/bin/pip install wheel
           ./venv/bin/pip install ansible-lint==6.3.0
 
+      # ignore 'meta-no-info', since we don't need to publish our roles to Ansible Galaxy
       - name: Run ansible-lint
         working-directory: deploy
         run: |
-          ./venv/bin/ansible-lint
+          ./venv/bin/ansible-lint -x 'meta-no-info'
       
   local:
     strategy:
