@@ -1,0 +1,32 @@
+name: Documentation
+
+on:
+  push:
+    paths:
+      - 'docs/**'
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Build documentation 🔨
+        run: make docs
+
+      - name: Deploy 🚀
+        # pin v4.2.5 commit SHA1
+        uses: JamesIves/github-pages-deploy-action@830e6a4f7c81743c52f3fed0ac67428feff9620a
+        with:
+          branch: latestHTML
+          # note: FOLDER doesn't care about the job's working directory
+          folder: docs/build/html
+          single-commit: true
