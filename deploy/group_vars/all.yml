@@ -2,3 +2,5 @@ proxy_env:
   # set your proxy here.
   # http_proxy:
   # https_proxy:
+install:
+  # workspace_root: "{{ ansible_env.HOME }}/workspace"
