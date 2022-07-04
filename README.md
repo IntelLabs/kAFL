@@ -117,3 +117,12 @@ The following examples are suitable as out-of-the-box test cases:
 - [Linux kernel](https://github.com/IntelLabs/kafl.targets/tree/master/linux-kernel): Fuzz an OS kernel with a kAFL agent (harness) directly in the target
 - [Zephyr RTOS](https://github.com/IntelLabs/kafl.targets/tree/master/zephyr_x86_32): Simple fuzzing test cases based on Zephyr RTOS
 - [Windows](https://github.com/IntelLabs/kAFL/issues/53): This links to an opened issue since it's a WIP
+
+
+## Documentation
+
+You can build and open the project's documentation with:
+
+~~~
+make open_docs
+~~~

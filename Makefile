@@ -3,8 +3,9 @@
 #
 # Makefile recipies for managing kAFL workspace
 
+ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 # declare all targets in this variable
-ALL_TARGETS:=deploy clean env update build
+ALL_TARGETS:=deploy clean env update build docs open_docs
 # declare all target as PHONY
 .PHONY: $(ALL_TARGETS)
 
@@ -33,6 +34,12 @@ env: SHELL:=bash
 env: env.sh
 	@echo "Entering environment in sub-shell. Exit with 'Ctrl-d'."
 	@PROMPT_COMMAND='source env.sh; unset PROMPT_COMMAND' $(SHELL)
+
+docs:
+	make -C docs html
+
+open_docs: docs
+	xdg-open $(ROOT_DIR)/docs/build/html/index.html
 
 # Developer targets
 #------------------
