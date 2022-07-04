@@ -1,5 +1,11 @@
-- name: Import pre_tasks
-  import_tasks: pre_tasks.yml
+- name: Ensure minimal deps are available
+  package:
+    name: "{{ item }}"
+    state: present
+  become: yes
+  with_items:
+    - dpkg
+    - sudo
 
 - name: Ensure kAFL parent directory exists
   file:

@@ -9,12 +9,3 @@
   shell: grep --invert-match broadwell /sys/devices/cpu/caps/pmu_name
   tags:
     - hardware_check
-
-- name: Ensure minimal deps are available
-  package:
-    name: "{{ item }}"
-    state: present
-  become: yes
-  with_items:
-    - dpkg
-    - sudo
