@@ -1,7 +1,7 @@
 - hosts: all
   environment:
-    http_proxy: "{{ proxy_env.http_proxy | default(lookup('env', 'HTTP_PROXY')) }}"
-    https_proxy: "{{ proxy_env.https_proxy | default(lookup('env', 'HTTPS_PROXY')) }}"
+    http_proxy: "{{ proxy_env.http_proxy | default(lookup('env', 'http_proxy')) }}"
+    https_proxy: "{{ proxy_env.https_proxy | default(lookup('env', 'https_proxy')) }}"
   vars:
     workspace_default: "{{ playbook_dir | dirname if ansible_connection == 'local' else ansible_env.HOME + 'workspace' }}"
     workspace_root: "{{ install.workspace_root | default(workspace_default) }}"
