@@ -1,2 +1,2 @@
 dependencies:
-  - role: default_vars_only
+  - role: pre_checks
