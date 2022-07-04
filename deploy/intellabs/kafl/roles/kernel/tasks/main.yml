@@ -18,12 +18,15 @@
 - name: Compile support_test.c
   ansible.builtin.command: |
     gcc "{{ temp_compile.path }}/support_test.c" -o "{{ temp_compile.path }}/support_test"
+  register: compile_result
+  changed_when: false
 
 - name: Run support_test
   ansible.builtin.command: |
     "{{ temp_compile.path }}/support_test"
   ignore_errors: true
   register: support_test
+  changed_when: false
   tags:
     - hardware_check
 
