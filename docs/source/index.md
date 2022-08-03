@@ -42,5 +42,5 @@ tutorials/sharedir_tutorial
 :maxdepth: 2
 :caption: Reference
 
-hypercall_api
+reference/hypercall_api
 ```
