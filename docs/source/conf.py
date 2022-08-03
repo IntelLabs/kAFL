@@ -16,8 +16,11 @@ release = '0.5'
 
 extensions = [
     # markdown
-    'myst_parser'
+    'myst_parser',
+    # design
+    'sphinx_design'
 ]
+myst_enable_extensions = ["colon_fence"]
 
 templates_path = ['_templates']
 exclude_patterns = []
