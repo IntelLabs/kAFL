@@ -34,10 +34,10 @@ If you are using a _passwordless sudo_ setup, just skip this by pressing enter.
 kAFL's deployment offers the possibility of remote installation using Ansible.
 Update the `deploy/inventory` file according to the [Ansible inventory
 guide](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html)
-and make sure to **remove** the first line:
+and make sure to **remove** the `localhost` host:
 
 ~~~
-localhost ansible_connection=local
+localhost
 ~~~
 
 Deployment will install kAFL to `$HOME/kafl` of the target machines:
