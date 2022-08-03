@@ -7,10 +7,16 @@ operating systems.
 
 ```{toctree}
 :maxdepth: 2
-:caption: User Guide
+:caption: Tutorials
 
-hypercall_api
 linux_tutorial
 windows_tutorial
 sharedir_tutorial
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Reference
+
+hypercall_api
 ```
