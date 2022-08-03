@@ -15,10 +15,12 @@ Ubuntu (>=`20.04`) and Debian (>=`bullseye`).
 sudo apt-get install python3 python3-venv
 ~~~
 
-## Local Installation
+## Installation
 
-. The base installation is captured
-as an Ansible playbook which you can launch as follows:
+::::{tab-set}
+
+:::{tab-item} Local
+The base installation is captured as an Ansible playbook which you can launch as follows:
 
 ~~~sh
 make deploy
@@ -26,16 +28,17 @@ make deploy
 
 Ansible setup will ask for your root password.
 If you are using a _passwordless sudo_ setup, just skip this by pressing enter.
+:::
 
-## Remote Installation
-
+:::{tab-item} Remote
 kAFL's deployment offers the possibility of remote installation using Ansible.
 Update the `deploy/inventory` file according to the [Ansible inventory
 guide](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html)
 and make sure to **remove** the first line:
 
-> localhost ansible_connection=local
-
+~~~
+localhost ansible_connection=local
+~~~
 
 Deployment will install kAFL to `$HOME/kafl` of the target machines:
 
@@ -46,6 +49,9 @@ make deploy
 Note:
 - If your nodes require a proxy setup, update the `group_vars/all.yml`.
 - Check Ansible documentation for how to manage remote access.
+:::
+
+::::
 
 ## Next Steps
 
