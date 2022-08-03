@@ -17,10 +17,6 @@ jobs:
         with:
           python-version: 3.8
 
-      - name: Install docs dependencies 📦
-        run: pip install -r requirements.txt
-        working-directory: docs
-
       - name: Build documentation 🔨
         run: make html
         working-directory: docs
