@@ -33,9 +33,15 @@ The project is structured around multiple components:
 :caption: Tutorials
 
 tutorials/getting_started
-tutorials/linux_tutorial
-tutorials/windows_tutorial
-tutorials/sharedir_tutorial
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: How-To Guides
+
+how_to/linux_tutorial
+how_to/windows_tutorial
+how_to/sharedir_tutorial
 ```
 
 ```{toctree}
