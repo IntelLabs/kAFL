@@ -18,7 +18,9 @@ extensions = [
     # markdown
     'myst_parser',
     # design
-    'sphinx_design'
+    'sphinx_design',
+    # mermaid
+    'sphinxcontrib.mermaid'
 ]
 myst_enable_extensions = ["colon_fence"]
 
