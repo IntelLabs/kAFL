@@ -165,3 +165,31 @@ jobs:
 
       - id: step_upload_url
         run: echo "::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}"
+
+  nyx-testing:
+    runs-on: self-hosted
+
+    steps:
+        # ensure workspace is cleaned up
+        # (doesn't happen automatically on self-hosted runnner for some reason)
+      - name: cleanup workdir
+        run: find . -mindepth 1 -delete
+
+      - uses: actions/checkout@v2
+        with:
+          repository: nyx-fuzz/Nyx-Testing
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Prepare tests
+        run: |
+          sh setup.sh
+          sh prepare_tests.sh
+
+      - name: Run tests
+        run: cargo test -- --skip processor_trace
+
+      - name: Run PT tests
+        run: cargo test
