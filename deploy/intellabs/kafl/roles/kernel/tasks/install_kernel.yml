@@ -1,57 +1,62 @@
 - name: Install dependencies
-  package:
+  ansible.builtin.package:
     name:
       - linux-base
       - kmod
-  become: yes
+  become: true
 
 - name: Create temporary directory for downloaded packages
-  tempfile:
+  ansible.builtin.tempfile:
     state: directory
   register: down_dir
 
 - name: Download deb packages
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ item }}"
     dest: "{{ down_dir.path }}/{{ index }}.deb"
+    mode: 0644
   loop: "{{ kernel_deb_urls }}"
   loop_control:
     index_var: index
 
 - name: Install kAFL kernel
-  shell: dpkg -i "{{ down_dir.path }}"/*.deb
-  become: yes
+  ansible.builtin.shell: dpkg -i "{{ down_dir.path }}"/*.deb
+  become: true
+  register: install_kernel
+  changed_when: false
 
 - name: Remove temporary download directory
-  file:
+  ansible.builtin.file:
     path: "{{ down_dir.path }}"
     state: absent
 
 - name: Configure boot entry to select new kernel
   block:
-  - name: Determine Grub menuentry
-    shell: |
-      awk -F\' '/submenu.*Advanced\ / {print $4}' /boot/grub/grub.cfg
-      awk -F\' '/menuentry.*{{ kernel_grep_string }}/ {print $4}' /boot/grub/grub.cfg |head -1
-    register: grub_menuentry_ids
+    - name: Determine Grub menuentry
+      ansible.builtin.shell: |
+        awk -F\' '/submenu.*Advanced\ / {print $4}' /boot/grub/grub.cfg
+        awk -F\' '/menuentry.*{{ kernel_grep_string }}/ {print $4}' /boot/grub/grub.cfg |head -1
+      register: grub_menuentry_ids
+      when: true
 
-  - name: Update /etc/default/grub
-    lineinfile:
-      regexp: ^GRUB_DEFAULT=
-      line: GRUB_DEFAULT="{{ grub_menuentry_ids.stdout_lines |join('>') }}"
-      dest: /etc/default/grub
-      backup: yes
-    become: yes
+    - name: Update /etc/default/grub
+      ansible.builtin.lineinfile:
+        regexp: ^GRUB_DEFAULT=
+        line: GRUB_DEFAULT="{{ grub_menuentry_ids.stdout_lines | join('>') }}"
+        dest: /etc/default/grub
+        backup: true
+      become: true
 
-  - name: Update GRUB
-    command: update-grub
-    become: yes
+    - name: Update GRUB
+      ansible.builtin.command: update-grub
+      become: true
+      when: true
   tags:
     - update_grub
 
 - name: Reboot on new kernel
-  reboot:
-  become: yes
+  ansible.builtin.reboot:
+  become: true
   when: ansible_connection != 'local'
   tags:
     - reboot_kernel

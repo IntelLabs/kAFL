@@ -1,13 +1,13 @@
 - name: Install radamsa dependencies
-  package:
+  ansible.builtin.package:
     name: "{{ item }}"
-  become: yes
+  become: true
   with_items:
     - wget
     - curl
 
 - name: Clone repo
-  git:
+  ansible.builtin.git:
     repo: "{{ radamsa_url }}"
     dest: "{{ radamsa_root }}"
     version: "{{ radamsa_revision | default(omit) }}"

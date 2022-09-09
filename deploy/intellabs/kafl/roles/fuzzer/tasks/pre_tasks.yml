@@ -1,20 +1,26 @@
 - name: Checking for intel_pt support in cpuinfo
-  shell: grep intel_pt /proc/cpuinfo
+  ansible.builtin.command: |
+    grep intel_pt /proc/cpuinfo
   register: res
   failed_when: res.rc != 0
+  changed_when: false
   tags:
     - hardware_check
 
 - name: Checking that pmu_name is not broadwell
-  shell: grep --invert-match broadwell /sys/devices/cpu/caps/pmu_name
+  ansible.builtin.command: |
+    grep --invert-match broadwell /sys/devices/cpu/caps/pmu_name
+  register: result
+  failed_when: result.rc != 0
+  changed_when: false
   tags:
     - hardware_check
 
 - name: Ensure minimal deps are available
-  package:
+  ansible.builtin.package:
     name: "{{ item }}"
     state: present
-  become: yes
+  become: true
   with_items:
     - dpkg
     - sudo

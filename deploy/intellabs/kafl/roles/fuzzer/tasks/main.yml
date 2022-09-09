@@ -2,21 +2,22 @@
   import_tasks: pre_tasks.yml
 
 - name: Ensure kAFL parent directory exists
-  file:
+  ansible.builtin.file:
     path: "{{ kafl_install_root | dirname }}"
     state: directory
+    mode: 0775
 
 - name: Install kAFL system dependencies
-  package:
+  ansible.builtin.package:
     name: "{{ item }}"
-  become: yes
+  become: true
   with_items:
     - libgraphviz-dev
     - python3-dev
     - python3-venv
 
 - name: Clone repo
-  git:
+  ansible.builtin.git:
     repo: "{{ fuzzer_url }}"
     dest: "{{ fuzzer_root }}"
     version: "{{ fuzzer_revision | default('master') }}"
@@ -26,14 +27,18 @@
     - clone
 
 - name: Create venv
-  command: python3 -m venv .venv
+  ansible.builtin.command: |
+    python3 -m venv .venv
   args:
     chdir: "{{ kafl_install_root }}"
+  changed_when: true
 
 - name: Install kAFL fuzzer
-  command: .venv/bin/python -m pip install -e "file://{{ fuzzer_root }}"
+  ansible.builtin.command: |
+    .venv/bin/python -m pip install -e "file://{{ fuzzer_root }}"
   args:
     chdir: "{{ kafl_install_root }}"
+  changed_when: true
   tags:
     - build
 
