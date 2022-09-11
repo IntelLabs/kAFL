@@ -1,5 +1,11 @@
-- name: Import pre_tasks
-  import_tasks: pre_tasks.yml
+- name: Ensure minimal deps are available
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  become: true
+  with_items:
+    - dpkg
+    - sudo
 
 - name: Ensure kAFL parent directory exists
   ansible.builtin.file:
