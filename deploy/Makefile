@@ -37,7 +37,11 @@ ifeq ($(LOCALHOST_INVENTORY),0)
 endif
 	$(ANSIBLE_COMMAND) $(ASK_BECOME_PASS) $(EXTRA_ARGS)
 
-venv:
+# this dependency ensures that we retry to pip install ansible
+# if pip install fails for any reason
+venv: venv/bin/ansible-galaxy
+
+venv/bin/ansible-galaxy:
 	python3 -m venv venv
 	venv/bin/pip install wheel
 	venv/bin/pip install -r requirements.txt
