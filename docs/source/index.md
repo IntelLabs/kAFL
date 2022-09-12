@@ -48,5 +48,6 @@ how_to/sharedir_tutorial
 :maxdepth: 2
 :caption: Reference
 
+reference/deployment
 reference/hypercall_api
 ```
