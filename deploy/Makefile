@@ -6,7 +6,7 @@
 # declare all targets in this variable
 ALL_TARGETS:=deploy clean update build
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-LOCALHOST_INVENTORY:=$(shell grep 'localhost ansible_connection=local' $(ROOT_DIR)/inventory > /dev/null 2>&1; echo $$?)
+LOCALHOST_INVENTORY:=$(shell grep 'localhost' $(ROOT_DIR)/inventory > /dev/null 2>&1; echo $$?)
 ANSIBLE_COMMAND:=venv/bin/ansible-playbook -i $(ROOT_DIR)/inventory $(ROOT_DIR)/site.yml
 # declare all target as PHONY
 .PHONY: $(ALL_TARGETS)
