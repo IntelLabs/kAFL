@@ -1,0 +1,2 @@
+# force default local connection plugin for localhost instead of ssh
+ansible_connection: local
