@@ -1,3 +1,6 @@
+- name: Import pre_tasks
+  import_tasks: pre_tasks.yml
+
 - name: Install required dependencies
   ansible.builtin.package:
     name:

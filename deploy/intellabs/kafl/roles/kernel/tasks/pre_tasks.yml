@@ -15,12 +15,3 @@
   changed_when: false
   tags:
     - hardware_check
-
-- name: Ensure minimal deps are available
-  ansible.builtin.package:
-    name: "{{ item }}"
-    state: present
-  become: true
-  with_items:
-    - dpkg
-    - sudo
