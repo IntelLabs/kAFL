@@ -1,5 +1,5 @@
-ansible==5.7.1
-ansible-core==2.12.5
+ansible==6.3.0
+ansible-core==2.13.3
 cffi==1.15.0
 cryptography==37.0.2
 Jinja2==3.1.2
