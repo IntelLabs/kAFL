@@ -1,0 +1,32 @@
+- name: Ensure required dependencies are installed
+  ansible.builtin.package:
+    name: "{{ item }}"
+  with_items:
+    - openjdk-11-jdk
+    - unzip
+  become: true
+
+- name: Check for Ghidra analyzeHeadless binary's presence
+  ansible.builtin.stat:
+    path: "{{ kafl_install_root }}/{{ ghidra_bin_relpath }}"
+  register: stat_ghidra_bin
+
+- name: Install Ghidra if necessary
+  block:
+    - name: Download Ghidra
+      ansible.builtin.get_url:
+        url: "{{ ghidra_url }}"
+        dest: "{{ kafl_install_root }}/ghidra.zip"
+        checksum: "sha256:9c73b6657413686c0af85909c20581e764107add2a789038ebc6eca49dc4e812"
+
+    - name: Extract Ghidra
+      ansible.builtin.unarchive:
+        src: "{{ kafl_install_root }}/ghidra.zip"
+        dest: "{{ kafl_install_root }}"
+        remote_src: true
+
+    - name: Remove Ghidra archive
+      ansible.builtin.file:
+        path: "{{ kafl_install_root }}/ghidra.zip"
+        state: absent
+  when: not stat_ghidra_bin.stat.exists
