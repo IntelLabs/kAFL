@@ -68,10 +68,12 @@ jobs:
 
     services:
       ssh:
-        image: eilandert/openssh:debian
+        image: wenzel/sshd:ubuntu22.04
         ports:
           # open SSH
           - 5000:22
+        env:
+          ROOT_PASSWORD: toor
 
     steps:
       - uses: actions/checkout@v2
@@ -112,6 +114,10 @@ jobs:
         run: |
           venv/bin/ansible all -i inventory -m raw -a "apt update"
           venv/bin/ansible all -i inventory -m raw -a "apt install -y python3"
+        working-directory: deploy
+
+      - name: Upgrade packages
+        run: venv/bin/ansible all -i inventory -m ansible.builtin.apt -a "upgrade=dist"
         working-directory: deploy
 
       # skip tags related to non-existent hardware/configuration in the CI runner environment
