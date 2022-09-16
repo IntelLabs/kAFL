@@ -20,7 +20,9 @@ extensions = [
     # design
     'sphinx_design',
     # mermaid
-    'sphinxcontrib.mermaid'
+    'sphinxcontrib.mermaid',
+    # copy on code blocks
+    'sphinx_copybutton'
 ]
 myst_enable_extensions = ["colon_fence"]
 
