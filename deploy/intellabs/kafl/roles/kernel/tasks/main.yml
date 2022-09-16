@@ -11,18 +11,21 @@
   ansible.builtin.tempfile:
     state: directory
   register: temp_compile
+  check_mode: false
 
 - name: Upload support_test.c
   ansible.builtin.copy:
     src: files/support_test.c
     dest: "{{ temp_compile.path }}/support_test.c"
     mode: 0644
+  check_mode: false
 
 - name: Compile support_test.c
   ansible.builtin.command: |
     gcc "{{ temp_compile.path }}/support_test.c" -o "{{ temp_compile.path }}/support_test"
   register: compile_result
   changed_when: false
+  check_mode: false
 
 - name: Run support_test
   ansible.builtin.command: |
@@ -30,6 +33,7 @@
   ignore_errors: true
   register: support_test
   changed_when: false
+  check_mode: false
   tags:
     - hardware_check
 
@@ -37,6 +41,7 @@
   ansible.builtin.file:
     path: "{{ temp_compile.path }}"
     state: absent
+  check_mode: false
 
 # check if hardware_check in skip-tags -> to force CI run
 - name: Install kernel if needed
