@@ -20,3 +20,4 @@
   become: true
   tags:
     - kvm_device
+  when: not ansible_check_mode

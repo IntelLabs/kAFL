@@ -12,6 +12,7 @@
     path: "{{ kafl_install_root | dirname }}"
     state: directory
     mode: 0775
+  when: not ansible_check_mode
 
 - name: Install kAFL system dependencies
   ansible.builtin.package:
@@ -38,6 +39,7 @@
   args:
     chdir: "{{ kafl_install_root }}"
   changed_when: true
+  when: not ansible_check_mode
 
 - name: Install kAFL fuzzer
   ansible.builtin.command: |
@@ -45,6 +47,7 @@
   args:
     chdir: "{{ kafl_install_root }}"
   changed_when: true
+  when: not ansible_check_mode
   tags:
     - build
 
