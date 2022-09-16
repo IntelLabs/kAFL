@@ -9,6 +9,7 @@
   ansible.builtin.tempfile:
     state: directory
   register: down_dir
+  check_mode: false
 
 - name: Download deb packages
   ansible.builtin.get_url:
@@ -29,6 +30,7 @@
   ansible.builtin.file:
     path: "{{ down_dir.path }}"
     state: absent
+  check_mode: false
 
 - name: Configure boot entry to select new kernel
   block:
@@ -38,6 +40,7 @@
         awk -F\' '/menuentry.*{{ kernel_grep_string }}/ {print $4}' /boot/grub/grub.cfg |head -1
       register: grub_menuentry_ids
       when: true
+      check_mode: false
 
     - name: Update /etc/default/grub
       ansible.builtin.lineinfile:
