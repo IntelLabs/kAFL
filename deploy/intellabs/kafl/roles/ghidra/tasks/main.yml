@@ -18,6 +18,7 @@
         url: "{{ ghidra_url }}"
         dest: "{{ kafl_install_root }}/ghidra.zip"
         checksum: "sha256:9c73b6657413686c0af85909c20581e764107add2a789038ebc6eca49dc4e812"
+        mode: 0644
 
     - name: Extract Ghidra
       ansible.builtin.unarchive:
@@ -29,4 +30,4 @@
       ansible.builtin.file:
         path: "{{ kafl_install_root }}/ghidra.zip"
         state: absent
-  when: not stat_ghidra_bin.stat.exists
+  when: not stat_ghidra_bin.stat.exists and not ansible_check_mode
