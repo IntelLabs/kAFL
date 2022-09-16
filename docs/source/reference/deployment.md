@@ -7,6 +7,19 @@ useful for deploying Cloud services and provisioning virtual machines.
 As a user, you are only expected to update the Ansible [🗋 `deploy/inventory`](https://github.com/IntelLabs/kAFL/blob/master/deploy/inventory) if you want to perform a remote deployment. See Ansible's [inventory documentation](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html).
 :::
 
+## System modifications
+
+This is the list system level modifications made by the Ansible playbook when installing _kAFL_:
+
+- checking for KVM's compatibility with kAFL. If necessary, setup a new kernel:
+  - [download](https://github.com/IntelLabs/kafl.linux/releases/tag/kvm-nyx-5.10.73)
+  - install (`5.10.73`)
+  - update _GRUB_
+  - reboot
+- ensure current user is in `kvm` group
+- ensure `/dev/kvm` device has permissions for the `kvm` group
+
+
 ## Makefile targets
 
 
