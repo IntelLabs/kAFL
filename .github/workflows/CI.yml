@@ -38,6 +38,18 @@ jobs:
         run: |
           ./venv/bin/ansible-lint -x 'meta-no-info'
 
+  check-mode:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Run deployment in check mode (dry-run)
+        run: make deploy -- --check
+
   local:
     strategy:
         matrix:

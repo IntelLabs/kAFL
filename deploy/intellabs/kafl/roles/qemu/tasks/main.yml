@@ -37,6 +37,6 @@
   environment:
     CAPSTONE_ROOT: "{{ capstone_root }}"
     LIBXDC_ROOT: "{{ libxdc_root }}"
-  when: true
+  when: not ansible_check_mode
   tags:
     - build
