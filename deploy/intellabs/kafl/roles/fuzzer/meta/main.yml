@@ -15,4 +15,3 @@ dependencies:
   - role: targets
     tags:
       - targets
-      - never
