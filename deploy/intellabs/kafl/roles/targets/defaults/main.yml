@@ -1,2 +1,0 @@
-targets_url: https://github.com/IntelLabs/kafl.targets
-targets_dest: "{{ kafl_install_root }}/targets"
