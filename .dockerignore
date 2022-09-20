@@ -1,0 +1,9 @@
+.gitignore
+.git/
+.github/
+Dockerfile
+README.md
+env.sh
+docs/
+kafl/
+deploy/venv/
