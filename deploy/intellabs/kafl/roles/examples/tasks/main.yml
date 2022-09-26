@@ -1,8 +1,8 @@
 - name: Clone repo
   ansible.builtin.git:
-    repo: "{{ targets_url }}"
-    dest: "{{ targets_dest }}"
-    version: "{{ targets_revision | default(omit) }}"
+    repo: "{{ examples_url }}"
+    dest: "{{ examples_root }}"
+    version: "{{ examples_revision | default(omit) }}"
     depth: "{{ git_clone_depth | default(omit) }}"
     force: "{{ force_clone }}"
   tags:

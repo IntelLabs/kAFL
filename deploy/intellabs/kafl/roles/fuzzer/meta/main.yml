@@ -11,8 +11,6 @@ dependencies:
   - role: ghidra
     tags:
       - ghidra
-  # optional targets dependency
-  - role: targets
+  - role: examples
     tags:
-      - targets
-      - never
+      - examples
