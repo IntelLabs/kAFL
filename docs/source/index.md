@@ -33,7 +33,9 @@ The project is structured around multiple components:
 :maxdepth: 2
 :caption: Tutorials
 
-tutorials/getting_started
+tutorials/introduction
+tutorials/installation
+tutorials/fuzzing_linux_kernel
 ```
 
 ```{toctree}
