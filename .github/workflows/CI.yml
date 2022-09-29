@@ -139,33 +139,6 @@ jobs:
           --skip-tags "hardware_check,kvm_device,update_grub,reboot_kernel"
           --extra-vars "@parameters.json"
 
-  release:
-    # this job makes an official Github release
-    needs: [local, remote]
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.get_version.outputs.version }}
-      upload_url: ${{ steps.step_upload_url.outputs.upload_url }}
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=version::${GITHUB_REF/refs\/tags\//}
-
-      # only create release if tag start by 'v*'
-      - name: Create a Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          body_path: ${{ github.workspace }}/.github/RELEASE.txt
-        if: startsWith(github.ref, 'refs/tags/v')
-
-      - id: step_upload_url
-        run: echo "::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}"
-
   nyx-testing:
     runs-on: self-hosted
 
@@ -193,3 +166,30 @@ jobs:
 
       - name: Run PT tests
         run: cargo test
+
+  release:
+    # this job makes an official Github release
+    needs: [ansible-lint, check-mode, local, remote, nyx-testing]
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      upload_url: ${{ steps.step_upload_url.outputs.upload_url }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=version::${GITHUB_REF/refs\/tags\//}
+
+      # only create release if tag start by 'v*'
+      - name: Create a Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          body_path: ${{ github.workspace }}/.github/RELEASE.txt
+        if: startsWith(github.ref, 'refs/tags/v')
+
+      - id: step_upload_url
+        run: echo "::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}"
