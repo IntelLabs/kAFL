@@ -52,5 +52,6 @@ how_to/sharedir_tutorial
 :caption: Reference
 
 reference/deployment
+reference/workdir_layout
 reference/hypercall_api
 ```
