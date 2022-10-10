@@ -1,7 +1,4 @@
-This release marks the adoption of [Ansible](https://www.ansible.com/) as a new deployment/installation tool for kAFL.
+# User changes
 
-It brings multiple benefits, such as:
-- more reliability and readability in the installation process
-- automated remote deployment on multiple servers
-- modularization and reuse with kAFL managed as an [Ansible collection](https://github.com/IntelLabs/kAFL/tree/master/deploy/intellabs/kafl)
-- [deployment CI checks](https://github.com/IntelLabs/kAFL/actions/workflows/CI.yml) on Github Actions to ensure a stable `master`
+- `env.sh`
+    - `WORKSPACE` becomes prefixed -> `KAFL_WORKSPACE`
