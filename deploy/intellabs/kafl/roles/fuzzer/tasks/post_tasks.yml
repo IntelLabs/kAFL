@@ -21,3 +21,8 @@
   tags:
     - kvm_device
   when: not ansible_check_mode
+
+- name: Create env.sh file
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ kafl_install_root }}/env.sh"
