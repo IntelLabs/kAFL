@@ -2,10 +2,6 @@
   environment:
     http_proxy: "{{ proxy_env.http_proxy | default(lookup('env', 'http_proxy')) }}"
     https_proxy: "{{ proxy_env.https_proxy | default(lookup('env', 'https_proxy')) }}"
-  vars:
-    workspace_default: "{{ playbook_dir | dirname if ansible_connection == 'local' else ansible_env.HOME + '/workspace' }}"
-    workspace_root: "{{ install.workspace_root | default(workspace_default) }}"
-
   pre_tasks:
     - name: apt update to ensure root access is available (or fail early)
       apt:
@@ -16,9 +12,3 @@
     - role: intellabs.kafl.fuzzer
       tags:
         - fuzzer
-
-  post_tasks:
-    - name: Create env.sh file
-      template:
-        src: env.j2
-        dest: "{{ workspace_root }}/env.sh"

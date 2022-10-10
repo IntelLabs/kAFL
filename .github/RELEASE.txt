@@ -1,4 +1,5 @@
 # User changes
 
-- `env.sh`
+- `env.sh`: has been moved into `kafl` install directory.
     - `WORKSPACE` becomes prefixed -> `KAFL_WORKSPACE`
+    - `intellabs.kafl.fuzzer` is now responsible for creating `env.sh`
