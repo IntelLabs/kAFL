@@ -26,3 +26,4 @@
   ansible.builtin.template:
     src: env.j2
     dest: "{{ kafl_install_root }}/env.sh"
+    mode: 0644
