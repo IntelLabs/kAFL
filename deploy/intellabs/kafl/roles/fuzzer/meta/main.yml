@@ -14,3 +14,7 @@ dependencies:
   - role: examples
     tags:
       - examples
+  - role: nyx_packer
+    tags:
+      - nyx_packer
+    when: install_nyx_packer
