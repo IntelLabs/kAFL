@@ -51,11 +51,5 @@
   tags:
     - build
 
-- name: Install nyx_packer
-  ansible.builtin.include_role:
-    name: nyx_packer
-    public: true
-  when: install_nyx_packer
-
 - name: Import post_tasks
   import_tasks: post_tasks.yml
