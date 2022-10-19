@@ -22,6 +22,7 @@
     - libgraphviz-dev
     - python3-dev
     - python3-venv
+    - python3-setuptools
 
 - name: Clone repo
   ansible.builtin.git:
@@ -33,19 +34,12 @@
   tags:
     - clone
 
-- name: Create venv
-  ansible.builtin.command: |
-    python3 -m venv .venv
-  args:
-    chdir: "{{ kafl_install_root }}"
-  changed_when: true
-  when: not ansible_check_mode
-
 - name: Install kAFL fuzzer
-  ansible.builtin.command: |
-    .venv/bin/python -m pip install -e "file://{{ fuzzer_root }}"
-  args:
-    chdir: "{{ kafl_install_root }}"
+  ansible.builtin.pip:
+    name: "file://{{ fuzzer_root }}"
+    editable: true
+    virtualenv: "{{ fuzzer_venv_root }}"
+    virtualenv_command: "python3 -m venv"
   changed_when: true
   when: not ansible_check_mode
   tags:

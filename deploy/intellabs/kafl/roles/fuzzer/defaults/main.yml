@@ -10,3 +10,4 @@ capstone_root: "{{ kafl_install_root }}/capstone"
 
 fuzzer_url: 'https://github.com/IntelLabs/kafl.fuzzer'
 fuzzer_root: "{{ kafl_install_root }}/fuzzer"
+fuzzer_venv_root: "{{ kafl_install_root }}/.venv"
