@@ -58,6 +58,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: ./.github/actions/common-setup
+
       - uses: actions/setup-python@v2
         with:
           python-version: '3.8'
@@ -89,6 +91,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - uses: ./.github/actions/common-setup
 
       - uses: actions/setup-python@v2
         with:

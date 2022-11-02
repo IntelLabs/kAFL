@@ -1,0 +1,18 @@
+name: 'Project setup'
+description: 'This actions will setup the cache'
+author: 'Mathieu Tarral'
+runs:
+  using: 'composite'
+  steps:
+    - run: sudo apt install -y ccache
+      shell: bash
+
+    - name: Setup cache
+      uses: actions/cache@v3
+      with:
+        path: $HOME/.ccache
+        key: ${{ runner.os }}-ccache
+
+    - name: Update Path
+      run: echo "PATH=/usr/lib/ccache:$PATH" >> $GITHUB_ENV
+      shell: bash
