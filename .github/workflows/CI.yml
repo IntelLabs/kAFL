@@ -167,6 +167,25 @@ jobs:
       - name: Run PT tests
         run: cargo test
 
+  build_image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4.1.1
+        with:
+          images: intellabs/kafl
+
+      - name: Build image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
   release:
     # this job makes an official Github release
     needs: [ansible-lint, check-mode, local, remote, nyx-testing]
