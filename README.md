@@ -34,13 +34,9 @@ For details on Redqueen, Grimoire, [_IJON_](https://github.com/RUB-SysSec/ijon),
 
 **Note: All components are provided for research and validation purposes only.**
 
-## Building the documentation
+## Getting Started
 
-The project's documentation is hosted online at [![online_docs](https://img.shields.io/badge/Online-Documentation-green)](https://IntelLabs.github.io/kAFL/)
+➡️ The official [tutorial](https://IntelLabs.github.io/kAFL/tutorials/introduction.html) will walk you through your first steps
+to setup kAFL and fuzz the Linux kernel !
 
-To build the docs locally:
-~~~
-cd docs
-make html
-xdg-open build/html/index.html
-~~~
+_Note: kAFL requires a Gen-6 Skylake CPU, or newer._
