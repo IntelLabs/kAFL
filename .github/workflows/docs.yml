@@ -24,6 +24,11 @@ jobs:
         run: make html
         working-directory: docs
 
+      # allow to serve dirs starting with _ (_static for example)
+      - name: Add .nojekyll
+        run: touch .nojekyll
+        working-directory: docs/build/html
+
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
