@@ -40,7 +40,6 @@ exclude_patterns = []
 
 html_title = project
 html_theme = 'furo'
-html_static_path = ['_static']
 html_theme_options = {
     # TODO: edit when PR on upstream repo
     "source_repository": "https://github.com/IntelLabs/kAFL",
