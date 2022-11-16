@@ -6,6 +6,8 @@ charset-normalizer==2.1.0
 colorama==0.4.5
 docutils==0.18.1
 furo==2022.6.21
+gitdb==4.0.9
+GitPython==3.1.29
 idna==3.3
 imagesize==1.4.1
 importlib-metadata==4.12.0
@@ -21,6 +23,7 @@ pyparsing==3.0.9
 pytz==2022.1
 PyYAML==6.0
 requests==2.28.1
+smmap==5.0.0
 snowballstemmer==2.2.0
 soupsieve==2.3.2.post1
 Sphinx==5.1.0

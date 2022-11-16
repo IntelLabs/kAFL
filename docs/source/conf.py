@@ -5,11 +5,15 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+from git import Repo
+from pathlib import Path
+
+cur_repo = Repo(str(Path(__file__).parent.parent.parent))
 
 project = 'kAFL'
 copyright = '2022, Steffen Schulz'
 author = 'Steffen Schulz'
-release = '0.5'
+release = cur_repo.git.describe(abbrev=0)
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
