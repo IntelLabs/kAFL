@@ -11,7 +11,7 @@ from pathlib import Path
 cur_repo = Repo(str(Path(__file__).parent.parent.parent))
 
 project = 'kAFL'
-copyright = '2022, Steffen Schulz'
+copyright = '2022, Steffen Schulz - Mathieu Tarral'
 author = 'Steffen Schulz'
 release = cur_repo.git.describe(abbrev=0)
 
