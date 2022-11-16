@@ -1,6 +1,6 @@
 # 🌟 Features
 
-/
+- Add Sphinx-based documentation system hosted at [https://IntelLabs.github.io/kAFL/](https://IntelLabs.github.io/kAFL/) (https://github.com/IntelLabs/kAFL/pull/122)
 
 # ✨ Improvements
 
@@ -12,7 +12,7 @@
 
 # 📖 Documentation
 
-/
+- Installation, Linux kernel fuzzing tutorial, deployment and hypercall API (https://github.com/IntelLabs/kAFL/pull/122)
 
 # 🧰 Behind the scenes
 

@@ -1,21 +1,5 @@
-<h1 align="center">
-  <br>kAFL</br>
-</h1>
-
-<h3 align="center">
-HW-assisted Feedback Fuzzer for x86 VMs
-</h3>
-
-<p align="center">
-  <a href="https://github.com/IntelLabs/kAFL/actions/workflows/CI.yml">
-    <img src="https://github.com/IntelLabs/kAFL/actions/workflows/CI.yml/badge.svg" alt="CI">
-  </a>
-</p>
-<p align="center">
-  <a href="https://IntelLabs.github.io/kAFL/">
-    <img src="https://img.shields.io/badge/Online-Documentation-green?style=for-the-badge&logo=gitbook" alt="online_docs"/>
-  </a>
-</p>
+📗 kAFL's Documentation
+====================
 
 _kAFL_/_Nyx_ is a fast guided fuzzer for the x86 VM. It is great for anything that
 executes as _QEMU_/_KVM_ guest, in particular x86 firmware, kernels and full-blown
@@ -32,11 +16,39 @@ modifications.
 
 For details on Redqueen, Grimoire, [_IJON_](https://github.com/RUB-SysSec/ijon), Nyx, please visit [nyx-fuzz.com](https://nyx-fuzz.com).
 
-**Note: All components are provided for research and validation purposes only.**
+## Components
 
-## Getting Started
+The project is structured around multiple components:
 
-➡️ The official [tutorial](https://IntelLabs.github.io/kAFL/tutorials/introduction.html) will walk you through your first steps
-to setup kAFL and fuzz the Linux kernel !
+- [`IntelLabs/kAFL`](https://github.com/IntelLabs/kAFL): The main repository which organises all subcomponents
+- [`IntelLabs/kafl.fuzzer`](https://github.com/IntelLabs/kafl.fuzzer): The fuzzer frontend
+- [`IntelLabs/kafl.linux`](https://github.com/IntelLabs/kafl.linux): Modified KVM with Intel PT and kAFL hypercalls support
+- [`IntelLabs/kafl.qemu`](https://github.com/IntelLabs/kafl.qemu): Modified QEMU with fast-snapshots support
+- [`IntelLabs/kafl.libxdc`](https://github.com/IntelLabs/kafl.libxdc): Fast Intel PT decoding library
+- [`IntelLabs/kafl.targets`](https://github.com/IntelLabs/kafl.targets): Example kAFL targets
 
-_Note: kAFL requires a Gen-6 Skylake CPU, or newer._
+## Contents
+
+```{toctree}
+:maxdepth: 2
+:caption: Tutorials
+
+tutorials/introduction
+tutorials/installation
+tutorials/fuzzing_linux_kernel
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Reference
+
+reference/deployment
+reference/hypercall_api
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Development
+
+dev/documentation
+```
