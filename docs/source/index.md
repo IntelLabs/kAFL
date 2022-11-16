@@ -45,3 +45,10 @@ tutorials/fuzzing_linux_kernel
 reference/deployment
 reference/hypercall_api
 ```
+
+```{toctree}
+:maxdepth: 2
+:caption: Development
+
+dev/documentation
+```
