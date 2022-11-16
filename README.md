@@ -32,6 +32,8 @@ modifications.
 
 For details on Redqueen, Grimoire, [_IJON_](https://github.com/RUB-SysSec/ijon), Nyx, please visit [nyx-fuzz.com](https://nyx-fuzz.com).
 
+**Note: All components are provided for research and validation purposes only.**
+
 ## Building the documentation
 
 The project's documentation is hosted online at [![online_docs](https://img.shields.io/badge/Online-Documentation-green)](https://IntelLabs.github.io/kAFL/)
