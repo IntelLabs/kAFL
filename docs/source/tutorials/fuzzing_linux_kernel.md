@@ -23,7 +23,7 @@ fuzzing at various points during kernel execution.
 
 ```
 cd $EXAMPLES_ROOT/linux-kernel/
-git clone -b kafl/fuzz-5.15-4 https://github.com/IntelLabs/kafl.linux.git linux-guest
+git clone -b kafl/fuzz-5.15-4 https://github.com/IntelLabs/kafl.linux.git --depth=1 linux-guest
 ```
 
 ## 2. Configure and build target kernel
@@ -37,9 +37,8 @@ Use the provided example config to build a guest kernel with PCI/VIRTIO fuzzing
 enabled:
 
 ```
-cd linux-guest
-cp ../config.vanilla.virtio .config
-make -j$(nproc)
+cp config.vanilla.virtio linux-guest/.config
+make -C linux-guest -j$(nproc)
 ```
 
 ## 3. Start fuzzing!
@@ -48,9 +47,9 @@ Since the harness is built-in and auto-snapshots on first fuzzing input,
 launching the fuzzer is as simple as booting the kernel:
 
 ```
-kafl_fuzz.py  --purge -w /dev/shm/kafl \
+KAFL_CONFIG_FILE=./kafl_config.yaml kafl_fuzz.py --purge -w /dev/shm/kafl \
 	--redqueen --grimoire -D --radamsa \
-	--kernel arch/x86/boot/bzImage \
+	--kernel linux-guest/arch/x86/boot/bzImage \
 	-t 0.1 -ts 0.01 -m 512 --log-crashes -p 2
 ```
 
@@ -141,7 +140,7 @@ For coverage reports, find out what PT filter ranges are used for the kernel ima
 ```
 KAFL_CONFIG_FILE=kafl_config.yaml kafl_cov.py \
 	-w /dev/shm/kafl --input /dev/shm/kafl \
-	--kernel source/arch/x86/boot/bzImage \
+	--kernel linux-guest/arch/x86/boot/bzImage \
 	-ip0 ffffffff81000000-ffffffff83603000 \
 	-ip1 ffffffff855ed000-ffffffff856e4000 \
 	--resume -m 512 -t 2 -p 4
