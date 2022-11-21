@@ -230,7 +230,7 @@ interesting crashes when fuzzing PCI and VIRTIO initialization.</p>
 multiple options for input injection and a state machine to enable/disable
 fuzzing at various points during kernel execution.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd $EXAMPLES_ROOT/linux-kernel/
-git clone -b kafl/fuzz-5.15-4 https://github.com/IntelLabs/kafl.linux.git linux-guest
+git clone -b kafl/fuzz-5.15-4 https://github.com/IntelLabs/kafl.linux.git --depth=1 linux-guest
 </pre></div>
 </div>
 </section>
@@ -242,9 +242,8 @@ git clone -b kafl/fuzz-5.15-4 https://github.com/IntelLabs/kafl.linux.git linux-
 </div>
 <p>Use the provided example config to build a guest kernel with PCI/VIRTIO fuzzing
 enabled:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd linux-guest
-cp ../config.vanilla.virtio .config
-make -j$(nproc)
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cp config.vanilla.virtio linux-guest/.config
+make -C linux-guest -j$(nproc)
 </pre></div>
 </div>
 </section>
@@ -252,9 +251,9 @@ make -j$(nproc)
 <h2>3. Start fuzzing!<a class="headerlink" href="#start-fuzzing" title="Permalink to this heading">#</a></h2>
 <p>Since the harness is built-in and auto-snapshots on first fuzzing input,
 launching the fuzzer is as simple as booting the kernel:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">kafl_fuzz</span><span class="o">.</span><span class="n">py</span>  <span class="o">--</span><span class="n">purge</span> <span class="o">-</span><span class="n">w</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">shm</span><span class="o">/</span><span class="n">kafl</span> \
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">KAFL_CONFIG_FILE</span><span class="o">=./</span><span class="n">kafl_config</span><span class="o">.</span><span class="n">yaml</span> <span class="n">kafl_fuzz</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">purge</span> <span class="o">-</span><span class="n">w</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">shm</span><span class="o">/</span><span class="n">kafl</span> \
 	<span class="o">--</span><span class="n">redqueen</span> <span class="o">--</span><span class="n">grimoire</span> <span class="o">-</span><span class="n">D</span> <span class="o">--</span><span class="n">radamsa</span> \
-	<span class="o">--</span><span class="n">kernel</span> <span class="n">arch</span><span class="o">/</span><span class="n">x86</span><span class="o">/</span><span class="n">boot</span><span class="o">/</span><span class="n">bzImage</span> \
+	<span class="o">--</span><span class="n">kernel</span> <span class="n">linux</span><span class="o">-</span><span class="n">guest</span><span class="o">/</span><span class="n">arch</span><span class="o">/</span><span class="n">x86</span><span class="o">/</span><span class="n">boot</span><span class="o">/</span><span class="n">bzImage</span> \
 	<span class="o">-</span><span class="n">t</span> <span class="mf">0.1</span> <span class="o">-</span><span class="n">ts</span> <span class="mf">0.01</span> <span class="o">-</span><span class="n">m</span> <span class="mi">512</span> <span class="o">--</span><span class="n">log</span><span class="o">-</span><span class="n">crashes</span> <span class="o">-</span><span class="n">p</span> <span class="mi">2</span>
 </pre></div>
 </div>
@@ -338,7 +337,7 @@ ls $KAFL_WORKDIR/logs/
 <p>For coverage reports, find out what PT filter ranges are used for the kernel image (they are auto-detected on startup and logged using <code class="docutils literal notranslate"><span class="pre">kafl_hprintf()</span></code> - try to launch with <code class="docutils literal notranslate"><span class="pre">--log-hprintf</span> <span class="pre">-p</span> <span class="pre">1</span></code> instead of the above <code class="docutils literal notranslate"><span class="pre">--log-crashes</span></code> and look at <code class="docutils literal notranslate"><span class="pre">$workdir/hprintf_00.log</span></code>). Then use <code class="docutils literal notranslate"><span class="pre">kafl_cov.py</span></code> with <code class="docutils literal notranslate"><span class="pre">--resume</span></code> and same workdir + input directory. This will restore the VM snapshot and use the existing page_cache info to replay corpus payloads as faithfully as possible and dump PT trace info to <code class="docutils literal notranslate"><span class="pre">$workdir/traces/*bin.lz4</span></code>. The tool will also call <code class="docutils literal notranslate"><span class="pre">ptdump</span></code> on each trace to directly decode it to <code class="docutils literal notranslate"><span class="pre">$workdir/traces/*.txt.lz4</span></code>. For big corpuses, you can parallelize this process using <code class="docutils literal notranslate"><span class="pre">-p</span></code>. Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">KAFL_CONFIG_FILE</span><span class="o">=</span><span class="n">kafl_config</span><span class="o">.</span><span class="n">yaml</span> <span class="n">kafl_cov</span><span class="o">.</span><span class="n">py</span> \
 	<span class="o">-</span><span class="n">w</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">shm</span><span class="o">/</span><span class="n">kafl</span> <span class="o">--</span><span class="nb">input</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">shm</span><span class="o">/</span><span class="n">kafl</span> \
-	<span class="o">--</span><span class="n">kernel</span> <span class="n">source</span><span class="o">/</span><span class="n">arch</span><span class="o">/</span><span class="n">x86</span><span class="o">/</span><span class="n">boot</span><span class="o">/</span><span class="n">bzImage</span> \
+	<span class="o">--</span><span class="n">kernel</span> <span class="n">linux</span><span class="o">-</span><span class="n">guest</span><span class="o">/</span><span class="n">arch</span><span class="o">/</span><span class="n">x86</span><span class="o">/</span><span class="n">boot</span><span class="o">/</span><span class="n">bzImage</span> \
 	<span class="o">-</span><span class="n">ip0</span> <span class="n">ffffffff81000000</span><span class="o">-</span><span class="n">ffffffff83603000</span> \
 	<span class="o">-</span><span class="n">ip1</span> <span class="n">ffffffff855ed000</span><span class="o">-</span><span class="n">ffffffff856e4000</span> \
 	<span class="o">--</span><span class="n">resume</span> <span class="o">-</span><span class="n">m</span> <span class="mi">512</span> <span class="o">-</span><span class="n">t</span> <span class="mi">2</span> <span class="o">-</span><span class="n">p</span> <span class="mi">4</span>
