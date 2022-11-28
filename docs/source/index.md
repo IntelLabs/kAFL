@@ -44,6 +44,8 @@ tutorials/fuzzing_linux_kernel
 
 reference/deployment
 reference/hypercall_api
+reference/workdir_layout
+reference/user_interface
 ```
 
 ```{toctree}

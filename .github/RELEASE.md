@@ -13,6 +13,7 @@
 # 📖 Documentation
 
 - Installation, Linux kernel fuzzing tutorial, deployment and hypercall API (https://github.com/IntelLabs/kAFL/pull/122, https://github.com/IntelLabs/kAFL/pull/127)
+- Reference docs on workdir layout and kAFL GUI (#129)
 
 # 🧰 Behind the scenes
 
