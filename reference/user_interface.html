@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="kAFL Workdir" href="workdir_layout.html" /><link rel="prev" title="Deployment" href="deployment.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Building the documentation" href="../dev/documentation.html" /><link rel="prev" title="kAFL Workdir" href="workdir_layout.html" />
 
     <meta name="generator" content="sphinx-5.1.0, furo 2022.06.21"/>
-        <title>kAFL/Nyx Hypercall API - kAFL</title>
+        <title>kAFL User Interface - kAFL</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
@@ -165,9 +165,9 @@
 <p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="deployment.html">Deployment</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">kAFL/Nyx Hypercall API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hypercall_api.html">kAFL/Nyx Hypercall API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workdir_layout.html">kAFL Workdir</a></li>
-<li class="toctree-l1"><a class="reference internal" href="user_interface.html">kAFL User Interface</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">kAFL User Interface</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul>
@@ -192,7 +192,7 @@
         </a>
         <div class="content-icon-container">
           <div class="edit-this-page">
-  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/reference/hypercall_api.md" title="Edit this page">
+  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/reference/user_interface.md" title="Edit this page">
     <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
@@ -214,85 +214,133 @@
           </label>
         </div>
         <article role="main">
-          <section id="kafl-nyx-hypercall-api">
-<h1>kAFL/Nyx Hypercall API<a class="headerlink" href="#kafl-nyx-hypercall-api" title="Permalink to this heading">#</a></h1>
-<p>For fuzzing in kAFL/Nyx, the guest VM issues special hypercalls to bootstrap and
-coordinate the execution of the fuzzing harness with the fuzzer frontend.</p>
-<p>This approach offers a minimal low-level interface that can be used to take
-control and start injecting inputs at any point in VM guest execution.</p>
-<section id="essential-hypercalls">
-<h2>Essential hypercalls<a class="headerlink" href="#essential-hypercalls" title="Permalink to this heading">#</a></h2>
+          <section id="kafl-user-interface">
+<h1>kAFL User Interface<a class="headerlink" href="#kafl-user-interface" title="Permalink to this heading">#</a></h1>
+<section id="kafl-gui">
+<h2>kAFL GUI<a class="headerlink" href="#kafl-gui" title="Permalink to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">kafl_gui.py</span></code> renders the various status and metadata files of a workdir
+into a curses based text UI. You can also use it on an old / archived workdir to
+obtain a quick overview of the campaign status and average performance:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ kafl_gui.py /path/to/workdir
+
+  ┏━┫▌kAFL Grand UI▐┣━┓
+┏━┻━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Runtime:    2h00m │ #Execs:     26.0M │ Stability:     0% │ Workers:   16/72 ┃
+┃                   │ CurExec/s:   4018 │ Funkiness:   0.0% │ CPU Use:      0% ┃
+┃ Est. Done:    74% │ AvgExec/s:   3616 │ Timeouts:    0.0% │ RAM Use:      1% ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+┏━━❮❰ Progress ❱❯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                              ┃
+┃ Paths:            │ Bitmap:           │ Findings:                            ┃
+┃  Total:       141 │                   │  Crash:           4 (N/A)      1h57m ┃
+┃  Seeds:        45 │  Edges:     11.1K │  AddSan:          1 (N/A)      1h57m ┃
+┃  Favs:         18 │  Blocks:    21.2K │  Timeout:         9 (N/A)     13m15s ┃
+┃  Norm:        123 │  p(col):     8.4% │  Regular:       141 (N/A)      3m27s ┃
+┠──────────────────────────────────────────────────────────────────────────────┨
+┃ Yld: Init:     38 │ Grim:      0 │ Redq:      6 │ Det:      0 │ Hvc:      66 ┃
+┃ Fav: Init:      0 │ Rq/Gr:     0 │ Det:       6 │ Hvc:      0 │ Fin:      12 ┃
+┃ Nrm: Init:      0 │ Rq/Gr:     0 │ Det:       1 │ Hvc:      2 │ Fin:     120 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+┏━━❮❰ Activity ❱❯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                              ┃
+┃ &gt;Worker  0:    afl_splice │ node:   140 │ fav/lvl:     0/  2 │ exec/s:   399 ┃
+┃  Worker  1:     afl_havoc │ node:     1 │ fav/lvl:    97/  0 │ exec/s:   395 ┃
+┃  Worker  2:  afl_flip_2/1 │ node:    96 │ fav/lvl:     5/  2 │ exec/s:   400 ┃
+┃  Worker  3:    afl_splice │ node:   106 │ fav/lvl:     0/  2 │ exec/s:   371 ┃
+┃  Worker  4:    afl_splice │ node:    85 │ fav/lvl:     0/  1 │ exec/s:   243 ┃
+┃  Worker  5:  afl_flip_2/1 │ node:   103 │ fav/lvl:     1/  1 │ exec/s:   244 ┃
+┃  Worker  6:    afl_splice │ node:    58 │ fav/lvl:     0/  1 │ exec/s:   245 ┃
+┃  Worker  7:  afl_flip_2/1 │ node:    62 │ fav/lvl:    25/  1 │ exec/s:   242 ┃
+┃  Worker  8:       radamsa │ node:    50 │ fav/lvl:     0/  1 │ exec/s:    32 ┃
+┃  Worker  9:    afl_splice │ node:   153 │ fav/lvl:     0/  2 │ exec/s:   233 ┃
+┃  Worker 10:  afl_flip_2/1 │ node:    84 │ fav/lvl:    20/  1 │ exec/s:   245 ┃
+┃  Worker 11:  afl_flip_2/1 │ node:    99 │ fav/lvl:     1/  2 │ exec/s:   243 ┃
+┃  Worker 12:  afl_flip_2/1 │ node:    30 │ fav/lvl:     0/  0 │ exec/s:   239 ┃
+┃  Worker 13:    afl_splice │ node:    64 │ fav/lvl:     0/  1 │ exec/s:   241 ┃
+┃  Worker 14:    afl_splice │ node:   146 │ fav/lvl:    27/  2 │ exec/s:   240 ┃
+┃  Worker 15:   afl_arith_2 │ node:    21 │ fav/lvl:     1/  0 │ exec/s:     6 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+┏━━❮❰ Node Info ❱❯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                              ┃
+┃ Id:   140 │ Size:   1.0KB │ Perf:   4.75ms │ Score:      3 │ Fuzzed:   0h02m ┃
+┠──────────────────────────────────────────────────────────────────────────────┨
+┃ 0x0000000: 17 45 9d e4 47 90 50 f5 52 61 59 7c dd e4 ac 8e │.E..G.P.RaY|.... ┃
+┃ 0x0000010: 8c 86 b0 92 77 fb 28 f0 4c f7 23 49 75 12 94 14 │....w.(.L.#Iu... ┃
+┃ 0x0000020: d5 76 1b 15 66 5b 52 9e e7 c6 10 91 51 6d 35 40 │.v..f[R.....Qm5. ┃
+┃ 0x0000030: 80 8d ad 1a fe b4 22 a0 20 72 b0 f0 f5 a4 89 4f │......&quot;. r.....O ┃
+┃ 0x0000040: ef 9d ea 6a b2 26 21 7a bc fa 79 1a f9 ac d1 da │...j.&amp;!z..y..... ┃
+┃ 0x0000050: 94 dd 25 3b e7 58 63 79 93 1e c7 ad 93 dd 14 41 │..%;.Xcy.......A ┃
+┃ 0x0000060: 9d 51 cb e7 1f f9 df 3a ea 98 31 37 30 31 34 31 │.Q.....:..170141 ┃
+┃ 0x0000070: 31 38 33 34 36 30 34 36 39 32 33 31 37 33 31 36 │1834604692317316 ┃
+┃ 0x0000080: 38 37 33 30 33 83 41 ef 60 ea e4 c0 28 72 23 68 │87303.A.`...(r#h ┃
+┃ 0x0000090: 58 f4 84 8d 58 8e f5 70 60 00 27 3a 71 cb 46 51 │X...X..p..&#39;:q.FQ ┃
+┃ 0x00000a0: f2 cf f9 51 1d 81 31 2c f6 37 3e 5e 67 15 30 80 │...Q..1,.7&gt;^g.0. ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+</pre></div>
+</div>
+<p>The UI is split into 4 windows, with increasingly detailed status indicators:</p>
+<ol class="arabic">
+<li><p>Campaign Performance</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ACQUIRE</span> <span class="pre">/</span> <span class="pre">RELEASE</span></code> are used to enable/disable feedback collection and
-generally mark the start and stop of a single execution. One initial set of
-<code class="docutils literal notranslate"><span class="pre">ACQUIRE</span></code>/<code class="docutils literal notranslate"><span class="pre">RELEASE</span></code> hypercalls is also used for initial handshake with the host
-frontend. Reaching <code class="docutils literal notranslate"><span class="pre">RELEASE</span></code> generally means the execution is done with no
-errors (return OK). The newer Nyx backend will automatically restore a guest
-snapshot on RELEASE hypercall.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">GET_PAYLOAD</span></code> is not actually getting the payload but instead telling Qemu
-where to write the payload. The guest must take care to allocate a
-sufficiently large buffer and make it page-aligned. Qemu will mmap() this
-buffer to make it shared with the fuzzer frontend.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">NEXT_PAYLOAD</span></code> triggers the actual write of the next payload into the
-previously registered buffer. In Nyx, the first invocation will also create
-a snapshot before writing the payload, so our fuzzing “loop” actually always
-starts from this hypercall now. The <code class="docutils literal notranslate"><span class="pre">while()</span></code> loop in our guest agent is not
-actually needed anymore.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">PRINTF</span></code> send a pointer to a C string to the host, where it will be printed or
-logged. Very useful for general logging/debug, forwarding sanitizer reports
-and exception stack dumps.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">PANIC</span></code>, <code class="docutils literal notranslate"><span class="pre">KASAN</span></code> are used to raise a ‘crash’ or other error event to the host.
-Qemu will stop Guest execution, reload the snapshot and report the crash type
-to the frontend.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SUBMIT_PANIC</span></code>, <code class="docutils literal notranslate"><span class="pre">SUBMIT_KASAN</span></code> tell Qemu the address of existing panic or
-sanitizer handler functions in the guest. Qemu will overwrite the code at this
-address to perform <code class="docutils literal notranslate"><span class="pre">PANIC</span></code>/<code class="docutils literal notranslate"><span class="pre">KASAN</span></code> hypercalls so that the events are detected
-and fuzz inputs can be logged on the host side.  Rewrite can have unexpected
-results in case of inlined code or if the function is a macro etc. It is often
-preferable and more flexible to manually place hypercalls in the corresponding
-error and exception handlers.</p></li>
+<li><p>Runtime: total elapsed time</p></li>
+<li><p>Est. Done: current progress estimate (very rough)</p></li>
+<li><p>#Execs: total number of executions</p></li>
+<li><p>CurExec/s: Sum of current exec/s reported by each worker</p></li>
+<li><p>AvgExec/s: Total executions per second (<code class="docutils literal notranslate"><span class="pre">=</span> <span class="pre">#execs</span> <span class="pre">/</span> <span class="pre">runtime</span></code>)</p></li>
+<li><p>Stability: Overall fraction of executions which are crashing or timing out.
+Watch this for frequent/shallow crashes or timeouts and adjust your setup.</p></li>
+<li><p>Funkiness: Fraction of non-deterministic executions (see <code class="docutils literal notranslate"><span class="pre">--funky</span></code>)</p></li>
+<li><p>Timeouts: Fraction of executions which are timing out</p></li>
+<li><p>Workers: Number of workers launched vs. available vCPUs.</p></li>
+<li><p>CPU Use: Current CPU usage</p></li>
+<li><p>RAM Use: Current RAM usage</p></li>
 </ul>
-</section>
-<section id="further-optional-hypercalls">
-<h2>Further optional hypercalls<a class="headerlink" href="#further-optional-hypercalls" title="Permalink to this heading">#</a></h2>
+</li>
+<li><p>Campaign Progress</p>
+<p>Paths: Unique payloads in the queue</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">RANGE_SUBMIT</span></code> is used to configure the IP filter range for PT tracing. This
-is useful when code ranges are not known at startup time or simply easier to
-obtain as part of agent initialization. Overrides the corresponding <code class="docutils literal notranslate"><span class="pre">-ipN</span></code>
-setting by fuzzer frontend.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SUBMIT_CR3</span></code> tells Qemu to use the currently configured CR3 value as a filter
-for PT tracing. Useful to limit trace to a specific task/context.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">USER_ABORT</span></code> signals a fatal error to Qemu. Mainly useful as a kind of
-assert() from harness perspective (since we auto-resume on regular crash/hang).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">USER_SUBMIT_MODE</span></code> explicitly tells the host if the target is 32 or 64 bit code.
-Influences Qemu code rewrite and possibly libxdc decoder. Typically auto-detected.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SET_AGENT_CONFIG</span></code> tells Qemu about capabilities of the harness (agent), e.g.
-custom tracing options. Further options may be added by extending the handler on Qemu side.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">GET_HOST_CONFIG</span></code> can be used to query kAFL/Qemu configuration, e.g. size of the payload buffer.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">REQ_STREAM_DATA</span></code> fetches a named binary buffer from the host. Qemu fetches
-the data from correspondingly named files in the <span class="xref myst">sharedir folder</span></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DUMP_FILE</span></code> can be used to send binary buffers that will be stored as files in
-$WORK_DIR/dump/. Supply NULL or a valid mkstemp() template as filename to
-let Qemu create a unique filename for you.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">USER_FAST_ACQUIRE</span></code> this is a combination of <code class="docutils literal notranslate"><span class="pre">NEXT_PAYLOAD</span></code> and <code class="docutils literal notranslate"><span class="pre">ACQUIRE</span></code> and
-mainly exists to save you a VM exit. Only tested for usermode fuzzing.</p></li>
+<li><p>Total: Total <code class="docutils literal notranslate"><span class="pre">regular</span></code> (not crashing, not timeout) inputs</p></li>
+<li><p>Seeds: Fraction of inputs learned via <code class="docutils literal notranslate"><span class="pre">--seed-dir</span></code> or <code class="docutils literal notranslate"><span class="pre">--kickstart</span></code></p></li>
+<li><p>Favs/Norms: Number of <code class="docutils literal notranslate"><span class="pre">favorite</span></code> vs. <code class="docutils literal notranslate"><span class="pre">normal</span></code> inputs</p></li>
 </ul>
-</section>
-<section id="untested-and-not-fully-integrated">
-<h2>Untested and not fully integrated<a class="headerlink" href="#untested-and-not-fully-integrated" title="Permalink to this heading">#</a></h2>
+<p>Bitmap: Coverage / feedback bitmap status</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">PRINTK_ADDR</span></code> – submit the pointer of a printk()-like logging function. Qemu
-will rewrite this with a <code class="docutils literal notranslate"><span class="pre">PRINTK</span></code> hypercall which can interpret printk() args.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">PANIC_EXTENDED</span></code> – a mix of PANIC and HPRINTF, raises a bug while also
-forwarding a pointer to a C string. Untested.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">CREATE_TMP_SNAPSHOT</span></code> – create an incremental snapshot and continue fuzzing
-from current position. Frontend and harness have to support this.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DEBUG_TMP_SNAPSHOT</span></code> – debug version of incremental snapshot</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">NESTED_*</span></code> - roughly equivalent hypercalls for use with nested virtualization
-(when agent is a L2 guest)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">USER_RANGE_ADVISE</span></code>, <code class="docutils literal notranslate"><span class="pre">GET_ARGV</span></code> – no idea</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">INFO</span></code>, <code class="docutils literal notranslate"><span class="pre">LOCK</span></code>, <code class="docutils literal notranslate"><span class="pre">GET_PROGRAM</span></code> – deprecated</p></li>
+<li><p>Edges: Number of block transitions discovered (bytes in <code class="docutils literal notranslate"><span class="pre">regular</span></code> bitmap)</p></li>
+<li><p>Blocks: Number of basic blocks seen by PT tracer (<em>all</em> execution types)</p></li>
+<li><p>p(col): Probability of hash collision in bitmap (see <code class="docutils literal notranslate"><span class="pre">--bitmap-size</span></code>)</p></li>
 </ul>
+<p>Findings: Unique payloads (based on bitmap) and time since last find</p>
+<ul class="simple">
+<li><p>Crash: Executions returning with PANIC or PANIC_EXTENDED hypercall</p></li>
+<li><p>AddSan: Executions returning with KASAN hypercall</p></li>
+<li><p>Timeout: Executions intercepted by Qemu timeout</p></li>
+<li><p>Regular: Executions returning with RELEASE hypercall</p></li>
+<li><p>Yld: Yield, i.e. the number of unique inputs found by individual
+mutation/stages (init, grimoire, redqueen, deterministic, havoc).</p></li>
+<li><p>Fav: Number of <code class="docutils literal notranslate"><span class="pre">favorite</span></code> payloads in respective mutation stage (new
+findings start in <code class="docutils literal notranslate"><span class="pre">init</span></code> and iteratively progress through to <code class="docutils literal notranslate"><span class="pre">fin</span></code>).</p></li>
+<li><p>Nrm: Number of <code class="docutils literal notranslate"><span class="pre">normal</span></code> payloads in respective mutation stage (traverse
+through mutation stages at lower priority compared to favorites)</p></li>
+</ul>
+</li>
+<li><p>Worker Activity</p>
+<p>Currently scheduled task at each worker (select with Up/Down):</p>
+<ul class="simple">
+<li><p>worker ID</p></li>
+<li><p>active mutation</p></li>
+<li><p>scheduled node (payload ID)</p></li>
+<li><p>fav/lvl: number of favorite bits and level of the payload</p></li>
+<li><p>exec/s: current execution speed for this payload/mutation</p></li>
+</ul>
+</li>
+<li><p>Payload Detail</p>
+<p>Addition detail on payload scheduled by selected worker:</p>
+<ul class="simple">
+<li><p>Payload id, size, execution speed (perf), assigned score</p></li>
+<li><p>Fuzzed: Total time this payload has been mutated/processed by a worker</p></li>
+</ul>
+</li>
+</ol>
 </section>
 </section>
 
@@ -301,23 +349,23 @@ from current position. Frontend and harness have to support this.</p></li>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="workdir_layout.html">
+          <a class="next-page" href="../dev/documentation.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">kAFL Workdir</div>
+                <div class="title">Building the documentation</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="deployment.html">
+          <a class="prev-page" href="workdir_layout.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Deployment</div>
+                <div class="title">kAFL Workdir</div>
                 
               </div>
             </a>
@@ -358,10 +406,8 @@ from current position. Frontend and harness have to support this.</p></li>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">kAFL/Nyx Hypercall API</a><ul>
-<li><a class="reference internal" href="#essential-hypercalls">Essential hypercalls</a></li>
-<li><a class="reference internal" href="#further-optional-hypercalls">Further optional hypercalls</a></li>
-<li><a class="reference internal" href="#untested-and-not-fully-integrated">Untested and not fully integrated</a></li>
+<li><a class="reference internal" href="#">kAFL User Interface</a><ul>
+<li><a class="reference internal" href="#kafl-gui">kAFL GUI</a></li>
 </ul>
 </li>
 </ul>

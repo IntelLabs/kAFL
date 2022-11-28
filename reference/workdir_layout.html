@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="prev" title="kAFL User Interface" href="../reference/user_interface.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="kAFL User Interface" href="user_interface.html" /><link rel="prev" title="kAFL/Nyx Hypercall API" href="hypercall_api.html" />
 
     <meta name="generator" content="sphinx-5.1.0, furo 2022.06.21"/>
-        <title>Building the documentation - kAFL</title>
+        <title>kAFL Workdir - kAFL</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
@@ -136,7 +136,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -163,15 +163,15 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Fuzzing the Linux Kernel</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Reference</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../reference/deployment.html">Deployment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../reference/hypercall_api.html">kAFL/Nyx Hypercall API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../reference/workdir_layout.html">kAFL Workdir</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../reference/user_interface.html">kAFL User Interface</a></li>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="deployment.html">Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hypercall_api.html">kAFL/Nyx Hypercall API</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">kAFL Workdir</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_interface.html">kAFL User Interface</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
-<ul class="current">
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Building the documentation</a></li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../dev/documentation.html">Building the documentation</a></li>
 </ul>
 
 </div>
@@ -192,7 +192,7 @@
         </a>
         <div class="content-icon-container">
           <div class="edit-this-page">
-  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/dev/documentation.md" title="Edit this page">
+  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/reference/workdir_layout.md" title="Edit this page">
     <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
@@ -208,21 +208,129 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main">
-          <section id="building-the-documentation">
-<h1>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permalink to this heading">#</a></h1>
-<p>The project’s documentation is hosted online at <a class="reference external" href="https://IntelLabs.github.io/kAFL/"><img alt="online_docs" src="https://img.shields.io/badge/Online-Documentation-green" /></a></p>
-<p>To build the docs locally:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> docs
-make html
-xdg-open build/html/index.html
+          <section id="kafl-workdir">
+<h1>kAFL Workdir<a class="headerlink" href="#kafl-workdir" title="Permalink to this heading">#</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">workdir</span></code> is used by kAFL to accumulate results and communicate with Qemu
+and other processes. It is the primary location for inspecting the status of
+a previous or still running kAFL session. Also, any <span class="xref myst">post-processing steps such
+as triage or coverage analysis</span> typically builds up on an existing workdir.</p>
+<section id="usage-conventions">
+<h2>Usage Conventions<a class="headerlink" href="#usage-conventions" title="Permalink to this heading">#</a></h2>
+<p>Due to the frequent use by addition tools and scripts, the kAFL deployment
+defines a default workdir location in <code class="docutils literal notranslate"><span class="pre">env.sh</span></code>. It is recommended to use
+this <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR</span></code> and related environment variables rather than hard-coding
+paths in the various tools and helper scripts.</p>
+<p>The default value of <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR</span></code> points to a location in <code class="docutils literal notranslate"><span class="pre">/dev/shm/</span></code>.  This
+means the workdir is only stored in RAM, which tends to result in better
+performance and avoids unnecessary disk I/O during prototyping. To keep the
+results of a campaign, exit the fuzzer and copy the entire workdir to a more
+permanent location.</p>
+</section>
+<section id="configuration-options">
+<h2>Configuration Options<a class="headerlink" href="#configuration-options" title="Permalink to this heading">#</a></h2>
+<p>The target <code class="docutils literal notranslate"><span class="pre">workdir</span></code> is set using the commandline argument <code class="docutils literal notranslate"><span class="pre">--work-dir</span></code> or
+corresponding configuration file entry <code class="docutils literal notranslate"><span class="pre">work_dir</span></code>. By default, it is expected to
+be a non-existing path that will be populated with several special files and
+folders on startup.</p>
+<p>The argument <code class="docutils literal notranslate"><span class="pre">--purge</span></code> can be supplied to override this safety and
+purge a previously existing workdir on startup. This is mainly useful when
+developing or testing a harness.</p>
+<p>The argument <code class="docutils literal notranslate"><span class="pre">--resume</span></code> can be supplied to the opposite effect - the workdir
+will not be deleted and any Qemu instances will be reloaded from the existing
+snapshot. This is currently only supported for <span class="xref myst">triage or coverage
+analysis</span>. The fuzzer itself does not yet support resuming from
+an existing workdir, but you can use one or more previously discovered
+input corpuses as seeds (<code class="docutils literal notranslate"><span class="pre">--seed-dir</span></code>).</p>
+</section>
+<section id="detailed-content">
+<h2>Detailed Content<a class="headerlink" href="#detailed-content" title="Permalink to this heading">#</a></h2>
+<p>Workdir content is a mix of status/output and program-internal IPC/SHM files.
+They are sorted here by relevance. The <code class="docutils literal notranslate"><span class="pre">mcat.py</span></code> tool can be used to view
+msgpack encoded files.</p>
+<p>Note that some files may not exist, e.g. log files are only created on first
+write. Also many of the internal IPC/SHM files will be deleted on exit.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ tree $KAFL_WORKDIR/
+│
+│ # fuzzer status, can be used by kafl_gui.py, kafl_plot.py, gnuplot...
+│
+├── config                       - config dump by kafl_fuzz.py (msgpack)
+├── stats                        - aggregated status (msgpack)
+├── stats.csv                    - aggregated status over time (csv table)
+├── worker_stats_N               - worker N status (msgpack)
+│
+│ # debug and crash logs
+│
+├── hprintf_NN.log               - hprintf log for Worker N (--log-hprintf)
+├── serial_NN.log                - Qemu serial log for Worker N
+├── debug.log                    - kAFL Fuzzer python log (--log)
+├── logs/                        - hprintf excerpts from irregular exits,
+│   ├── crash_XXXXXX.log           tagged with truncated hash of execution bitmap
+│   ├── kasan_XXXXXX.log
+│   └── timeo_XXXXXX.log
+│
+├── imports/                     - copy files here to evaluate them as input, also
+│                                  used for initial seed import (--seed-dir)
+│
+│ # campaign results
+│
+├── dump/                        - location for guest uploads (HYPERCALL_KAFL_DUMP_FILE)
+├── funky/                       - location for non-deterministic payloads (--funky)
+├── traces/                      - location for PT traces (see kafl_cov.py and --trace)
+│
+├── corpus/                      - corpus of discovered payloads by Qemu exec result
+│   ├── crash/
+│   │   └── payload_AAAAA          =&gt; HYPERCALL_KAFL_PANIC
+│   ├── kasan/
+│   │   └── payload_BBBBB          =&gt; HYPERCALL_KAFL_KASAN
+│   ├── regular/
+│   │   └── payload_CCCCC          =&gt; HYPERCALL_KAFL_RELEASE
+│   └── timeout/
+│       └── payload_DDDDD          =&gt; timeout (catched by host side)
+│
+├── metadata/                    - meta info for each corpus payload (msgpack)
+│   ├── node_AAAAA
+│   ├── node_BBBBB
+│   ├── node_CCCCC
+│   └── node_DDDDD
+│
+│ # (not as interesting files)
+│
+├── kafl_socket                  - socket between kAFL manager and workers
+├── interface_N                  - socket between kAFL worker N and Qemu N
+├── payload_N                    - Worker/Qemu payload SHM
+├── aux_buffer_N                 - Worker/Qemu aux_buffer SHM
+├── bitmap_N                     - Worker/Qemu main bitmap SHM
+├── ijon_N                       - Worker/Qemu ijon bitmap SHM
+├── radamsa_N/                   - IPC for radamsa integration
+├── redqueen_workdir_N/          - IPC for redqueen integration
+│
+├── page_cache.addr              - Shared guest page cache for PT decode
+├── page_cache.dump
+├── page_cache.lock
+│
+├── bitmaps/                     - global feedback bitmaps by exec result
+│   ├── main_crash_bitmap
+│   ├── main_kasan_bitmap
+│   ├── main_normal_bitmap
+│   └── main_timeout_bitmap
+│
+└── snapshot/                    - Nyx snapshot files
+    ├── fast_snapshot.mem_dump
+    ├── fast_snapshot.mem_meta
+    ├── fast_snapshot.qemu_state
+    ├── fs_cache.meta
+    ├── global.state
+    ├── INFO.txt
+    └── ready.lock
 </pre></div>
 </div>
+</section>
 </section>
 
         </article>
@@ -230,15 +338,23 @@ xdg-open build/html/index.html
       <footer>
         
         <div class="related-pages">
-          
-          <a class="prev-page" href="../reference/user_interface.html">
+          <a class="next-page" href="user_interface.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">kAFL User Interface</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="hypercall_api.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">kAFL User Interface</div>
+                <div class="title">kAFL/Nyx Hypercall API</div>
                 
               </div>
             </a>
@@ -267,8 +383,29 @@ xdg-open build/html/index.html
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">kAFL Workdir</a><ul>
+<li><a class="reference internal" href="#usage-conventions">Usage Conventions</a></li>
+<li><a class="reference internal" href="#configuration-options">Configuration Options</a></li>
+<li><a class="reference internal" href="#detailed-content">Detailed Content</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
