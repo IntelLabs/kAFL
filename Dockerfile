@@ -1,6 +1,6 @@
 # Copyright (C) Intel Corporation, 2022
 # SPDX-License-Identifier: MIT
-ARG baseimage=debian:bullseye-slim$
+ARG baseimage=debian:bullseye-slim
 FROM ${baseimage} as build
 ARG pyinstaller_version=5.7.0
 
@@ -14,7 +14,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
 
 # create pyinstaller stub for executable Python packages
 # https://github.com/pyinstaller/pyinstaller/issues/2560
-RUN echo "from kafl_fuzzer.__main__ import main\nmain()" > ./kafl/fuzzer/stub.py
+RUN printf "%s\n" 'from kafl_fuzzer.__main__ import main' \
+            'from contextlib import suppress' \
+            'with suppress(KeyboardInterrupt):' \
+            '    main()' > ./kafl/fuzzer/stub.py
 # TODO: how to make pyinstaller detect Extension modules ?
 # move build/*/bitmap*.so as bitmap.so
 # include it in the pyinstaller executable
@@ -29,10 +32,10 @@ RUN ./kafl/.venv/bin/pip install pyinstaller==${pyinstaller_version} && \
         stub.py
 
 # create kafl config file
-RUN echo "qemu_path: /usr/local/bin/qemu-system-x86_64" >> settings.yaml && \
-    echo "ptdump_path: /usr/local/bin/ptdump" >> settings.yaml && \
-    echo "radamsa_path: /usr/local/bin/radamsa" >> settings.yaml && \
-    echo "workdir: /workdir" >> settings.yaml
+RUN printf "%s\n" 'qemu_path: /usr/local/bin/qemu-system-x86_64' \
+                  'ptdump_path: /usr/local/bin/ptdump' \
+                  'radamsa_path: /usr/local/bin/radamsa' \
+                  'workdir: /workdir' >> settings.yaml
 
 FROM ${baseimage} as run
 # install QEMU
