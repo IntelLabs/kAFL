@@ -35,7 +35,7 @@ RUN ./kafl/.venv/bin/pip install pyinstaller==${pyinstaller_version} && \
 RUN printf "%s\n" 'qemu_path: /usr/local/bin/qemu-system-x86_64' \
                   'ptdump_path: /usr/local/bin/ptdump' \
                   'radamsa_path: /usr/local/bin/radamsa' \
-                  'workdir: /workdir' >> settings.yaml
+                  'workdir: /mnt/workdir' >> settings.yaml
 
 FROM ${baseimage} as run
 # install QEMU
@@ -54,8 +54,9 @@ COPY --from=build /app/settings.yaml /etc/xdg/kAFL/
 # install shared libraries for QEMU
 RUN apt-get update && apt-get install -y --no-install-recommends libpixman-1-0 libpng16-16 libglib2.0-0 && apt-get clean
 
-# define kAFL WORKDIR volume (not to be confused with Dockerfile's WORKDIR)
-VOLUME ["/workdir"]
+WORKDIR /mnt/workdir
+# define kAFL WORKDIR as volume
+VOLUME ["/mnt/workdir"]
 
 # Setup env to run Dockerized Python app
 ENV LANG C.UF-8
