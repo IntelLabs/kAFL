@@ -31,7 +31,8 @@ RUN ./kafl/.venv/bin/pip install pyinstaller==${pyinstaller_version} && \
 # create kafl config file
 RUN echo "qemu_path: /usr/local/bin/qemu-system-x86_64" >> settings.yaml && \
     echo "ptdump_path: /usr/local/bin/ptdump" >> settings.yaml && \
-    echo "radamsa_path: /usr/local/bin/radamsa" >> settings.yaml
+    echo "radamsa_path: /usr/local/bin/radamsa" >> settings.yaml && \
+    echo "workdir: /workdir" >> settings.yaml
 
 FROM ${baseimage} as run
 # install QEMU
@@ -45,6 +46,9 @@ COPY --from=build /app/kafl/libxdc/build/ptdump /usr/local/bin
 COPY --from=build /app/kafl/fuzzer/dist/kafl /usr/local/bin
 # install config file
 COPY --from=build /app/settings.yaml /etc/xdg/kAFL/
+
+# define kAFL WORKDIR volume (not to be confused with Dockerfile's WORKDIR)
+VOLUME ["/workdir"]
 
 # Setup env to run Dockerized Python app
 ENV LANG C.UF-8
