@@ -50,6 +50,10 @@ COPY --from=build /app/kafl/fuzzer/dist/kafl /usr/local/bin
 # install config file
 COPY --from=build /app/settings.yaml /etc/xdg/kAFL/
 
+# TODO: switch to full static QEMU build
+# install shared libraries for QEMU
+RUN apt-get update && apt-get install -y --no-install-recommends libpixman-1-0 libpng16-16 libglib2.0-0 && apt-get clean
+
 # define kAFL WORKDIR volume (not to be confused with Dockerfile's WORKDIR)
 VOLUME ["/workdir"]
 
