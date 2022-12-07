@@ -9,7 +9,6 @@ or fuzzing during bootstrapping when no userspace is available.
 It also has the benefit of not requiring any additional guest filesystem
 setup or cross-compiling, as the harness is implemented directly in the kernel.
 
-
 Instead of a silly hello world function, this example uses an existing kAFL
 agent implemented for TDX guest kernel validation. We can enable an option to
 perform input injection in the PCI MMIO/PIO reads, which will result in
@@ -21,7 +20,7 @@ This kernel branch implements a kAFL agent in arch/x86/kernel/. It offers
 multiple options for input injection and a state machine to enable/disable
 fuzzing at various points during kernel execution.
 
-```
+```shell
 cd $EXAMPLES_ROOT/linux-kernel/
 git clone -b kafl/fuzz-5.15-4 https://github.com/IntelLabs/kafl.linux.git --depth=1 linux-guest
 ```
@@ -29,14 +28,14 @@ git clone -b kafl/fuzz-5.15-4 https://github.com/IntelLabs/kafl.linux.git --dept
 ## 2. Configure and build target kernel
 
 Install build dependencies (depends on kernel .config):
-```
+```shell
 sudo apt install gawk bison flex openssl libssl-dev libelf-dev lz4 dwarves
 ```
 
 Use the provided example config to build a guest kernel with PCI/VIRTIO fuzzing
 enabled:
 
-```
+```shell
 cp config.vanilla.virtio linux-guest/.config
 make -C linux-guest -j$(nproc)
 ```
@@ -46,8 +45,8 @@ make -C linux-guest -j$(nproc)
 Since the harness is built-in and auto-snapshots on first fuzzing input,
 launching the fuzzer is as simple as booting the kernel:
 
-```
-KAFL_CONFIG_FILE=./kafl_config.yaml kafl_fuzz.py --purge -w /dev/shm/kafl \
+```shell
+KAFL_CONFIG_FILE=./kafl_config.yaml kafl fuzz --purge \
 	--redqueen --grimoire -D --radamsa \
 	--kernel linux-guest/arch/x86/boot/bzImage \
 	-t 0.1 -ts 0.01 -m 512 --log-crashes -p 2
@@ -126,27 +125,58 @@ different harness and input injection options defined in .config.
 Be sure to read other documentation to understand the various options and
 interpreting fuzzer output. Some hints (run in separate terminal):
 
-```
-kafl_gui.py $KAFL_WORKDIR
+```shell
+kafl gui [-w $KAFL_WORKDIR]
 ```
 
-```
+```shell
 ls $KAFL_WORKDIR/corpus/
 ls $KAFL_WORKDIR/logs/
 ```
 
-For coverage reports, find out what PT filter ranges are used for the kernel image (they are auto-detected on startup and logged using `kafl_hprintf()` - try to launch with `--log-hprintf -p 1` instead of the above `--log-crashes` and look at `$workdir/hprintf_00.log`). Then use `kafl_cov.py` with `--resume` and same workdir + input directory. This will restore the VM snapshot and use the existing page_cache info to replay corpus payloads as faithfully as possible and dump PT trace info to `$workdir/traces/*bin.lz4`. The tool will also call `ptdump` on each trace to directly decode it to `$workdir/traces/*.txt.lz4`. For big corpuses, you can parallelize this process using `-p`. Example:
+For coverage reports, we need to first find out what PT filter ranges are used for the kernel image.
+They are auto-detected on startup and can be logged using `--log-hprintf` parameter.
 
+Try to launch with `--log-hprintf -p 1` instead of the above `--log-crashes` and look at `$KAFL_WORKDIR/hprintf_00.log`.
+
+Sample content for `KAFL_WORKDIR/hprintf_00.log`:
 ```
-KAFL_CONFIG_FILE=kafl_config.yaml kafl_cov.py \
-	-w /dev/shm/kafl --input /dev/shm/kafl \
+...
+Submitting payload buffer address to hypervisor (ffffffff859ad000)
+Setting range 0: ffffffff81000000-ffffffff83603000
+Setting range 1: ffffffff855ed000-ffffffff856e4000
+Starting kAFL loop...
+...
+```
+Then use `kafl cov` subcommand with `--resume` and specify the corpus `--input` parameter the same as the workdir (`$KAFL_WORKDIR`, see below example).
+Using the same existing workdir folder in combination with `--resume` will reload the guest state directly from the Nyx fast-snapshot used during fuzzing and re-use the existing `$KAFL_WORKDIR/page_cache*` files, leading to better reproducibility.
+
+PT traces produced by Qemu/worker instances are
+picked up from `$KAFL_WORKDIR/pt_trace_dump_NN` and stored at `$KAFL_WORKDIR/traces/*bin.lz4`.
+The `kafl cov` tool then calls `ptdump` with the given PT filter range and
+`page_cache` files to decode to a corresponding text file `$KAFL_WORKDIR/traces/*.txt.lz4`.
+
+For best results, it is recommended to collect binary PT traces already during
+fuzzing (using `kafl fuzz --trace` option). The `kafl cov` tool will detect the
+existing binary traces in `$KAFL_WORKDIR/traces/` and skip re-executing the corpus,
+providing accurate coverage traces even for non-deterministic targets.
+
+For big corpuses, you can parallelize this process using `-p`:
+```shell
+KAFL_CONFIG_FILE=kafl_config.yaml kafl cov \
+        --input $KAFL_WORKDIR \
 	--kernel linux-guest/arch/x86/boot/bzImage \
 	-ip0 ffffffff81000000-ffffffff83603000 \
 	-ip1 ffffffff855ed000-ffffffff856e4000 \
-	--resume -m 512 -t 2 -p 4
+	--resume -m 512 -t 2 -p 24
 ```
 
-## 5. Known Issues
+Note that timeout and VM settings are not relevant here anymore, but the tool will
+complain about invalid/missing options. Based on the binary PT dumps,
+IP ranges and the code image retained in `$KAFL_WORKDIR/page_cache`, this simply uses the
+libxdc `ptdump` to decode `$KAFL_WORKDIR/traces/*bin.lz4` to `$KAFL_WORKDIR/traces/*.txt.lz4`.
+
+## 5) Known Issues
 
 1) *[ERROR] Guest ABORT: Attempt to finish kAFL run but never initialized* - This
 happens when the configured harness does not consume any inputs. For instance
@@ -156,9 +186,11 @@ fuzzing virtio-net initialization may be a no-op if previously performed PCI
 scan did not detect any virtio-net devices. It helps to enable virtio-net in
 Qemu.
 
-2) *libxdc_decode_error* - This mainly seems to happen on dynamic code rewrite.
-Linux does this in several places, for instance due to paravirtualization,
-dynamic ftrace, jump label etc.
+2) *libxdc_decode_error* - This mainly happens on invalid or missing PT filter
+settings.  Alternatively, decoding PT traces can fail with new/unsupported
+instructions (check libcapstone for updates) or in case of dynamic code rewrite.
+The provided example kernel has minor patches/options set to avoid dynamic code
+rewrite (see Linux 'alternative instructions', dynamic ftrace, jump label etc.)
 
 3) *qemu-system-x86_64: assertion error xyz* - Especially during virtio fuzzing,
 the guest may do unexpected things to the host virtio emulation that can cause
