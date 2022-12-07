@@ -1,6 +1,6 @@
 # Copyright (C) Intel Corporation, 2022
 # SPDX-License-Identifier: MIT
-ARG baseimage=debian:bullseye-slim
+ARG baseimage=debian:bullseye-slim$
 FROM ${baseimage} as build
 ARG pyinstaller_version=5.7.0
 
@@ -9,7 +9,7 @@ COPY . .
 
 # skip ghidra since it adds 1G to the final image,
 # and we don't use it for our fuzzing use case with Docker
-RUN apt-get update && apt-get install -y build-essential git python3 python3-venv && \
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential git python3 python3-venv && \
     make deploy -- --tags fuzzer --skip-tags kernel,kvm_device,ghidra
 
 # create pyinstaller stub for executable Python packages
