@@ -240,6 +240,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: snyk/actions/setup@master
+
+      - name: snyk auth
+        run: snyk auth
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
       - uses: actions/setup-python@v2
         with:
           python-version: '3.8'
