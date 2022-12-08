@@ -1,0 +1,47 @@
+name: Security
+
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - '*'
+    paths-ignore:
+      - '**/README.md'
+  pull_request:
+    paths-ignore:
+      - '**/README.md'
+
+jobs:
+  snyk-lint-python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        req_path: ["deploy/requirements.txt", "docs/requirements.txt"]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: install dependencies
+        run: pip install -r ${{ matrix.req_path }}
+
+      - name: Copy requirements.txt at root of GITHUB_WORKSPACE for Snyk
+        run: cp ${{ matrix.req_path }} .
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --sarif-file-output=snyk.sarif
+        continue-on-error: true
+
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.sarif
+
