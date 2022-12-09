@@ -205,35 +205,21 @@ jobs:
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+    
+      # TODO: refactor in a separate in security.yml workflow
+      - name: Run Snyk to check Docker image for vulnerabilities
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ steps.meta.outputs.tags }}
+          args: --file=Dockerfile
+        continue-on-error: true
 
-  snyk-lint-dockerfile:
-    needs: [build_image]
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Run Snyk to check Docker image for vulnerabilities
-      uses: snyk/actions/docker@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        image: intellabs/kafl
-        args: --file=Dockerfile
-
-    - name: Upload results
-      uses: actions/upload-artifact@v3
-      with:
-        name: snyk-docker
-        path: |
-          snyk.json
-          snyk.sarif
-      if: ${{ failure() }}
-
-    - name: Upload result to GitHub Code Scanning
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: snyk.sarif
-      if: ${{ failure() }}
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.sarif
 
   release:
     # this job makes an official Github release
