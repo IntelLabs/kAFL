@@ -171,6 +171,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          path: kafl
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2.2.1
@@ -184,7 +186,7 @@ jobs:
       - name: Build image
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: kafl/
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -207,6 +209,42 @@ jobs:
       #   uses: github/codeql-action/upload-sarif@v2
       #   with:
       #     sarif_file: snyk.sarif
+
+      - run: mkdir bench-logs
+
+      - uses: actions/checkout@v3
+        with:
+          repository: docker/docker-bench-security
+          ref: 5a8d6434e6ebd70cb8bb465fce4ae5ed2a572eac
+          path: bench
+
+      # build image since dockerhub one is out of date
+      - name: Build Docker Bench for Security image
+        uses: docker/build-push-action@v3
+        with:
+          context: bench/
+          push: false
+          tags: docker-bench-security
+          load: true  # load build result into docker
+
+      - name: Run Docker Bench for Security
+        run: >
+          docker run --net host --pid host --userns host --cap-add audit_control
+          -e DOCKER_CONTENT_TRUST=$DOCKER_CONTENT_TRUST
+          -v /var/lib:/var/lib
+          -v /var/run/docker.sock:/var/run/docker.sock
+          -v /usr/lib/systemd:/usr/lib/systemd
+          -v /etc:/etc --label docker_bench_security
+          -v ${{ github.workspace }}/bench-logs:/usr/local/bin/log
+          docker-bench-security
+          -l log/log_file
+          -c container_images
+          -i intellabs/kafl
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: docker-bench-security
+          path: bench-logs/
 
   release:
     # this job makes an official Github release
