@@ -167,26 +167,6 @@ jobs:
       - name: Run PT tests
         run: cargo test
 
-  hadolint-lint:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v3
-
-        - name: Lint Dockerfile
-          id: hadolint
-          uses: hadolint/hadolint-action@v3.0.0
-          with:
-            # only consider errors, not warning or info level
-            failure-threshold: error
-            output-file: ${{ github.workspace }}/hadolint.out
-
-        - name: Upload hadolint output artifact
-          uses: actions/upload-artifact@v3
-          with:
-            name: hadolint
-            path: ${{ github.workspace }}/hadolint.out
-          if: ${{ failure() }}
-
   docker-image:
     runs-on: ubuntu-latest
     steps:

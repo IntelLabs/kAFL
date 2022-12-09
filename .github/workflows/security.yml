@@ -45,3 +45,22 @@ jobs:
         with:
           sarif_file: snyk.sarif
 
+  hadolint:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+
+        - name: Lint Dockerfile
+          id: hadolint
+          uses: hadolint/hadolint-action@v3.0.0
+          with:
+            # only consider errors, not warning or info level
+            failure-threshold: error
+            output-file: ${{ github.workspace }}/hadolint.out
+          continue-on-error: true
+
+        - name: Upload hadolint output artifact
+          uses: actions/upload-artifact@v3
+          with:
+            name: hadolint
+            path: ${{ github.workspace }}/hadolint.out
