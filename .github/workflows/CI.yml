@@ -187,7 +187,7 @@ jobs:
             path: ${{ github.workspace }}/hadolint.out
           if: ${{ failure() }}
 
-  build_image:
+  docker-image:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -229,7 +229,7 @@ jobs:
 
   release:
     # this job makes an official Github release
-    needs: [ansible-lint, check-mode, local, remote, nyx-testing]
+    needs: [ansible-lint, check-mode, local, remote, docker-image, nyx-testing]
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
