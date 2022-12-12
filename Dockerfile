@@ -58,6 +58,9 @@ WORKDIR /mnt/workdir
 # define kAFL WORKDIR as volume
 VOLUME ["/mnt/workdir"]
 
+# remove setuid binaries (Docker Bench for Security check_4_8)
+RUN find / -path /proc -prune -perm /6000 -type f -exec chmod a-s {}  \;
+
 # Setup env to run Dockerized Python app
 ENV LANG C.UF-8
 ENV LC_ALL C.UTF-8
