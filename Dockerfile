@@ -68,4 +68,7 @@ ENV PYTHONFAULTHANDLER 1
 # ensure that python output is sent straight to container logs without buffering
 ENV PYTHONUNBUFFERED 1
 
+# disable healthcheck
+HEALTHCHECK NONE
+# start kafl
 ENTRYPOINT ["kafl"]
