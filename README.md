@@ -39,9 +39,35 @@ modifications.
 
 For details on Redqueen, Grimoire, [_IJON_](https://github.com/RUB-SysSec/ijon), Nyx, please visit [nyx-fuzz.com](https://nyx-fuzz.com).
 
+
+## Requirements
+
+- **Intel Skylake or later:** The setup requires a Gen-6 or newer Intel CPU (for
+  Intel PT) and adequate system memory (~2GB RAM per CPU)
+
+- **Patched Host Kernel:** A modified Linux host kernel will be installed as part
+  of the setup. Running kAFL inside a VM may work starting IceLake or later CPU.
+
+- **Recent Debian/Ubuntu:** The installation and tutorials are
+  tested for recent Ubuntu LTS (>=20.04) and Debian (>=bullseye).
+
+
 ## Getting Started
 
-➡️ The official [tutorial](https://IntelLabs.github.io/kAFL/tutorials/introduction.html) will walk you through your first steps
-to setup kAFL and fuzz the Linux kernel !
+Once you have python3-venv and make installed, you can install kAFL using `make deploy`:
 
-_Note: kAFL requires a Gen-6 Skylake CPU, or newer._
+```
+sudo apt install python3-venv make git
+git clone https://github.com/IntelLabs/kAFL.git
+cd kAFL; make deploy
+```
+
+Installation make take some time and require a reboot to update your kernel.
+
+Check the detailed [installation guide](https://intellabs.github.io/kAFL/tutorials/installation.html) in case
+of trouble, or the [deployment guide](https://intellabs.github.io/kAFL/reference/deployment.html) for detailed
+information and customizing the kAFL setup for your project.
+
+As a first fuzzing example, we recommend [Fuzzing the Linux Kernel](https://intellabs.github.io/kAFL/tutorials/fuzzing_linux_kernel.html).
+
+
