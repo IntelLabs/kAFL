@@ -19,7 +19,7 @@ ifneq ($(filter $(firstword $(MAKECMDGOALS)), $(ALL_TARGETS)),)
   $(eval $(EXTRA_ARGS):;@:)
 endif
 
-all: deploy
+all: help
 
 # User targets
 #---------------
@@ -33,6 +33,24 @@ env: SHELL:=bash
 env: kafl/env.sh
 	@echo "Entering environment in sub-shell. Exit with 'Ctrl-d'."
 	@PROMPT_COMMAND='source kafl/env.sh; unset PROMPT_COMMAND' $(SHELL)
+
+define HELP_TEXT
+Manage kAFL installation.
+
+  User actions:
+    deploy:\tFull installation (download, build, install)
+    env:\tActivate installation (shell env + python venv)
+    clean:\tPurge ansible installation (to force re-deploy)
+
+  Developer actions:
+    update:\tUpdate cloned git repositories
+    build:\tExecute component build steps only
+endef
+export HELP_TEXT
+
+help:
+	@echo "$$HELP_TEXT"
+
 
 # Developer targets
 #------------------
