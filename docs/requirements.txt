@@ -1,7 +1,7 @@
 alabaster==0.7.12
 Babel==2.10.3
 beautifulsoup4==4.11.1
-certifi==2022.6.15
+certifi==2022.12.7
 charset-normalizer==2.1.0
 colorama==0.4.5
 docutils==0.18.1
