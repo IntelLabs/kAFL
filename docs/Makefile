@@ -9,18 +9,19 @@ SOURCEDIR     = source
 BUILDDIR      = build
 
 # Put it first so that "make" without argument is like "make help".
-help:
+help: $(SPHINXBUILD)
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 .PHONY: help Makefile
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-%: Makefile .venv/bin/sphinx-build
+%: Makefile $(SPHINXBUILD)
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-.venv: .venv/bin/sphinx-build
-
-.venv/bin/sphinx-build:
+$(SPHINXBUILD):
 	python3 -m venv $(ROOT_DIR)/.venv
 	$(ROOT_DIR)/.venv/bin/python -m pip install -r requirements.txt
+
+distclean:
+	$(RM) -rf $(ROOT_DIR)/.venv $(BUILDDIR)
