@@ -1,9 +1,11 @@
-.gitignore
-.git/
-.github/
-Dockerfile
-README.md
-env.sh
-docs/
-kafl/
-deploy/venv/
+# ignore everything
+*
+
+# allow deploy
+!deploy/
+
+# allow Makefile
+!Makefile
+
+# ignore nested venvs
+**/venv
