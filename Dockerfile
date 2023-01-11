@@ -43,8 +43,8 @@ COPY --from=build /app/kafl/qemu/x86_64-softmmu/qemu-system-x86_64 /usr/local/bi
 COPY --from=build /app/kafl/qemu/pc-bios/* /usr/local/share/qemu-firmware/
 # install radamsa
 COPY --from=build /app/kafl/radamsa/bin/radamsa /usr/local/bin
-# install ptdump
-COPY --from=build /app/kafl/libxdc/build/ptdump /usr/local/bin
+# install ptdump_static as ptdump
+COPY --from=build /app/kafl/libxdc/build/ptdump_static /usr/local/bin/ptdump
 # installer fuzzer
 COPY --from=build /app/kafl/fuzzer/dist/kafl /usr/local/bin
 # install config file
