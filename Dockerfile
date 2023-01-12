@@ -9,8 +9,9 @@ COPY . .
 
 # skip ghidra since it adds 1G to the final image,
 # and we don't use it for our fuzzing use case with Docker
-RUN apt-get update && apt-get install -y --no-install-recommends build-essential git libffi-dev && \
-    make deploy -- --tags fuzzer --skip-tags kernel,kvm_device,ghidra
+RUN echo '{"qemu_build_type": "full_static"}' > deploy/play_params.json && \
+        apt-get update && apt-get install -y --no-install-recommends build-essential git libffi-dev && \
+        make deploy -- --tags fuzzer --skip-tags kernel,kvm_device,ghidra --extra-vars "@play_params.json"
 
 # create pyinstaller stub for executable Python packages
 # https://github.com/pyinstaller/pyinstaller/issues/2560
@@ -49,10 +50,6 @@ COPY --from=build /app/kafl/libxdc/build/ptdump_static /usr/local/bin/ptdump
 COPY --from=build /app/kafl/fuzzer/dist/kafl /usr/local/bin
 # install config file
 COPY --from=build /app/settings.yaml /etc/xdg/kAFL/
-
-# TODO: switch to full static QEMU build
-# install shared libraries for QEMU
-RUN apt-get update && apt-get install -y --no-install-recommends libpixman-1-0 libpng16-16 libglib2.0-0 && apt-get clean
 
 WORKDIR /mnt/workdir
 # define kAFL WORKDIR as volume
