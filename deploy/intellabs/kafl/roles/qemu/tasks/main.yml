@@ -31,7 +31,7 @@
     - clone
 
 - name: Build QEMU
-  ansible.builtin.command: ./compile_qemu_nyx.sh static
+  ansible.builtin.command: ./compile_qemu_nyx.sh {{ qemu_build_type }}
   args:
     chdir: "{{ qemu_root }}"
   environment:

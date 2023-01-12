@@ -1,3 +1,4 @@
 qemu_url: 'https://github.com/IntelLabs/kafl.qemu'
 qemu_revision: 'kafl_stable'
 qemu_root: "{{ kafl_install_root }}/qemu"
+qemu_build_type: "static"
