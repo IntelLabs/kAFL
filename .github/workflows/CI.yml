@@ -202,8 +202,6 @@ jobs:
         with:
           command: monitor
           image: ${{ steps.meta.outputs.tags }}
-          args: --file=Dockerfile
-        continue-on-error: true
 
       # - name: Upload result to GitHub Code Scanning
       #   uses: github/codeql-action/upload-sarif@v2
