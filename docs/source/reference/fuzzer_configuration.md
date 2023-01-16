@@ -21,64 +21,71 @@ Note: if `KAFL_CONFIG_FILE` is specified but points to a non-existing file, a va
 
 ## Configuration keys
 
-| Keys              |
-| ----------------- |
-| `work_dir`        |
-| `purge`           |
-| `resume`          |
-| `processes`       |
-| `verbose`         |
-| `quiet`           |
-| `log`             |
-| `debug`           |
-| `seed_dir`        |
-| `dict`            |
-| `funky`           |
-| `afl_dump_mode`   |
-| `afl_skip_zero`   |
-| `afl_arith_max`   |
-| `radamsa`         |
-| `redqueen`        |
-| `redqueen_hashes` |
-| `redqueen_hammer` |
-| `redqeen_simple`  |
-| `cpu_offset`      |
-| `abort_time`      |
-| `abort_exec`      |
-| `timeout_soft`    |
-| `timeout_check`   |
-| `kickstart`       |
-| `radamsa_path`    |
-| `qemu_image`      |
-| `qemu_snapshot`   |
-| `qemu_bios`       |
-| `qemu_kernel`     |
-| `qemu_initrd`     |
-| `qemu_append`     |
-| `qemu_memory`     |
-| `qemu_base`       |
-| `qemu_serial`     |
-| `qemu_extra`      |
-| `qemu_path`       |
-| `ip0`             |
-| `ip1`             |
-| `ip2`             |
-| `ip3`             |
-| `sharedir`        |
-| `reload`          |
-| `snapshot_reload` |
-| `gdbserver`       |
-| `log_hprintf`     |
-| `log_crashes`     |
-| `timeout_hard`    |
-| `payload_size`    |
-| `bitmap_size`     |
-| `trace`           |
-| `trace_cb`        |
-| `input`           |
-| `iterations`      |
-| `action`          |
-| `ptdump_path`     |
+### `abort_exec`
+
+### `abort_time`
+
+
+### `abort_exec`
+### `abort_time`
+### `action`
+### `afl_arith_max`
+### `afl_dump_mode`
+### `afl_skip_zero`
+### `bitmap_size`
+### `cpu_offset`
+### `debug`
+### `dict`
+### `funky`
+### `gdbserver`
+### `input`
+### `ip0`
+### `ip1`
+### `ip2`
+### `ip3`
+### `iterations`
+### `kickstart`
+### `log_crashes`
+### `log_hprintf`
+### `log`
+### `payload_size`
+### `processes`
+### `ptdump_path`
+### `purge`
+### `qemu_append`
+### `qemu_base`
+### `qemu_bios`
+### `qemu_extra`
+### `qemu_image`
+### `qemu_initrd`
+### `qemu_kernel`
+### `qemu_memory`
+### `qemu_path`
+### `qemu_serial`
+### `qemu_snapshot`
+### `quiet`
+### `radamsa_path`
+### `radamsa`
+### `redqeen_simple`
+### `redqueen_hammer`
+### `redqueen_hashes`
+### `redqueen`
+### `reload`
+### `resume`
+### `seed_dir`
+### `sharedir`
+### `snapshot_reload`
+### `timeout_check`
+### `timeout_hard`
+### `timeout_soft`
+### `trace_cb`
+### `trace`
+### `verbose`
+### `work_dir`
+
+```{seealso} See also xxx
+[Workdir Layout](./workdir_layout.md)
+```
 
 Note: Configuration keys are case insensitive:
 ~~~YAML
