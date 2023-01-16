@@ -1,10 +1,10 @@
 # kAFL Workdir
 
 
-The `workdir` is used by kAFL to accumulate results and communicate with Qemu
+The `workdir` is used by kAFL to accumulate results and communicate with QEMU
 and other processes. It is the primary location for inspecting the status of
-a previous or still running kAFL session. Also, any [post-processing steps such
-as triage or coverage analysis](analysis.md) typically builds up on an existing workdir.
+a previous or still running kAFL session. Also, any post-processing steps such
+as triage or coverage analysis typically builds up on an existing workdir.
 
 ## Usage Conventions
 
@@ -21,21 +21,21 @@ permanent location.
 
 ## Configuration Options
 
-The target `workdir` is set using the commandline argument `--work-dir` or
+The target `workdir` is set using the commandline argument [`--work-dir`](fuzzer_configuration.md#work_dir) or
 corresponding configuration file entry `work_dir`. By default, it is expected to
 be a non-existing path that will be populated with several special files and
 folders on startup.
 
-The argument `--purge` can be supplied to override this safety and
+The argument [`--purge`](fuzzer_configuration.md#purge) can be supplied to override this safety and
 purge a previously existing workdir on startup. This is mainly useful when
 developing or testing a harness.
 
-The argument `--resume` can be supplied to the opposite effect - the workdir
+The argument [`--resume`](fuzzer_configuration.md#resume) can be supplied to the opposite effect - the workdir
 will not be deleted and any Qemu instances will be reloaded from the existing
-snapshot. This is currently only supported for [triage or coverage
-analysis](analysis.md). The fuzzer itself does not yet support resuming from
+snapshot. This is currently only supported for triage or coverage
+analysis. The fuzzer itself does not yet support resuming from
 an existing workdir, but you can use one or more previously discovered
-input corpuses as seeds (`--seed-dir`).
+input corpuses as seeds ([`--seed-dir`](fuzzer_configuration.md#seed_dir)).
 
 
 ## Detailed Content
