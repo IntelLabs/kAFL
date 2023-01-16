@@ -42,6 +42,7 @@ tutorials/fuzzing_linux_kernel
 :maxdepth: 2
 :caption: Reference
 
+reference/fuzzer_configuration
 reference/deployment
 reference/hypercall_api
 reference/workdir_layout
