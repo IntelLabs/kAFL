@@ -1,5 +1,6 @@
 # Copyright (C) Intel Corporation, 2022
 # SPDX-License-Identifier: MIT
+
 ARG baseimage=python:3.11-slim
 FROM ${baseimage} as build
 ARG pyinstaller_version=5.7.0
@@ -39,6 +40,7 @@ RUN printf "%s\n" 'qemu_path: /usr/local/bin/qemu-system-x86_64' \
                   'workdir: /mnt/workdir' >> settings.yaml
 
 FROM ${baseimage} as run
+LABEL org.opencontainers.image.licenses=MIT
 # install QEMU
 COPY --from=build /app/kafl/qemu/x86_64-softmmu/qemu-system-x86_64 /usr/local/bin/
 COPY --from=build /app/kafl/qemu/pc-bios/* /usr/local/share/qemu-firmware/
