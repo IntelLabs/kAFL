@@ -12,6 +12,9 @@ on:
     paths-ignore:
       - '**/README.md'
 
+env:
+  image_name: intellabs/kafl
+
 jobs:
   ansible-lint:
     runs-on: ubuntu-20.04
@@ -181,13 +184,20 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4.1.1
         with:
-          images: intellabs/kafl
+          images: ${{ env.image_name }}
+
+      - name: Login to Docker Hub
+        if: github.event_name == 'push'
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build image
         uses: docker/build-push-action@v3
         with:
           context: kafl/
-          push: false
+          push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           load: true  # load build result into docker
