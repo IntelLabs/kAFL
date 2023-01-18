@@ -203,6 +203,15 @@ jobs:
           load: true  # load build result into docker
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Update Docker Hub description
+        if: github.event_name == 'push'
+        uses: Wenzel/dockerhub-description@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ env.image_name }}
+          readme-filepath: ./.github/DOCKER.md
     
       # TODO: refactor in a separate in security.yml workflow
       - name: Run Snyk to check Docker image for vulnerabilities
