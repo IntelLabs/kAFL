@@ -41,7 +41,7 @@ input corpuses as seeds (`--seed-dir`).
 ## Detailed Content
 
 Workdir content is a mix of status/output and program-internal IPC/SHM files.
-They are sorted here by relevance. The `mcat.py` tool can be used to view
+They are sorted here by relevance. The `kafl mcat` tool can be used to view
 msgpack encoded files.
 
 Note that some files may not exist, e.g. log files are only created on first
@@ -49,9 +49,9 @@ write. Also many of the internal IPC/SHM files will be deleted on exit.
 
     $ tree $KAFL_WORKDIR/
     │
-    │ # fuzzer status, can be used by kafl_gui.py, kafl_plot.py, gnuplot...
+    │ # fuzzer status, can be used by kafl fuzz, kafl plot, gnuplot...
     │
-    ├── config                       - config dump by kafl_fuzz.py (msgpack)
+    ├── config.yaml                  - config dump by kafl fuzz (YAML)
     ├── stats                        - aggregated status (msgpack)
     ├── stats.csv                    - aggregated status over time (csv table)
     ├── worker_stats_N               - worker N status (msgpack)
@@ -73,7 +73,7 @@ write. Also many of the internal IPC/SHM files will be deleted on exit.
     │
     ├── dump/                        - location for guest uploads (HYPERCALL_KAFL_DUMP_FILE)
     ├── funky/                       - location for non-deterministic payloads (--funky)
-    ├── traces/                      - location for PT traces (see kafl_cov.py and --trace)
+    ├── traces/                      - location for PT traces (see kafl cov and --trace)
     │
     ├── corpus/                      - corpus of discovered payloads by Qemu exec result
     │   ├── crash/
@@ -120,5 +120,3 @@ write. Also many of the internal IPC/SHM files will be deleted on exit.
         ├── global.state
         ├── INFO.txt
         └── ready.lock
-
-

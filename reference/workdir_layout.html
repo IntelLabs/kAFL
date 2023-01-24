@@ -252,15 +252,15 @@ input corpuses as seeds (<code class="docutils literal notranslate"><span class=
 <section id="detailed-content">
 <h2>Detailed Content<a class="headerlink" href="#detailed-content" title="Permalink to this heading">#</a></h2>
 <p>Workdir content is a mix of status/output and program-internal IPC/SHM files.
-They are sorted here by relevance. The <code class="docutils literal notranslate"><span class="pre">mcat.py</span></code> tool can be used to view
+They are sorted here by relevance. The <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">mcat</span></code> tool can be used to view
 msgpack encoded files.</p>
 <p>Note that some files may not exist, e.g. log files are only created on first
 write. Also many of the internal IPC/SHM files will be deleted on exit.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ tree $KAFL_WORKDIR/
 │
-│ # fuzzer status, can be used by kafl_gui.py, kafl_plot.py, gnuplot...
+│ # fuzzer status, can be used by kafl fuzz, kafl plot, gnuplot...
 │
-├── config                       - config dump by kafl_fuzz.py (msgpack)
+├── config.yaml                  - config dump by kafl fuzz (YAML)
 ├── stats                        - aggregated status (msgpack)
 ├── stats.csv                    - aggregated status over time (csv table)
 ├── worker_stats_N               - worker N status (msgpack)
@@ -282,7 +282,7 @@ write. Also many of the internal IPC/SHM files will be deleted on exit.</p>
 │
 ├── dump/                        - location for guest uploads (HYPERCALL_KAFL_DUMP_FILE)
 ├── funky/                       - location for non-deterministic payloads (--funky)
-├── traces/                      - location for PT traces (see kafl_cov.py and --trace)
+├── traces/                      - location for PT traces (see kafl cov and --trace)
 │
 ├── corpus/                      - corpus of discovered payloads by Qemu exec result
 │   ├── crash/
