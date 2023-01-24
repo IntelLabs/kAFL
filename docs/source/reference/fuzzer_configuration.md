@@ -76,21 +76,28 @@ Command-line: `--action`.
 
 ### `afl_arith_max`
 
+Maximum number of increment/decrement steps in AFL-style arithmetic mutation
+(only affects deterministic stage, not havoc).
+
 :::{note}
-Default: `false`
+Default: 34
 
 Command-line: `--afl-arith-max`
 :::
 
 ### `afl_dumb_mode`
 
+Skip AFL-style deterministic stages (`bitflip`, `arithmetic`, `interesting` mutations).
+
 :::{note}
 Default: `false`
 
-Command-line: `--afl-dumb-mode`
+Command-line: `--afl-dumb-mode`, `-D`
 :::
 
 ### `afl_skip_zero`
+
+Skip mutating zero-bytes in AFL-style deterministic stages.
 
 :::{note}
 Default: `false`
@@ -110,17 +117,20 @@ Command-line: `--bitmap-size`
 
 ### `cpu_offset`
 
+Modify automated CPU pinning to start at vCPU `n` and assign Qemu/Worker
+instances to the next [`-p`](#processes) vCPUs.
+
 :::{note}
 Default: `0`
 
-Command-line: `--cpu-offset`
+Command-line: `--cpu-offset <n>`
 :::
 
 ### `debug`
 
-Enable verbose output by setting Python [`logging`](https://docs.python.org/3/library/logging.html) level to [`DEBUG`](https://docs.python.org/3/library/logging.html#logging-levels).
+Enable additional (expensive) debug checks during execution.
 
-Identical to [`verbose`](#verbose).
+Implies [`--verbose`](#verbose).
 
 :::{note}
 Default: `false`
@@ -130,15 +140,30 @@ Command-line: `--debug`
 
 ### `dict`
 
-File `<path>` of strings as inputs for [Grimoire](https://github.com/RUB-SysSec/grimoire).
+Use file `<path>` as source of dictionary inputs in havoc stage.
 
 :::{note}
 Default: `None`
 
-Command-line: `--dict`
+Command-line: `--dict <path>`
 :::
 
 ### `funky`
+
+::::{tab-set}
+:::{tab-item} kafl fuzz
+
+Validate new (non-crashing/non-timeout) inputs multiple times and add to corpus
+if consistent new coverage is found on majority of re-runs.  Executes payloads
+8 times by default and accepts payloads that reproduce with 75% probability. In
+combination with `--debug`, non-reproducible inputs are stored in
+`$KAFL_WORKDIR/funky/`. Useful with non-deterministic targets.
+
+:::
+:::{tab-item} kafl cov
+Output any additional found coverage and payloads in combination with `--trace --action noise`.
+:::
+::::
 
 :::{note}
 Default: `false`
@@ -164,7 +189,8 @@ Command-line: `--gdbserver`
 
 ::::{tab-set}
 :::{tab-item} kafl cov
-Sets the input data directory for the coverage analysis.
+Sets the kAFL workdir to be processed for coverage information. Will
+automatically process files in `corpus/{crash,kasan,regular}/` (but not `timeout`).
 :::
 :::{tab-item} kafl debug
 Sets the payload file to be used as input for the debugging session.
@@ -174,14 +200,15 @@ Sets the payload file to be used as input for the debugging session.
 :::{note}
 Default: `None`
 
-Command-line: `--input`
+Command-line: `--input <path>`
 :::
 
 ### `ip0-1-2-3`
 
-IP ranges to be used as filter inputs for Intel PT.
+Set the IP filter ranges (code ranges) to be used with Intel PT. The filter
+ranges may also be set by the agent using the (`RANGE_SUBMIT` hypercall)[hypercall_api.md].
 
-If `ip0` is not set, PT tracing will be disabled and kAFL will turn into a blind fuzzer.
+Not setting a IP filter region is currently not supported.
 
 :::{note}
 Default: `None`
@@ -193,7 +220,8 @@ Command-line: `--ip0`, `--ip1`, `--ip2`, `--ip3`
 
 Execute the debugged payload `<n>` times.
 
-Used by `noise`, `trace` and `trace-qemu` debug [actions](#action).
+Used by `noise`, `trace` and `trace-qemu` debug [actions](#action) in case of
+non-deterministic execution.
 
 :::{note}
 Default: `5`
@@ -205,17 +233,38 @@ Applicable subcommands: `debug`
 
 ### `kickstart`
 
-Kickstart fuzzing with `<n>` byte random strings.
+When no payloads in queue or more workers than available corpus payloads,
+let the worker kickstart fuzzing with random strings of length `n`.
+Useful to test a new harness that has no well defined seeds.
 
-Set `0` to disable.
+Enabled by default. Set `0` to disable.
 
 :::{note}
 Default: `256`
 
-Command-line: `--kickstart`
+Command-line: `--kickstart <n>`
+:::
+
+### `log`
+
+Add an additional file logging handler to `$KAFL_WORKDIR/kafl_fuzzer.log`.
+Also redirects Qemu log output to `$KAFL_WORKDIR/qemu_trace_NN.log`, if any.
+
+:::{note}
+Default: `false`
+
+Command-line: `--log`
 :::
 
 ### `log_crashes`
+
+Like `log_hprintf`, but copy the hprintf log to `$KAFL_WORKDIR/logs/` for any
+new found `{crash,kasan,timeout}` type payload.  Also truncates the main hprintf
+log after every execution.
+
+This is the recommended guest logging option to collect live guest logs
+corresponding to new found non-regular payloads, while avoiding OOM due to huge
+hprintf logs.
 
 :::{note}
 Default: `false`
@@ -225,30 +274,25 @@ Command-line: `--log-crashes`
 
 ### `log_hprintf`
 
+Redirect guest `hprintf` output to `$KAFL_WORKDIR/hprintf_NN.log` (see [PRINTF hypercall](hypercall_api.md)).
+
+Creates a linear log of Guest execution across snapshot/restore. Recommended for
+debugging guest/harness execution.
+
 :::{note}
 Default: `false`
 
 Command-line: `--log-hprintf`
 :::
 
-### `log`
-
-Add an additional file logging handler to `$KAFL_WORKDIR/kafl_fuzzer.log`.
-
-:::{note}
-Default: `false`
-
-Command-line: `--log`
-:::
-
 ### `payload_size`
 
-Maximum payload size in bytes (minus headers)
+Maximum payload size in bytes. Must be multiple of page size (4096 bytes).
 
 :::{note}
 Default: `131072`
 
-Command-line: `--payload-size`
+Command-line: `--payload-size <n>`
 :::
 
 ### `processes`
@@ -258,7 +302,7 @@ Number of processes to launch for parallelized fuzzing and coverage.
 :::{note}
 Default: `1`
 
-Command-line: `--processes`
+Command-line: `--processes <n>`
 :::
 
 ### `ptdump_path`
@@ -305,7 +349,7 @@ Command-line: `--qemu-base`
 
 ### `qemu_bios`
 
-BIOS to be used by QEMU.
+Set custom BIOS image to be used by QEMU.
 
 Corresponds to QEMU `-bios <file>` argument.
 
@@ -317,7 +361,7 @@ Command-line: `--bios`
 
 ### `qemu_extra`
 
-Additional arguments for QEMU command line.
+Extra string appended to QEMU command line. Useful to override specific Qemu flags.
 
 :::{note}
 Default: `None`
@@ -370,7 +414,7 @@ Corresponds to QEMU `-m <size>` argument.
 :::{note}
 Default: `256`
 
-Command-line: `--memory`
+Command-line: `--memory <n>`, `-m <n>`
 :::
 
 ### `qemu_path`
@@ -380,12 +424,13 @@ Path to QEMU executable with Nyx patches.
 :::{note}
 Default: `$QEMU_ROOT/x86_64-softmmu/qemu-system-x86_64`
 
-Command-line: `--qemu-path`
+Command-line: `--qemu-path <path>`
 :::
 
 ### `qemu_serial`
 
-Extend QEMU command line with the configuration value, and then append `-chardev file,id=kafl_serial,mux=on,path=$KAFL_WORKDIR/serial_<qemu_pid>.log`.
+Extend QEMU command line with the configuration value, and then append
+`-chardev file,id=kafl_serial,mux=on,path=$KAFL_WORKDIR/serial_<qemu_pid>.log`.
 
 :::{note}
 Default: `-device isa-serial,chardev=kafl_serial`
@@ -395,12 +440,12 @@ Command-line: `--qemu-serial`
 
 ### `qemu_snapshot`
 
-Path to VM pre-snapshot directory.
+Path to VM pre-snapshot directory. Use with manual `pre-snapshot` creation (`LOCK` hypercall)[hypercall_api.md]
 
 :::{note}
 Default: `None`
 
-Command-line: `--snapshot`
+Command-line: `--snapshot <path>`
 :::
 
 ### `quiet`
@@ -420,10 +465,12 @@ Path to radamsa executable.
 :::{note}
 Default: `$RADAMSA_ROOT/bin/radamsa`
 
-Command-line: `--radamsa-path`
+Command-line: `--radamsa-path <path>`
 :::
 
 ### `radamsa`
+
+Enable radamsa mutation as part of `havoc` stage.
 
 :::{note}
 Default: `false`
@@ -431,7 +478,10 @@ Default: `false`
 Command-line: `--radamsa`
 :::
 
-### `redqeen_simple`
+### `redqueen_simple`
+
+Modify redqueen to also process 'simple' inputs that would likely be found by
+subsequent deterministic/havoc mutations.
 
 :::{note}
 Default: `false`
@@ -441,6 +491,8 @@ Command-line: `--redqueen-simple`
 
 ### `redqueen_hammer`
 
+Enable Redqueen jump table hammering.
+
 :::{note}
 Default: `false`
 
@@ -448,6 +500,8 @@ Command-line: `--redqueen-hammer`
 :::
 
 ### `redqueen_hashes`
+
+Enable Redqueen checksum fixer (broken).
 
 :::{note}
 Default: `false`
@@ -457,6 +511,8 @@ Command-line: `--redqueen-hashes`
 
 ### `redqueen`
 
+Enable Redqueen analysis + mutation stages.
+
 :::{note}
 Default: `false`
 
@@ -465,17 +521,26 @@ Command-line: `--redqueen`
 
 ### `reload`
 
-Reload the snapshot every `<N>` execs.
+Reload the snapshot only on non-regular executions or every `<N>` regular executions.
+Set to `0` for fully persistent mode execution.
+Set to '>1' for partial persistent mode execution.
 
-Increasing this number will boost the fuzzer's speed, however it will allow multiple payloads to be executed in a potentially "uncleaned" VM state.
+For targets that support persistent mode, setting '--reload' somewhere in the
+range of 10-100 tends to yield good performance/stability trade-off.
 
 :::{note}
 Default: `1`
 
-Command-line: `--reload`
+Command-line: `--reload <n>`, `-R <n>`
 :::
 
 ### `resume`
+
+Tell kAFL to resume operation based on an existing workdir. This is currently
+limited to `kafl cov` and `kafl debug`, where it will cause the Qemu instance to
+initialize based on existing Nyx `snapshot/` and `page_cache.*` files.
+
+Resuming a complete fuzzer campaign (kafl fuzz) is not yet supported.
 
 :::{note}
 Default: `false`
@@ -485,27 +550,34 @@ Command-line: `--resume`
 
 ### `seed_dir`
 
-Specify a directory `<path>` from which any file (at any depth) will be used as imported seed in the kAFL [workdir](../reference/workdir_layout.md) as `$KAFL_WORKDIR/imports/seed_xxx`.
+Specify a directory `<path>` to use as seed directory. The directory is
+traversed recursively and files are copied to the kAFL
+[workdir](../reference/workdir_layout.md) as `$KAFL_WORKDIR/imports/seed_xxx`,
+where there are consumed upon fuzzer startup.
 
 :::{note}
 Default: `None`
 
-Command-line: `--seed-dir`
+Command-line: `--seed-dir <path>`
 :::
 
 ### `sharedir`
 
-Path to the page buffer share directory.
+Path to the Qemu 'sharedir' directory. Files in this folder will be made
+available for the agent to download via (`REQ_STREAM_DATA` hypercall)[hypercall_api.md].
 
 Appends `,sharedir=<value>` to the `nyx` QEMU device.
 
 :::{note}
 Default: `None`
 
-Command-line: `--sharedir`
+Command-line: `--sharedir <path>`
 :::
 
 ### `timeout_check`
+
+When using both `timeout_hard` and `timeout_soft`, check that a payload reported as
+'timeout' also produces a timeout when executing with maximum timeout 'timeout_hard'.
 
 :::{note}
 Default: `false`
@@ -525,6 +597,10 @@ Command-line: `--t-hard`
 
 ### `timeout_soft`
 
+Soft execution timeout (seconds). Used as initial lower timeout for Qemu
+instances and then adapted based on seen performance, up to the maximum of
+`timeout_hard`.
+
 :::{note}
 Default: `0.001`
 
@@ -533,9 +609,11 @@ Command-line: `--t-soft`
 
 ### `trace_cb`
 
-Store decoded PT traces of new inputs.
+Run Qemu in 'callback-trace' mode, where PT traces are directly decoded using
+a libxdc callback function. This tends to significantly slow down execution and
+results in different coverage bitmaps. Deprecated.
 
-Appends `,dump_pt_trace` to the `nyx` QEMU device.
+Appends `,edge_cb_trace` to the `nyx` QEMU device.
 
 :::{note}
 Default: `false`
@@ -545,9 +623,14 @@ Command-line: `--trace-cb`
 
 ### `trace`
 
-Store binary PT traces of new inputs (fast).
+Run Qemu in `dump-trace` mode, where binary PT traces are directly stored to
+the workdir by each Qemu process. For any new discovered payloads, kAFL stores
+the corresponding binary traces to `$KAFL_WORKDIR/traces/` for later decoding
+with `kafl cov`.
+This is the recommeded trace mode as it incurrs minimal slow-down and also
+works for non-deterministic targets.
 
-Appends `,edge_cb_trace` to the `nyx` QEMU device.
+Appends `,dump_pt_trace` to the `nyx` QEMU device.
 
 :::{note}
 Default: `false`
