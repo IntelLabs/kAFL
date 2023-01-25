@@ -217,10 +217,10 @@
         <article role="main">
           <section id="kafl-workdir">
 <h1>kAFL Workdir<a class="headerlink" href="#kafl-workdir" title="Permalink to this heading">#</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">workdir</span></code> is used by kAFL to accumulate results and communicate with Qemu
+<p>The <code class="docutils literal notranslate"><span class="pre">workdir</span></code> is used by kAFL to accumulate results and communicate with QEMU
 and other processes. It is the primary location for inspecting the status of
-a previous or still running kAFL session. Also, any <span class="xref myst">post-processing steps such
-as triage or coverage analysis</span> typically builds up on an existing workdir.</p>
+a previous or still running kAFL session. Also, any post-processing steps such
+as triage or coverage analysis typically builds up on an existing workdir.</p>
 <section id="usage-conventions">
 <h2>Usage Conventions<a class="headerlink" href="#usage-conventions" title="Permalink to this heading">#</a></h2>
 <p>Due to the frequent use by addition tools and scripts, the kAFL deployment
@@ -235,19 +235,19 @@ permanent location.</p>
 </section>
 <section id="configuration-options">
 <h2>Configuration Options<a class="headerlink" href="#configuration-options" title="Permalink to this heading">#</a></h2>
-<p>The target <code class="docutils literal notranslate"><span class="pre">workdir</span></code> is set using the commandline argument <code class="docutils literal notranslate"><span class="pre">--work-dir</span></code> or
+<p>The target <code class="docutils literal notranslate"><span class="pre">workdir</span></code> is set using the commandline argument <a class="reference internal" href="fuzzer_configuration.html#work-dir"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">--work-dir</span></code></span></a> or
 corresponding configuration file entry <code class="docutils literal notranslate"><span class="pre">work_dir</span></code>. By default, it is expected to
 be a non-existing path that will be populated with several special files and
 folders on startup.</p>
-<p>The argument <code class="docutils literal notranslate"><span class="pre">--purge</span></code> can be supplied to override this safety and
+<p>The argument <a class="reference internal" href="fuzzer_configuration.html#purge"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">--purge</span></code></span></a> can be supplied to override this safety and
 purge a previously existing workdir on startup. This is mainly useful when
 developing or testing a harness.</p>
-<p>The argument <code class="docutils literal notranslate"><span class="pre">--resume</span></code> can be supplied to the opposite effect - the workdir
+<p>The argument <a class="reference internal" href="fuzzer_configuration.html#resume"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">--resume</span></code></span></a> can be supplied to the opposite effect - the workdir
 will not be deleted and any Qemu instances will be reloaded from the existing
-snapshot. This is currently only supported for <span class="xref myst">triage or coverage
-analysis</span>. The fuzzer itself does not yet support resuming from
+snapshot. This is currently only supported for triage or coverage
+analysis. The fuzzer itself does not yet support resuming from
 an existing workdir, but you can use one or more previously discovered
-input corpuses as seeds (<code class="docutils literal notranslate"><span class="pre">--seed-dir</span></code>).</p>
+input corpuses as seeds (<a class="reference internal" href="fuzzer_configuration.html#seed-dir"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">--seed-dir</span></code></span></a>).</p>
 </section>
 <section id="detailed-content">
 <h2>Detailed Content<a class="headerlink" href="#detailed-content" title="Permalink to this heading">#</a></h2>

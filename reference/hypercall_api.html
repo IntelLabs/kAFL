@@ -271,7 +271,7 @@ Influences Qemu code rewrite and possibly libxdc decoder. Typically auto-detecte
 custom tracing options. Further options may be added by extending the handler on Qemu side.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">GET_HOST_CONFIG</span></code> can be used to query kAFL/Qemu configuration, e.g. size of the payload buffer.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">REQ_STREAM_DATA</span></code> fetches a named binary buffer from the host. Qemu fetches
-the data from correspondingly named files in the <span class="xref myst">sharedir folder</span></p></li>
+the data from correspondingly named files in the sharedir folder.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">DUMP_FILE</span></code> can be used to send binary buffers that will be stored as files in
 $WORK_DIR/dump/. Supply NULL or a valid mkstemp() template as filename to
 let Qemu create a unique filename for you.</p></li>
