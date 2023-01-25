@@ -349,8 +349,7 @@ They are auto-detected on startup and can be logged using <code class="docutils 
 <span class="o">...</span>
 </pre></div>
 </div>
-<p>Then use <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">cov</span></code> subcommand with <code class="docutils literal notranslate"><span class="pre">--resume</span></code> and specify the corpus <code class="docutils literal notranslate"><span class="pre">--input</span></code> parameter the same as the workdir (<code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR</span></code>, see below example).
-Using the same existing workdir folder in combination with <code class="docutils literal notranslate"><span class="pre">--resume</span></code> will reload the guest state directly from the Nyx fast-snapshot used during fuzzing and re-use the existing <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/page_cache*</span></code> files, leading to better reproducibility.</p>
+<p>Then use <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">cov</span></code> subcommand with <code class="docutils literal notranslate"><span class="pre">--resume</span></code> will reload the guest state directly from the Nyx fast-snapshot used during fuzzing and re-use the existing <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/page_cache*</span></code> files, leading to better reproducibility.</p>
 <p>PT traces produced by Qemu/worker instances are
 picked up from <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/pt_trace_dump_NN</span></code> and stored at <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/traces/*bin.lz4</span></code>.
 The <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">cov</span></code> tool then calls <code class="docutils literal notranslate"><span class="pre">ptdump</span></code> with the given PT filter range and
@@ -361,7 +360,6 @@ existing binary traces in <code class="docutils literal notranslate"><span class
 providing accurate coverage traces even for non-deterministic targets.</p>
 <p>For big corpuses, you can parallelize this process using <code class="docutils literal notranslate"><span class="pre">-p</span></code>:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nv">KAFL_CONFIG_FILE</span><span class="o">=</span>kafl_config.yaml kafl cov <span class="se">\</span>
-        --input <span class="nv">$KAFL_WORKDIR</span> <span class="se">\</span>
 	--kernel linux-guest/arch/x86/boot/bzImage <span class="se">\</span>
 	-ip0 ffffffff81000000-ffffffff83603000 <span class="se">\</span>
 	-ip1 ffffffff855ed000-ffffffff856e4000 <span class="se">\</span>
