@@ -210,7 +210,7 @@ Sets the payload file to be used as input for the debugging session.
 ::::
 
 :::{note}
-Default: `None`
+Default: [workdir](#work_dir) value
 
 Command-line: `--input <path>`
 :::

@@ -148,8 +148,7 @@ Setting range 1: ffffffff855ed000-ffffffff856e4000
 Starting kAFL loop...
 ...
 ```
-Then use `kafl cov` subcommand with `--resume` and specify the corpus `--input` parameter the same as the workdir (`$KAFL_WORKDIR`, see below example).
-Using the same existing workdir folder in combination with `--resume` will reload the guest state directly from the Nyx fast-snapshot used during fuzzing and re-use the existing `$KAFL_WORKDIR/page_cache*` files, leading to better reproducibility.
+Then use `kafl cov` subcommand with `--resume` will reload the guest state directly from the Nyx fast-snapshot used during fuzzing and re-use the existing `$KAFL_WORKDIR/page_cache*` files, leading to better reproducibility.
 
 PT traces produced by Qemu/worker instances are
 picked up from `$KAFL_WORKDIR/pt_trace_dump_NN` and stored at `$KAFL_WORKDIR/traces/*bin.lz4`.
@@ -164,7 +163,6 @@ providing accurate coverage traces even for non-deterministic targets.
 For big corpuses, you can parallelize this process using `-p`:
 ```shell
 KAFL_CONFIG_FILE=kafl_config.yaml kafl cov \
-        --input $KAFL_WORKDIR \
 	--kernel linux-guest/arch/x86/boot/bzImage \
 	-ip0 ffffffff81000000-ffffffff83603000 \
 	-ip1 ffffffff855ed000-ffffffff856e4000 \
