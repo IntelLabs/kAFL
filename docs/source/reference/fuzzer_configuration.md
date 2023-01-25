@@ -19,6 +19,18 @@ All configuration files are using the `YAML` format.
 
 Note: if `KAFL_CONFIG_FILE` is specified but points to a non-existing file, a validation error will be raised (to warn the user).
 
+## Overriding settings from environment variables
+
+You can override any setting key by exporting an environment variable prefixed by `KAFL_`.
+
+Example
+
+~~~shell
+export KAFL_QEMU_MEMORY=1024
+export KAFL_LOG_HRPINTF=TRUE
+~~~
+
+
 ## Configuration keys
 
 The following section lists all configuration keys avaialble in kAFL, and their corresponding command line switches, if any.
@@ -709,26 +721,3 @@ Command-line: `--workdir`
 :::{seealso}
 See also the [Workdir Layout](./workdir_layout.md) reference.
 :::
-
-
-
-## Overriding settings from environment variables
-
-You can override any setting key by exporting an environment variable prefixed by `KAFL_`.
-
-Example
-
-~~~shell
-export KAFL_QEMU_MEMORY=1024
-export KAFL_LOG_HRPINTF=TRUE
-~~~
-
-## Dynaconf CLI
-
-[Dynaconf](https://www.dynaconf.com/) comes with a [CLI](https://www.dynaconf.com/cli/) tool that can be used to interact with the project configuration.
-
-To list the default settings:
-
-~~~shell
-dynaconf -i kafl_fuzzer.common.config.settings list
-~~~
