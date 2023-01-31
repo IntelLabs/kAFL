@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
+          python-version: '3.9'
           
       - name: Setup ansible venv
         working-directory: deploy
@@ -45,7 +45,7 @@ jobs:
 
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       - name: Run deployment in check mode (dry-run)
         run: make deploy -- --check
@@ -60,7 +60,7 @@ jobs:
 
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       # shallow clone for CI speed
       - name: Setup ansible extra vars in JSON file
@@ -92,7 +92,7 @@ jobs:
 
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       # shallow clone for CI speed
       - name: Setup ansible extra vars in JSON file
