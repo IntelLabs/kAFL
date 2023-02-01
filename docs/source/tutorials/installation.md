@@ -22,7 +22,7 @@ kAFL's installation process will start by checking your processor's compatibilit
 
 ### 1.2 Software
 
-- _Python 3_ interpreter (`>= 3.6`)
+- _Python 3_ interpreter (`>= 3.9`)
 - _Git_
 - Essential toolchain to build software (`make`, `gcc`, ...)
 

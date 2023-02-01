@@ -5,6 +5,7 @@
 # ✨ Improvements
 
 - Follow [kafl_fuzzer](https://github.com/IntelLabs/kafl.fuzzer) changelog style (https://github.com/IntelLabs/kAFL/pull/123)
+- Require `Python 3.9` and upgrading to latest `Ansible 7.1.0` (#156)
 
 # 🔧 Fixes
 
