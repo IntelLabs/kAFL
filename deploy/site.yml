@@ -14,7 +14,7 @@
         - fuzzer
       vars:
         # branches maintained for this version
-        - fuzzer_revision:      'kafl-v0.5'
+        - fuzzer_revision:      'v0.5.1'
         - qemu_revision:        'kafl-v0.5'
         - examples_revision:    'kafl-v0.5'
         # no maintained branch - try latest
