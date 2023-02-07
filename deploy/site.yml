@@ -14,11 +14,11 @@
         - fuzzer
       vars:
         # branches maintained for this version
-        - fuzzer_revision:      'v0.5.1'
-        - qemu_revision:        'kafl-v0.5'
-        - examples_revision:    'v0.1'
+        - fuzzer_revision: 'v0.5.1'
+        - qemu_revision: 'kafl-v0.5'
+        - examples_revision: 'v0.1'
         # no maintained branch - try latest
-        #- libxdc_revision:     'ec596317'
-        #- capstone_revision:   '0efa3cc5'
-        #- radamsa_revision:    'df651a67'
-        #- nyx_packer_revision: 'ef990c60'
+        # - libxdc_revision:     'ec596317'
+        # - capstone_revision:   '0efa3cc5'
+        # - radamsa_revision:    'df651a67'
+        # - nyx_packer_revision: 'ef990c60'
