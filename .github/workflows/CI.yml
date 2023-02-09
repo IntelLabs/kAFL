@@ -179,10 +179,8 @@ jobs:
         with:
           path: kafl
 
-      # TODO
-      #   disable Buildx become push and load are incompatible at the moment
-      # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@v2.2.1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2.2.1
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -204,10 +202,9 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          load: true  # load build result into docker
-          # TOOD: Build disabled. See comment above
-          # cache-from: type=gha
-          # cache-to: type=gha,mode=max
+          outputs: type=docker
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Update Docker Hub description
         if: github.event_name == 'push'
