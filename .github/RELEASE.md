@@ -1,6 +1,7 @@
 # 🌟 Features
 
 - Add Sphinx-based documentation system hosted at [https://IntelLabs.github.io/kAFL/](https://IntelLabs.github.io/kAFL/) (https://github.com/IntelLabs/kAFL/pull/122)
+- Add Dockerfile to build kAFL as Docker image (#136)
 
 # ✨ Improvements
 

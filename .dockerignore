@@ -1,0 +1,11 @@
+# ignore everything
+*
+
+# allow deploy
+!deploy/
+
+# allow Makefile
+!Makefile
+
+# ignore nested venvs
+**/venv

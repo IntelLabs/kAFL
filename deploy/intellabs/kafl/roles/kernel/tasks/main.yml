@@ -5,6 +5,7 @@
   ansible.builtin.package:
     name:
       - build-essential
+      - dpkg
   become: true
 
 - name: Create temporary directory

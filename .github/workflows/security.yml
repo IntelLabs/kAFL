@@ -1,0 +1,69 @@
+name: Security
+
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - '*'
+    paths-ignore:
+      - '**/README.md'
+      - '.github/RELEASE.md'
+  pull_request:
+    paths-ignore:
+      - '**/README.md'
+      - '.github/RELEASE.md'
+
+jobs:
+  snyk-lint-python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        req_path: ["deploy/requirements.txt", "docs/requirements.txt"]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: install dependencies
+        run: pip install -r ${{ matrix.req_path }}
+
+      - name: Copy requirements.txt at root of GITHUB_WORKSPACE for Snyk
+        run: cp ${{ matrix.req_path }} .
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+      #     args: --sarif-file-output=snyk.sarif
+      #   continue-on-error: true
+
+      # - name: Upload result to GitHub Code Scanning
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: snyk.sarif
+
+  hadolint:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+
+        - name: Lint Dockerfile
+          id: hadolint
+          uses: hadolint/hadolint-action@v3.0.0
+          with:
+            # only consider errors, not warning or info level
+            failure-threshold: error
+            output-file: ${{ github.workspace }}/hadolint.out
+          continue-on-error: true
+
+        - name: Upload hadolint output artifact
+          uses: actions/upload-artifact@v3
+          with:
+            name: hadolint
+            path: ${{ github.workspace }}/hadolint.out
