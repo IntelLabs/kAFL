@@ -45,12 +45,39 @@ make -C linux-guest -j$(nproc)
 Since the harness is built-in and auto-snapshots on first fuzzing input,
 launching the fuzzer is as simple as booting the kernel:
 
+::::{tab-set}
+:::{tab-item} Local setup
 ```shell
 KAFL_CONFIG_FILE=./kafl_config.yaml kafl fuzz --purge \
 	--redqueen --grimoire -D --radamsa \
 	--kernel linux-guest/arch/x86/boot/bzImage \
 	-t 0.1 -ts 0.01 -m 512 --log-crashes -p 2
 ```
+:::
+:::{tab-item} Docker image
+```shell
+# we need to ensure the workdir is created before mounting it as a volume
+mkdir -p /dev/shm/kafl_$(id -un)
+# run kafl as Docker image
+docker run \
+        -ti --rm \
+        --device /dev/kvm \
+        -v $(pwd)/kafl_config.yaml:/mnt/kafl_config.yaml \
+        -v /dev/shm/kafl_$(id -un):/mnt/workdir \
+        -v $(pwd)/linux-guest/arch/x86/boot/bzImage:/mnt/kernel \
+        -e KAFL_CONFIG_FILE=/mnt/kafl_config.yaml \
+        --user $(id -u):$(id -g) \
+        --group-add $(getent group kvm | cut -d: -f3) \
+        intellabs/kafl \
+        fuzz \
+        --purge \
+        -w /mnt/workdir \
+        --redqueen --grimoire -D --radamsa \
+        --kernel /mnt/kernel \
+        -t 0.1 -ts 0.01 -m 512 --log-crashes -p 2
+```
+:::
+::::
 
 Expected output:
 
@@ -117,22 +144,37 @@ Worker-01 entering fuzz loop..
 [...]
 ```
 
-## 4. Next steps..
+## 4. GUI
 
-Look at the kernel source code and in particular at the implementation of the
-different harness and input injection options defined in .config.
+KAFL has a graphical text-based interface that can be displayed with:
 
-Be sure to read other documentation to understand the various options and
-interpreting fuzzer output. Some hints (run in separate terminal):
 
+::::{tab-set}
+:::{tab-item} Local setup
 ```shell
 kafl gui [-w $KAFL_WORKDIR]
 ```
+:::
+:::{tab-item} Docker image
+```shell
+docker run \
+        -ti --rm \
+        -v /dev/shm/kafl_$(id -un):/mnt/workdir \
+        --user $(id -u):$(id -g) \
+        --group-add $(getent group kvm | cut -d: -f3) \
+        intellabs/kafl \
+        gui \
+        -w /mnt/workdir
+```
+:::
+::::
 
 ```shell
 ls $KAFL_WORKDIR/corpus/
 ls $KAFL_WORKDIR/logs/
 ```
+
+## 5. Coverage
 
 For coverage reports, we need to first find out what PT filter ranges are used for the kernel image.
 They are auto-detected on startup and can be logged using `--log-hprintf` parameter.
@@ -148,6 +190,14 @@ Setting range 1: ffffffff855ed000-ffffffff856e4000
 Starting kAFL loop...
 ...
 ```
+
+Lets extract these IP ranges, and export them in environment variables:
+
+```shell
+export IP0=$(grep -oP 'Setting range 0:\s+\K.*-.*' $KAFL_WORKDIR/hprintf_00.log)
+export IP1=$(grep -oP 'Setting range 1:\s+\K.*-.*' $KAFL_WORKDIR/hprintf_00.log)
+```
+
 Then use `kafl cov` subcommand with `--resume` will reload the guest state directly from the Nyx fast-snapshot used during fuzzing and re-use the existing `$KAFL_WORKDIR/page_cache*` files, leading to better reproducibility.
 
 PT traces produced by Qemu/worker instances are
@@ -161,20 +211,54 @@ existing binary traces in `$KAFL_WORKDIR/traces/` and skip re-executing the corp
 providing accurate coverage traces even for non-deterministic targets.
 
 For big corpuses, you can parallelize this process using `-p`:
+
+::::{tab-set}
+:::{tab-item} Local setup
 ```shell
 KAFL_CONFIG_FILE=kafl_config.yaml kafl cov \
 	--kernel linux-guest/arch/x86/boot/bzImage \
-	-ip0 ffffffff81000000-ffffffff83603000 \
-	-ip1 ffffffff855ed000-ffffffff856e4000 \
+	-ip0 $IP0 \
+	-ip1 $IP1 \
 	--resume -m 512 -t 2 -p 24
 ```
+:::
+:::{tab-item} Docker image
+```shell
+docker run \
+        -ti --rm \
+        --device /dev/kvm \
+        -v $(pwd)/kafl_config.yaml:/mnt/kafl_config.yaml \
+        -v /dev/shm/kafl_$(id -un):/mnt/workdir \
+        -v $(pwd)/linux-guest/arch/x86/boot/bzImage:/mnt/kernel \
+        -e KAFL_CONFIG_FILE=/mnt/kafl_config.yaml \
+        --user $(id -u):$(id -g) \
+        --group-add $(getent group kvm | cut -d: -f3) \
+        intellabs/kafl \
+        cov \
+        -w /mnt/workdir \
+        --input /mnt/workdir \
+        --kernel /mnt/kernel \
+        -ip0 $IP0 \
+        -ip1 $IP1 \
+        --resume -m 512 -t 2 -p 24
+```
+:::
+::::
 
 Note that timeout and VM settings are not relevant here anymore, but the tool will
 complain about invalid/missing options. Based on the binary PT dumps,
 IP ranges and the code image retained in `$KAFL_WORKDIR/page_cache`, this simply uses the
 libxdc `ptdump` to decode `$KAFL_WORKDIR/traces/*bin.lz4` to `$KAFL_WORKDIR/traces/*.txt.lz4`.
 
-## 5) Known Issues
+## 6. Next Steps
+
+Look at the kernel source code and in particular at the implementation of the
+different harness and input injection options defined in .config.
+
+Be sure to read other documentation to understand the various options and
+interpreting fuzzer outputs.
+
+## 7) Known Issues
 
 1) *[ERROR] Guest ABORT: Attempt to finish kAFL run but never initialized* - This
 happens when the configured harness does not consume any inputs. For instance

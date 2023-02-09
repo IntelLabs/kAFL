@@ -254,11 +254,42 @@ make -C linux-guest -j<span class="k">$(</span>nproc<span class="k">)</span>
 <h2>3. Start fuzzing!<a class="headerlink" href="#start-fuzzing" title="Permalink to this heading">#</a></h2>
 <p>Since the harness is built-in and auto-snapshots on first fuzzing input,
 launching the fuzzer is as simple as booting the kernel:</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-0">
+Local setup</label><div class="sd-tab-content docutils">
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nv">KAFL_CONFIG_FILE</span><span class="o">=</span>./kafl_config.yaml kafl fuzz --purge <span class="se">\</span>
 	--redqueen --grimoire -D --radamsa <span class="se">\</span>
 	--kernel linux-guest/arch/x86/boot/bzImage <span class="se">\</span>
 	-t <span class="m">0</span>.1 -ts <span class="m">0</span>.01 -m <span class="m">512</span> --log-crashes -p <span class="m">2</span>
 </pre></div>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-1">
+Docker image</label><div class="sd-tab-content docutils">
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># we need to ensure the workdir is created before mounting it as a volume</span>
+mkdir -p /dev/shm/kafl_<span class="k">$(</span>id -un<span class="k">)</span>
+<span class="c1"># run kafl as Docker image</span>
+docker run <span class="se">\</span>
+        -ti --rm <span class="se">\</span>
+        --device /dev/kvm <span class="se">\</span>
+        -v <span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/kafl_config.yaml:/mnt/kafl_config.yaml <span class="se">\</span>
+        -v /dev/shm/kafl_<span class="k">$(</span>id -un<span class="k">)</span>:/mnt/workdir <span class="se">\</span>
+        -v <span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/linux-guest/arch/x86/boot/bzImage:/mnt/kernel <span class="se">\</span>
+        -e <span class="nv">KAFL_CONFIG_FILE</span><span class="o">=</span>/mnt/kafl_config.yaml <span class="se">\</span>
+        --user <span class="k">$(</span>id -u<span class="k">)</span>:<span class="k">$(</span>id -g<span class="k">)</span> <span class="se">\</span>
+        --group-add <span class="k">$(</span>getent group kvm <span class="p">|</span> cut -d: -f3<span class="k">)</span> <span class="se">\</span>
+        intellabs/kafl <span class="se">\</span>
+        fuzz <span class="se">\</span>
+        --purge <span class="se">\</span>
+        -w /mnt/workdir <span class="se">\</span>
+        --redqueen --grimoire -D --radamsa <span class="se">\</span>
+        --kernel /mnt/kernel <span class="se">\</span>
+        -t <span class="m">0</span>.1 -ts <span class="m">0</span>.01 -m <span class="m">512</span> --log-crashes -p <span class="m">2</span>
+</pre></div>
+</div>
+</div>
 </div>
 <p>Expected output:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    __                        __  ___    ________
@@ -324,19 +355,39 @@ Worker-01 entering fuzz loop..
 </pre></div>
 </div>
 </section>
-<section id="next-steps">
-<h2>4. Next steps..<a class="headerlink" href="#next-steps" title="Permalink to this heading">#</a></h2>
-<p>Look at the kernel source code and in particular at the implementation of the
-different harness and input injection options defined in .config.</p>
-<p>Be sure to read other documentation to understand the various options and
-interpreting fuzzer output. Some hints (run in separate terminal):</p>
+<section id="gui">
+<h2>4. GUI<a class="headerlink" href="#gui" title="Permalink to this heading">#</a></h2>
+<p>KAFL has a graphical text-based interface that can be displayed with:</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-2">
+Local setup</label><div class="sd-tab-content docutils">
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>kafl gui <span class="o">[</span>-w <span class="nv">$KAFL_WORKDIR</span><span class="o">]</span>
 </pre></div>
+</div>
+</div>
+<input id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-3">
+Docker image</label><div class="sd-tab-content docutils">
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>docker run <span class="se">\</span>
+        -ti --rm <span class="se">\</span>
+        -v /dev/shm/kafl_<span class="k">$(</span>id -un<span class="k">)</span>:/mnt/workdir <span class="se">\</span>
+        --user <span class="k">$(</span>id -u<span class="k">)</span>:<span class="k">$(</span>id -g<span class="k">)</span> <span class="se">\</span>
+        --group-add <span class="k">$(</span>getent group kvm <span class="p">|</span> cut -d: -f3<span class="k">)</span> <span class="se">\</span>
+        intellabs/kafl <span class="se">\</span>
+        gui <span class="se">\</span>
+        -w /mnt/workdir
+</pre></div>
+</div>
+</div>
 </div>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>ls <span class="nv">$KAFL_WORKDIR</span>/corpus/
 ls <span class="nv">$KAFL_WORKDIR</span>/logs/
 </pre></div>
 </div>
+</section>
+<section id="coverage">
+<h2>5. Coverage<a class="headerlink" href="#coverage" title="Permalink to this heading">#</a></h2>
 <p>For coverage reports, we need to first find out what PT filter ranges are used for the kernel image.
 They are auto-detected on startup and can be logged using <code class="docutils literal notranslate"><span class="pre">--log-hprintf</span></code> parameter.</p>
 <p>Try to launch with <code class="docutils literal notranslate"><span class="pre">--log-hprintf</span> <span class="pre">-p</span> <span class="pre">1</span></code> instead of the above <code class="docutils literal notranslate"><span class="pre">--log-crashes</span></code> and look at <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/hprintf_00.log</span></code>.</p>
@@ -349,6 +400,11 @@ They are auto-detected on startup and can be logged using <code class="docutils 
 <span class="o">...</span>
 </pre></div>
 </div>
+<p>Lets extract these IP ranges, and export them in environment variables:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">IP0</span><span class="o">=</span><span class="k">$(</span>grep -oP <span class="s1">&#39;Setting range 0:\s+\K.*-.*&#39;</span> <span class="nv">$KAFL_WORKDIR</span>/hprintf_00.log<span class="k">)</span>
+<span class="nb">export</span> <span class="nv">IP1</span><span class="o">=</span><span class="k">$(</span>grep -oP <span class="s1">&#39;Setting range 1:\s+\K.*-.*&#39;</span> <span class="nv">$KAFL_WORKDIR</span>/hprintf_00.log<span class="k">)</span>
+</pre></div>
+</div>
 <p>Then use <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">cov</span></code> subcommand with <code class="docutils literal notranslate"><span class="pre">--resume</span></code> will reload the guest state directly from the Nyx fast-snapshot used during fuzzing and re-use the existing <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/page_cache*</span></code> files, leading to better reproducibility.</p>
 <p>PT traces produced by Qemu/worker instances are
 picked up from <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/pt_trace_dump_NN</span></code> and stored at <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/traces/*bin.lz4</span></code>.
@@ -359,20 +415,56 @@ fuzzing (using <code class="docutils literal notranslate"><span class="pre">kafl
 existing binary traces in <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/traces/</span></code> and skip re-executing the corpus,
 providing accurate coverage traces even for non-deterministic targets.</p>
 <p>For big corpuses, you can parallelize this process using <code class="docutils literal notranslate"><span class="pre">-p</span></code>:</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-4" name="sd-tab-set-2" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-4">
+Local setup</label><div class="sd-tab-content docutils">
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nv">KAFL_CONFIG_FILE</span><span class="o">=</span>kafl_config.yaml kafl cov <span class="se">\</span>
 	--kernel linux-guest/arch/x86/boot/bzImage <span class="se">\</span>
-	-ip0 ffffffff81000000-ffffffff83603000 <span class="se">\</span>
-	-ip1 ffffffff855ed000-ffffffff856e4000 <span class="se">\</span>
+	-ip0 <span class="nv">$IP0</span> <span class="se">\</span>
+	-ip1 <span class="nv">$IP1</span> <span class="se">\</span>
 	--resume -m <span class="m">512</span> -t <span class="m">2</span> -p <span class="m">24</span>
 </pre></div>
+</div>
+</div>
+<input id="sd-tab-item-5" name="sd-tab-set-2" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-5">
+Docker image</label><div class="sd-tab-content docutils">
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>docker run <span class="se">\</span>
+        -ti --rm <span class="se">\</span>
+        --device /dev/kvm <span class="se">\</span>
+        -v <span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/kafl_config.yaml:/mnt/kafl_config.yaml <span class="se">\</span>
+        -v /dev/shm/kafl_<span class="k">$(</span>id -un<span class="k">)</span>:/mnt/workdir <span class="se">\</span>
+        -v <span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/linux-guest/arch/x86/boot/bzImage:/mnt/kernel <span class="se">\</span>
+        -e <span class="nv">KAFL_CONFIG_FILE</span><span class="o">=</span>/mnt/kafl_config.yaml <span class="se">\</span>
+        --user <span class="k">$(</span>id -u<span class="k">)</span>:<span class="k">$(</span>id -g<span class="k">)</span> <span class="se">\</span>
+        --group-add <span class="k">$(</span>getent group kvm <span class="p">|</span> cut -d: -f3<span class="k">)</span> <span class="se">\</span>
+        intellabs/kafl <span class="se">\</span>
+        cov <span class="se">\</span>
+        -w /mnt/workdir <span class="se">\</span>
+        --input /mnt/workdir <span class="se">\</span>
+        --kernel /mnt/kernel <span class="se">\</span>
+        -ip0 <span class="nv">$IP0</span> <span class="se">\</span>
+        -ip1 <span class="nv">$IP1</span> <span class="se">\</span>
+        --resume -m <span class="m">512</span> -t <span class="m">2</span> -p <span class="m">24</span>
+</pre></div>
+</div>
+</div>
 </div>
 <p>Note that timeout and VM settings are not relevant here anymore, but the tool will
 complain about invalid/missing options. Based on the binary PT dumps,
 IP ranges and the code image retained in <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/page_cache</span></code>, this simply uses the
 libxdc <code class="docutils literal notranslate"><span class="pre">ptdump</span></code> to decode <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/traces/*bin.lz4</span></code> to <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/traces/*.txt.lz4</span></code>.</p>
 </section>
+<section id="next-steps">
+<h2>6. Next Steps<a class="headerlink" href="#next-steps" title="Permalink to this heading">#</a></h2>
+<p>Look at the kernel source code and in particular at the implementation of the
+different harness and input injection options defined in .config.</p>
+<p>Be sure to read other documentation to understand the various options and
+interpreting fuzzer outputs.</p>
+</section>
 <section id="known-issues">
-<h2>5) Known Issues<a class="headerlink" href="#known-issues" title="Permalink to this heading">#</a></h2>
+<h2>7) Known Issues<a class="headerlink" href="#known-issues" title="Permalink to this heading">#</a></h2>
 <ol class="arabic simple">
 <li><p><em>[ERROR] Guest ABORT: Attempt to finish kAFL run but never initialized</em> - This
 happens when the configured harness does not consume any inputs. For instance
@@ -460,8 +552,10 @@ assert.</p></li>
 <li><a class="reference internal" href="#download-patched-linux-kernel-or-port-to-your-preferred-kernel">1. Download patched Linux kernel (or port to your preferred kernel)</a></li>
 <li><a class="reference internal" href="#configure-and-build-target-kernel">2. Configure and build target kernel</a></li>
 <li><a class="reference internal" href="#start-fuzzing">3. Start fuzzing!</a></li>
-<li><a class="reference internal" href="#next-steps">4. Next steps..</a></li>
-<li><a class="reference internal" href="#known-issues">5) Known Issues</a></li>
+<li><a class="reference internal" href="#gui">4. GUI</a></li>
+<li><a class="reference internal" href="#coverage">5. Coverage</a></li>
+<li><a class="reference internal" href="#next-steps">6. Next Steps</a></li>
+<li><a class="reference internal" href="#known-issues">7) Known Issues</a></li>
 </ul>
 </li>
 </ul>
