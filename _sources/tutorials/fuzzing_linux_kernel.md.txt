@@ -68,7 +68,7 @@ docker run \
         -e KAFL_CONFIG_FILE=/mnt/kafl_config.yaml \
         --user $(id -u):$(id -g) \
         --group-add $(getent group kvm | cut -d: -f3) \
-        intellabs/kafl \
+        intellabs/kafl:master \
         fuzz \
         --purge \
         -w /mnt/workdir \
@@ -162,7 +162,7 @@ docker run \
         -v /dev/shm/kafl_$(id -un):/mnt/workdir \
         --user $(id -u):$(id -g) \
         --group-add $(getent group kvm | cut -d: -f3) \
-        intellabs/kafl \
+        intellabs/kafl:master \
         gui \
         -w /mnt/workdir
 ```
@@ -233,7 +233,7 @@ docker run \
         -e KAFL_CONFIG_FILE=/mnt/kafl_config.yaml \
         --user $(id -u):$(id -g) \
         --group-add $(getent group kvm | cut -d: -f3) \
-        intellabs/kafl \
+        intellabs/kafl:master \
         cov \
         -w /mnt/workdir \
         --input /mnt/workdir \

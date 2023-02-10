@@ -280,7 +280,7 @@ docker run <span class="se">\</span>
         -e <span class="nv">KAFL_CONFIG_FILE</span><span class="o">=</span>/mnt/kafl_config.yaml <span class="se">\</span>
         --user <span class="k">$(</span>id -u<span class="k">)</span>:<span class="k">$(</span>id -g<span class="k">)</span> <span class="se">\</span>
         --group-add <span class="k">$(</span>getent group kvm <span class="p">|</span> cut -d: -f3<span class="k">)</span> <span class="se">\</span>
-        intellabs/kafl <span class="se">\</span>
+        intellabs/kafl:master <span class="se">\</span>
         fuzz <span class="se">\</span>
         --purge <span class="se">\</span>
         -w /mnt/workdir <span class="se">\</span>
@@ -374,7 +374,7 @@ Docker image</label><div class="sd-tab-content docutils">
         -v /dev/shm/kafl_<span class="k">$(</span>id -un<span class="k">)</span>:/mnt/workdir <span class="se">\</span>
         --user <span class="k">$(</span>id -u<span class="k">)</span>:<span class="k">$(</span>id -g<span class="k">)</span> <span class="se">\</span>
         --group-add <span class="k">$(</span>getent group kvm <span class="p">|</span> cut -d: -f3<span class="k">)</span> <span class="se">\</span>
-        intellabs/kafl <span class="se">\</span>
+        intellabs/kafl:master <span class="se">\</span>
         gui <span class="se">\</span>
         -w /mnt/workdir
 </pre></div>
@@ -439,7 +439,7 @@ Docker image</label><div class="sd-tab-content docutils">
         -e <span class="nv">KAFL_CONFIG_FILE</span><span class="o">=</span>/mnt/kafl_config.yaml <span class="se">\</span>
         --user <span class="k">$(</span>id -u<span class="k">)</span>:<span class="k">$(</span>id -g<span class="k">)</span> <span class="se">\</span>
         --group-add <span class="k">$(</span>getent group kvm <span class="p">|</span> cut -d: -f3<span class="k">)</span> <span class="se">\</span>
-        intellabs/kafl <span class="se">\</span>
+        intellabs/kafl:master <span class="se">\</span>
         cov <span class="se">\</span>
         -w /mnt/workdir <span class="se">\</span>
         --input /mnt/workdir <span class="se">\</span>

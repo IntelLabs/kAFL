@@ -239,6 +239,10 @@ to run the fuzzer.</p>
 </section>
 <section id="software">
 <h3>1.2 Software<a class="headerlink" href="#software" title="Permalink to this heading">#</a></h3>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-0">
+Local setup</label><div class="sd-tab-content docutils">
 <ul class="simple">
 <li><p><em>Python 3</em> interpreter (<code class="docutils literal notranslate"><span class="pre">&gt;=</span> <span class="pre">3.9</span></code>)</p></li>
 <li><p><em>Git</em></p></li>
@@ -248,6 +252,15 @@ to run the fuzzer.</p>
 <p class="admonition-title">Note</p>
 <p>The userspace installation and fuzzing workflow has been tested for recent
 Ubuntu (&gt;=<code class="docutils literal notranslate"><span class="pre">20.04</span></code>) and Debian (&gt;=<code class="docutils literal notranslate"><span class="pre">Bullseye</span></code>).</p>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-1">
+Docker image</label><div class="sd-tab-content docutils">
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.docker.com/">Docker</a></p></li>
+</ul>
+</div>
 </div>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
@@ -270,7 +283,25 @@ this point.</p>
 </section>
 <section id="deploying-kafl-make-deploy">
 <h2>3. Deploying kAFL : <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">deploy</span></code><a class="headerlink" href="#deploying-kafl-make-deploy" title="Permalink to this heading">#</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-2">
+Local setup</label><div class="sd-tab-content docutils">
 <p>Run the <code class="docutils literal notranslate"><span class="pre">deploy</span></code> make target to start the installation.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make deploy
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-3">
+Docker image</label><div class="sd-tab-content docutils">
+<p>If you follow the Docker image based setup for kAFL, on only need to install the kAFL kernel.</p>
+<p>This can be done with <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">deploy</span></code>, by specifying an <code class="docutils literal notranslate"><span class="pre">Ansible</span></code> tag.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make deploy -- --tags kernel
+</pre></div>
+</div>
+</div>
+</div>
 <p>The next step will trigger kAFL installation.</p>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
@@ -284,10 +315,7 @@ this point.</p>
 <p>Skip the prompt by pressing <code class="docutils literal notranslate"><span class="pre">ENTER</span></code>.</p>
 </div>
 </div>
-<p>Once you are confortable with the changes that will be made to your system, execute the <code class="docutils literal notranslate"><span class="pre">deploy</span></code> make target:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make deploy
-</pre></div>
-</div>
+<p>Once you are confortable with the changes that will be made to your system, execute the <code class="docutils literal notranslate"><span class="pre">deploy</span></code> make target.</p>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>You will be prompted for your root password by kAFL’s deployment tool (<a class="reference external" href="https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html#cmdoption-ansible-playbook-K"><em>Ansible</em></a>)</p>
@@ -309,17 +337,53 @@ this point.</p>
 </section>
 <section id="setting-kafl-environment-make-env">
 <h2>4. Setting kAFL environment : <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">env</span></code><a class="headerlink" href="#setting-kafl-environment-make-env" title="Permalink to this heading">#</a></h2>
-<p>Once the setup is complete, you can now run the <code class="docutils literal notranslate"><span class="pre">env</span></code> target.
-This command will start a new sub-shell, and source the newly created <code class="docutils literal notranslate"><span class="pre">env.sh</span></code> file to setup the kAFL environment variables.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-4" name="sd-tab-set-2" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-4">
+Local setup</label><div class="sd-tab-content docutils">
+<p>Once the setup is complete, you can now run the <code class="docutils literal notranslate"><span class="pre">env</span></code> target.</p>
+<p>This command will start a new sub-shell, and source the newly created <code class="docutils literal notranslate"><span class="pre">env.sh</span></code> file to setup the kAFL environment variables.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">env</span>
 </pre></div>
+</div>
+</div>
+<input id="sd-tab-item-5" name="sd-tab-set-2" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-5">
+Docker image</label><div class="sd-tab-content docutils">
+<p>Nothing to be done here.
+You are good to go !</p>
+</div>
 </div>
 </section>
 <section id="verify-the-installation">
 <h2>5. Verify the installation<a class="headerlink" href="#verify-the-installation" title="Permalink to this heading">#</a></h2>
-<p>To verify the installation, you should have the <code class="docutils literal notranslate"><span class="pre">kafl_fuzz.py</span></code> binary available in your <code class="docutils literal notranslate"><span class="pre">PATH</span></code>, and execute it from your new sub-shell:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ kafl_fuzz.py
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-6" name="sd-tab-set-3" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-6">
+Local setup</label><div class="sd-tab-content docutils">
+<p>To verify the installation, you should have the <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">fuzz</span></code> binary available in your <code class="docutils literal notranslate"><span class="pre">PATH</span></code>, and execute it from your new sub-shell:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ kafl fuzz
 </pre></div>
+</div>
+</div>
+<input id="sd-tab-item-7" name="sd-tab-set-3" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-7">
+Docker image</label><div class="sd-tab-content docutils">
+<p>Let’s pull the <a class="reference external" href="https://hub.docker.com/r/intellabs/kafl"><code class="docutils literal notranslate"><span class="pre">intellabs/kafl:master</span></code></a> image</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>docker pull intellabs/kafl:master
+</pre></div>
+</div>
+<p>And execute the <code class="docutils literal notranslate"><span class="pre">fuzz</span></code> subcommand !</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>docker run <span class="se">\</span>
+        -ti --rm <span class="se">\</span>
+        --device /dev/kvm <span class="se">\</span>
+        --user <span class="k">$(</span>id -u<span class="k">)</span>:<span class="k">$(</span>id -g<span class="k">)</span> <span class="se">\</span>
+        --group-add <span class="k">$(</span>getent group kvm <span class="p">|</span> cut -d: -f3<span class="k">)</span> <span class="se">\</span>
+        intellabs/kafl:master <span class="se">\</span>
+        fuzz
+</pre></div>
+</div>
+</div>
 </div>
 <p>You should see the kAFL ACSII art logo:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>

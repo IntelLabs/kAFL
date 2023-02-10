@@ -235,9 +235,22 @@ useful for deploying Cloud services and provisioning virtual machines.</p>
 <li><p>reboot</p></li>
 </ul>
 </li>
+</ul>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-0">
+Local setup</label><div class="sd-tab-content docutils">
+<ul class="simple">
 <li><p>ensure current user is in <code class="docutils literal notranslate"><span class="pre">kvm</span></code> group</p></li>
 <li><p>ensure <code class="docutils literal notranslate"><span class="pre">/dev/kvm</span></code> device has permissions for the <code class="docutils literal notranslate"><span class="pre">kvm</span></code> group</p></li>
 </ul>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-1">
+Docker image</label><div class="sd-tab-content docutils">
+<p>Nothing else !</p>
+</div>
+</div>
 </section>
 <section id="makefile-targets">
 <h2>Makefile targets<a class="headerlink" href="#makefile-targets" title="Permalink to this heading">#</a></h2>
