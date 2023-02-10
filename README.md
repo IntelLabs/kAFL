@@ -10,6 +10,18 @@ HW-assisted Feedback Fuzzer for x86 VMs
   <a href="https://github.com/IntelLabs/kAFL/actions/workflows/CI.yml">
     <img src="https://github.com/IntelLabs/kAFL/actions/workflows/CI.yml/badge.svg" alt="CI">
   </a>
+  <a href="https://github.com/IntelLabs/kAFL/releases">
+    <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/IntelLabs/kAFL">
+  </a>
+  <a href="https://hub.docker.com/r/intellabs/kafl">
+    <img alt="Docker Image Version (latest by date)" src="https://img.shields.io/docker/v/intellabs/kafl?label=Docker%20Image">
+  </a>
+  <a href="https://hub.docker.com/r/intellabs/kafl">
+    <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/intellabs/kafl">
+  </a>
+  <a href="https://github.com/IntelLabs/kAFL/blob/master/LICENSE.md">
+    <img alt="GitHub" src="https://img.shields.io/github/license/IntelLabs/kafl">
+  </a>
 </p>
 <p align="center">
   <a href="https://IntelLabs.github.io/kAFL/">
