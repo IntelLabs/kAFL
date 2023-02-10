@@ -22,14 +22,22 @@ kAFL's installation process will start by checking your processor's compatibilit
 
 ### 1.2 Software
 
+:::::{tab-set}
+::::{tab-item} Local setup
 - _Python 3_ interpreter (`>= 3.9`)
 - _Git_
 - Essential toolchain to build software (`make`, `gcc`, ...)
-
 :::{note}
 The userspace installation and fuzzing workflow has been tested for recent
 Ubuntu (>=`20.04`) and Debian (>=`Bullseye`).
 :::
+::::
+::::{tab-item} Docker image
+- [Docker](https://www.docker.com/)
+::::
+:::::
+
+
 
 ::::{important}
 The installation will require to download, install and **reboot** your system on a **modifed Linux kernel**.
@@ -50,7 +58,24 @@ cd kAFL
 
 ## 3. Deploying kAFL : `make deploy`
 
+:::::{tab-set}
+::::{tab-item} Local setup
 Run the `deploy` make target to start the installation.
+
+~~~shell
+make deploy
+~~~
+::::
+::::{tab-item} Docker image
+If you follow the Docker image based setup for kAFL, on only need to install the kAFL kernel.
+
+This can be done with `make deploy`, by specifying an `Ansible` tag.
+
+~~~shell
+make deploy -- --tags kernel
+~~~
+::::
+:::::
 
 The next step will trigger kAFL installation.
 ::::{important}
@@ -66,10 +91,7 @@ Skip the prompt by pressing `ENTER`.
 :::
 ::::
 
-Once you are confortable with the changes that will be made to your system, execute the `deploy` make target:
-~~~shell
-make deploy
-~~~
+Once you are confortable with the changes that will be made to your system, execute the `deploy` make target.
 
 ::::{important}
 You will be prompted for your root password by kAFL's deployment tool ([_Ansible_](https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html#cmdoption-ansible-playbook-K))
@@ -92,20 +114,54 @@ In fact, if your current user doesn't require any password (`user ALL=(ALL) NOPA
 
 ## 4. Setting kAFL environment : `make env`
 
+::::{tab-set}
+:::{tab-item} Local setup
 Once the setup is complete, you can now run the `env` target.
+
 This command will start a new sub-shell, and source the newly created `env.sh` file to setup the kAFL environment variables.
 
 ~~~
 make env
 ~~~
+:::
+:::{tab-item} Docker image
+Nothing to be done here.
+You are good to go !
+:::
+::::
+
 
 ## 5. Verify the installation
 
-To verify the installation, you should have the `kafl_fuzz.py` binary available in your `PATH`, and execute it from your new sub-shell:
+::::{tab-set}
+:::{tab-item} Local setup
+To verify the installation, you should have the `kafl fuzz` binary available in your `PATH`, and execute it from your new sub-shell:
 
 ~~~
-$ kafl_fuzz.py
+$ kafl fuzz
 ~~~
+:::
+:::{tab-item} Docker image
+Let's pull the [`intellabs/kafl:master`](https://hub.docker.com/r/intellabs/kafl) image
+
+~~~shell
+docker pull intellabs/kafl:master
+~~~
+
+And execute the `fuzz` subcommand !
+
+~~~shell
+docker run \
+        -ti --rm \
+        --device /dev/kvm \
+        --user $(id -u):$(id -g) \
+        --group-add $(getent group kvm | cut -d: -f3) \
+        intellabs/kafl:master \
+        fuzz
+~~~
+:::
+::::
+
 
 You should see the kAFL ACSII art logo:
 
