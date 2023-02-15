@@ -197,7 +197,7 @@ jobs:
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          loads: true
+          load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
