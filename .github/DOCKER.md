@@ -9,7 +9,7 @@
 
 # Supported tags and respective `Dockerfile` links
 
--	[`master`](https://github.com/IntelLabs/kAFL/blob/master/Dockerfile)
+-	[`latest`](https://github.com/IntelLabs/kAFL/blob/master/Dockerfile), [`master`](https://github.com/IntelLabs/kAFL/blob/master/Dockerfile)
 
 
 # kAFL
