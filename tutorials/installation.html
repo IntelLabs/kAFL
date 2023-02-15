@@ -369,8 +369,8 @@ Local setup</label><div class="sd-tab-content docutils">
 <input id="sd-tab-item-7" name="sd-tab-set-3" type="radio">
 </input><label class="sd-tab-label" for="sd-tab-item-7">
 Docker image</label><div class="sd-tab-content docutils">
-<p>Let’s pull the <a class="reference external" href="https://hub.docker.com/r/intellabs/kafl"><code class="docutils literal notranslate"><span class="pre">intellabs/kafl:master</span></code></a> image</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>docker pull intellabs/kafl:master
+<p>Let’s pull the <a class="reference external" href="https://hub.docker.com/r/intellabs/kafl"><code class="docutils literal notranslate"><span class="pre">intellabs/kafl</span></code></a> image</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>docker pull intellabs/kafl
 </pre></div>
 </div>
 <p>And execute the <code class="docutils literal notranslate"><span class="pre">fuzz</span></code> subcommand !</p>
@@ -379,7 +379,7 @@ Docker image</label><div class="sd-tab-content docutils">
         --device /dev/kvm <span class="se">\</span>
         --user <span class="k">$(</span>id -u<span class="k">)</span>:<span class="k">$(</span>id -g<span class="k">)</span> <span class="se">\</span>
         --group-add <span class="k">$(</span>getent group kvm <span class="p">|</span> cut -d: -f3<span class="k">)</span> <span class="se">\</span>
-        intellabs/kafl:master <span class="se">\</span>
+        intellabs/kafl <span class="se">\</span>
         fuzz
 </pre></div>
 </div>
