@@ -187,6 +187,8 @@ jobs:
         uses: docker/metadata-action@v4.1.1
         with:
           images: ${{ env.image_name }}
+          flavor: |
+            latest=true
 
       - name: Build image
         uses: docker/build-push-action@v3
@@ -195,7 +197,7 @@ jobs:
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          loads: true
+          load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
