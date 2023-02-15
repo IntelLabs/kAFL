@@ -13,7 +13,7 @@
 
 # 📖 Documentation
 
-/
+- use `intellabs/kafl:latest` image in documentation
 
 # 🧰 Behind the scenes
 
