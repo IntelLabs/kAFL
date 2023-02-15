@@ -142,10 +142,10 @@ $ kafl fuzz
 ~~~
 :::
 :::{tab-item} Docker image
-Let's pull the [`intellabs/kafl:master`](https://hub.docker.com/r/intellabs/kafl) image
+Let's pull the [`intellabs/kafl`](https://hub.docker.com/r/intellabs/kafl) image
 
 ~~~shell
-docker pull intellabs/kafl:master
+docker pull intellabs/kafl
 ~~~
 
 And execute the `fuzz` subcommand !
@@ -156,7 +156,7 @@ docker run \
         --device /dev/kvm \
         --user $(id -u):$(id -g) \
         --group-add $(getent group kvm | cut -d: -f3) \
-        intellabs/kafl:master \
+        intellabs/kafl \
         fuzz
 ~~~
 :::
