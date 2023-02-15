@@ -209,7 +209,6 @@ jobs:
           image: ${{ steps.meta.outputs.tags }}
         # TODO: this action seems broken
         #    https://github.com/IntelLabs/kAFL/issues/161
-        continue-on-error: true
 
       # - name: Upload result to GitHub Code Scanning
       #   uses: github/codeql-action/upload-sarif@v2
