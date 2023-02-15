@@ -187,6 +187,8 @@ jobs:
         uses: docker/metadata-action@v4.1.1
         with:
           images: ${{ env.image_name }}
+          flavor: |
+            latest=true
 
       - name: Build image
         uses: docker/build-push-action@v3
