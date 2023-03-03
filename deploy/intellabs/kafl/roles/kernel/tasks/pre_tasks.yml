@@ -8,10 +8,10 @@
     - hardware_check
 
 - name: Checking that pmu_name is not broadwell
-  ansible.builtin.command: |
-    grep --invert-match broadwell /sys/devices/cpu/caps/pmu_name
-  register: result
-  failed_when: result.rc != 0
+  ansible.builtin.shell: |
+    cat /sys/devices/cpu*/caps/pmu_name
+  register: pmu_name
   changed_when: false
   tags:
     - hardware_check
+  failed_when: pmu_name.stdout.find('broadwell') != -1
