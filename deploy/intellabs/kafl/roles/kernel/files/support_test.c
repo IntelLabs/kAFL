@@ -39,12 +39,6 @@ int main(){
 		exit(2);
 	}
 
-	ret = ioctl(kvm, KVM_CHECK_EXTENSION, KVM_CAP_NYX_FDL);
-	if (ret != 1){
-		printf("ERROR: KVM does not support NYX_PT (%d)!\n", ret);
-		exit(2);
-	}
-
 	ret = ioctl(kvm, KVM_VMX_PT_SUPPORTED, NULL);
 	if (ret == -1){
 		printf("ERROR: KVM-PT is not loaded!\n");
