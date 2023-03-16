@@ -15,6 +15,7 @@
 # 📖 Documentation
 
 - use `intellabs/kafl:latest` image in documentation
+- document `grimoire`  (`--grimoire`) config key (#177)
 
 # 🧰 Behind the scenes
 

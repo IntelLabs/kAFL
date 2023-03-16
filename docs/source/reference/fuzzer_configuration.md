@@ -197,6 +197,17 @@ Default: `false`
 Command-line: `--gdbserver`
 :::
 
+### `grimoire`
+
+Enable the [Grimoire](https://github.com/RUB-SysSec/grimoire) fuzzer stage.
+
+:::{note}
+Default: `false`
+
+Command-line: `--grimoire`
+:::
+
+
 ### `input`
 
 ::::{tab-set}
