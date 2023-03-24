@@ -12,7 +12,7 @@ idna==3.4
 imagesize==1.4.1
 importlib-metadata==5.2.0
 Jinja2==3.1.2
-markdown-it-py==2.1.0
+markdown-it-py==2.2.0
 MarkupSafe==2.1.1
 mdit-py-plugins==0.3.3
 mdurl==0.1.2
