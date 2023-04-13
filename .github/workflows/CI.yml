@@ -21,8 +21,8 @@ jobs:
   ansible-lint:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
           
@@ -46,9 +46,9 @@ jobs:
   check-mode:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
@@ -61,9 +61,9 @@ jobs:
             os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
@@ -93,9 +93,9 @@ jobs:
           ROOT_PASSWORD: toor
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
@@ -153,13 +153,16 @@ jobs:
       - name: cleanup workdir
         run: find . -mindepth 1 -delete
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: nyx-fuzz/Nyx-Testing
 
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+      - run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup
+          chmod +x rustup
+          ./rustup -y
+          # update PATH
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Prepare tests
         run: |
@@ -305,7 +308,7 @@ jobs:
       upload_url: ${{ steps.step_upload_url.outputs.upload_url }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Get the version
         id: get_version
