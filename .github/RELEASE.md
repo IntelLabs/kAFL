@@ -19,4 +19,5 @@
 
 # 🧰 Behind the scenes
 
-/
+- deprecate NodeJSv12 based actions (#180)
+- deprecate Ubuntu-18.04 runner (#181)
