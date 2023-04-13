@@ -21,3 +21,5 @@
 
 - deprecate NodeJSv12 based actions (#180)
 - deprecate Ubuntu-18.04 runner (#181)
+- deprecate set-output in Github Actions (#182)
+  
