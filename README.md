@@ -36,6 +36,21 @@ operating systems.
 **Note: All components are provided for research and validation purposes only.
 Use at your own Risk**
 
+## Targets
+
+kAFL is the main fuzzer driving the [**Linux Security Hardening for Confidential Compute**](https://github.com/intel/ccc-linux-guest-hardening) effort, identifing vulnerabilities in a complex setup and improving the security of the Linux kernel for all CC solutions.
+
+Among other successful targets for kAFL/Nyx :
+
+- [**Intel SGX enclaves**](https://arxiv.org/pdf/2111.03013.pdf)
+- [**Intel TDX TDVF firmware**](https://github.com/hemx0147/TDVFuzz)
+- [**Mozilla Firefox IPCs**](https://arxiv.org/pdf/2111.03013.pdf)
+- [**Linux network applications** ](https://arxiv.org/pdf/2111.03013.pdf)
+- [**Windows drivers**](https://github.com/IntelLabs/kAFL/issues/53)
+- [**Hypervisors**](https://www.usenix.org/conference/usenixsecurity21/presentation/schumilo)
+- Play [**Super Mario** at 10-30x speedups](https://arxiv.org/pdf/2111.03013.pdf) !
+
+Additionally, kAFL has been used internally at Intel for x86 firmware and drivers validation as well as SMM handlers fuzzing.
 
 ## Features
 
@@ -49,7 +64,7 @@ modifications.
 
 - kAFL integrates the [_Radamsa_](https://gitlab.com/akihe/radamsa) fuzzer as well as [_Redqueen_](https://github.com/RUB-SysSec/redqueen) and [_Grimoire_](https://github.com/RUB-SysSec/grimoire) extensions. Redqueen uses VM introspection to extract runtime inputs to conditional instructions, overcoming typical magic byte and other input checks. Grimoire attempts to identify keywords and syntax from fuzz inputs in order to generate more clever large-scale mutations.
 
-For details on Redqueen, Grimoire, [_IJON_](https://github.com/RUB-SysSec/ijon), Nyx, please visit [nyx-fuzz.com](https://nyx-fuzz.com).
+For details on **Redqueen**, **Grimoire**, [_IJON_](https://github.com/RUB-SysSec/ijon), **Nyx**, please visit [nyx-fuzz.com](https://nyx-fuzz.com).
 
 
 ## Requirements
@@ -68,10 +83,11 @@ For details on Redqueen, Grimoire, [_IJON_](https://github.com/RUB-SysSec/ijon),
 
 Once you have python3-venv and make installed, you can install kAFL using `make deploy`:
 
-```
+```shell
 sudo apt install python3-venv make git
 git clone https://github.com/IntelLabs/kAFL.git
-cd kAFL; make deploy
+cd kAFl
+make deploy
 ```
 
 Installation make take some time and require a reboot to update your kernel.
@@ -80,6 +96,52 @@ Check the detailed [installation guide](https://intellabs.github.io/kAFL/tutoria
 of trouble, or the [deployment guide](https://intellabs.github.io/kAFL/reference/deployment.html) for detailed
 information and customizing the kAFL setup for your project.
 
+## Fuzzing your first target
+
 As a first fuzzing example, we recommend [Fuzzing the Linux Kernel](https://intellabs.github.io/kAFL/tutorials/fuzzing_linux_kernel.html).
 
+Other targets are available such as:
 
+- [UEFI OVMF](https://github.com/IntelLabs/kafl.targets/tree/master/uefi_ovmf_64)
+- [Linux userspace](https://github.com/IntelLabs/kafl.targets/tree/master/linux-user)
+- [Windows userspace](https://github.com/IntelLabs/kafl.targets/tree/master/windows_x86_64-userspace)
+- [Windows driver](https://github.com/IntelLabs/kafl.targets/tree/master/windows_x86_64)
+
+A improved documentation is under work for these targets.
+
+## Research
+
+kAFL a research project developed at [Ruhr University Bochum](https://www.ruhr-uni-bochum.de/en) by [Sergej Schumilo](https://schumilo.de/) and [Cornelius Aschermann](https://hexgolems.com/) and funded by [IntelLabs](https://www.intel.com/content/www/us/en/research/overview.html).
+
+[Related papers](https://nyx-fuzz.com/papers/) 📚
+
+- kAFL: Hardware-Assisted Feedback Fuzzing for OS Kernels (2017)
+  - [Paper](https://nyx-fuzz.com/papers/kafl.pdf)
+  - [Slides](https://nyx-fuzz.com/papers/kafl_slides.pdf)
+  - [Talk](https://www.youtube.com/watch?v=gZ808d7rQYU)
+- REDQUEEN: Fuzzing with Input-to-State Correspondence (2019)
+  - [Paper](https://nyx-fuzz.com/papers/redqueen.pdf)
+  - [Slides](https://nyx-fuzz.com/papers/redqueen_slides.pdf)
+  - [Talk](https://www.youtube.com/watch?v=9JpanJ29r_U)
+- NAUTILUS: Fishing for Deep Bugs with Grammars (2019)
+  - [Paper](https://nyx-fuzz.com/papers/nautilus.pdf)
+  - [Slides](https://nyx-fuzz.com/papers/nautilus_slides.pdf)
+  - [Talk](https://www.youtube.com/watch?v=z0rpN_hxdnA)
+- GRIMOIRE: Synthesizing Structure while Fuzzing (2019)
+  - [Paper](https://nyx-fuzz.com/papers/grimoire.pdf)
+  - [Slides](https://nyx-fuzz.com/papers/grimoire_slides.pdf)
+  - [Talk](https://www.youtube.com/watch?v=VF9YcAnzMPI)
+- IJON: Exploring Deep State Spaces via Fuzzing (2020)
+  - [Paper](https://nyx-fuzz.com/papers/ijon.pdf)
+  - [Slides](https://nyx-fuzz.com/papers/ijon_slides.pdf)
+  - [Talk](https://www.youtube.com/watch?v=XuyF-Jb2hQ4)
+- HYPER-CUBE: High-Dimensional Hypervisor Fuzzing (2020)
+  - [Paper](https://nyx-fuzz.com/papers/hypercube.pdf)
+  - [Slides](https://nyx-fuzz.com/papers/hypercube_slides.pdf)
+  - [Talk](https://www.youtube.com/watch?v=GmIlLKT_nH8)
+- Nyx: Greybox Hypervisor Fuzzing using Fast Snapshots and Affine Types (2021)
+  - [Paper](https://www.usenix.org/system/files/sec21-schumilo.pdf)
+  - [Slides](https://www.usenix.org/system/files/sec21_slides_schumilo.pdf)
+  - [Talk](https://youtu.be/ZsW5_Ukzl_8)
+- Nyx-Net: Network Fuzzing with Incremental Snapshots (2021)
+  - [Paper](https://arxiv.org/pdf/2111.03013.pdf)
