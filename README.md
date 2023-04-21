@@ -29,7 +29,7 @@ HW-assisted Feedback Fuzzer for x86 VMs
   </a>
 </p>
 
-kAFL/Nyx is a fast guided fuzzer for the x86 VM. It is great for anything that
+kAFL/[Nyx](https://nyx-fuzz.com) is a fast guided fuzzer for the x86 VM. It is great for anything that
 executes as QEMU/KVM guest, in particular x86 firmware, kernels and full-blown
 operating systems.
 
@@ -42,13 +42,13 @@ kAFL is the main fuzzer driving the [**Linux Security Hardening for Confidential
 
 Among other successful targets for kAFL/Nyx :
 
-- [**Intel SGX enclaves**](https://arxiv.org/pdf/2111.03013.pdf)
+- [**Intel SGX enclaves**](https://www.usenix.org/conference/usenixsecurity22/presentation/cloosters)
 - [**Intel TDX TDVF firmware**](https://github.com/hemx0147/TDVFuzz)
-- [**Mozilla Firefox IPCs**](https://arxiv.org/pdf/2111.03013.pdf)
-- [**Linux network applications** ](https://arxiv.org/pdf/2111.03013.pdf)
+- [**Mozilla Firefox IPCs**](https://dl.acm.org/doi/10.1145/3492321.3519591)
+- [**Linux network applications** ](https://dl.acm.org/doi/10.1145/3492321.3519591)
 - [**Windows drivers**](https://github.com/IntelLabs/kAFL/issues/53)
 - [**Hypervisors**](https://www.usenix.org/conference/usenixsecurity21/presentation/schumilo)
-- Play [**Super Mario** at 10-30x speedups](https://arxiv.org/pdf/2111.03013.pdf) !
+- Play [**Super Mario** at 10-30x speedups](https://dl.acm.org/doi/10.1145/3492321.3519591) !
 
 Additionally, kAFL has been used internally at Intel for x86 firmware and drivers validation as well as SMM handlers fuzzing.
 
@@ -144,4 +144,5 @@ kAFL a research project developed at [Ruhr University Bochum](https://www.ruhr-u
   - [Slides](https://www.usenix.org/system/files/sec21_slides_schumilo.pdf)
   - [Talk](https://youtu.be/ZsW5_Ukzl_8)
 - Nyx-Net: Network Fuzzing with Incremental Snapshots (2021)
-  - [Paper](https://arxiv.org/pdf/2111.03013.pdf)
+  - [Paper](https://dl.acm.org/doi/pdf/10.1145/3492321.3519591)
+  - [Slides](https://schumilo.de/publications/nyx-net/slides.pdf)
