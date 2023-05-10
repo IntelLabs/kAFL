@@ -36,4 +36,4 @@
     - build
 
 - name: Import post_tasks
-  import_tasks: post_tasks.yml
+  ansible.builtin.import_tasks: post_tasks.yml

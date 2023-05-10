@@ -17,7 +17,7 @@
     - clone
 
 - name: Build radamsa
-  make:
+  community.general.make:
     chdir: "{{ radamsa_root }}"
     params:
       --jobs: "{{ ansible_processor_nproc }}"

@@ -33,11 +33,16 @@
   check_mode: false
 
 - name: Configure boot entry to select new kernel
+  tags:
+    - update_grub
   block:
     - name: Determine Grub menuentry
       ansible.builtin.shell: |
+        set -o pipefail
         awk -F\' '/submenu.*Advanced\ / {print $4}' /boot/grub/grub.cfg
         awk -F\' '/menuentry.*{{ kernel_grep_string }}/ {print $4}' /boot/grub/grub.cfg |head -1
+      args:
+        executable: /bin/bash
       register: grub_menuentry_ids
       when: true
       check_mode: false
@@ -54,8 +59,7 @@
       ansible.builtin.command: update-grub
       become: true
       when: true
-  tags:
-    - update_grub
+
 
 - name: Reboot on new kernel
   ansible.builtin.reboot:
