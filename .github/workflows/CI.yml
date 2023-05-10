@@ -41,7 +41,7 @@ jobs:
       - name: Run ansible-lint
         working-directory: deploy
         run: |
-          ./venv/bin/ansible-lint -x 'meta-no-info'
+          ./venv/bin/ansible-lint -x 'meta-no-info' --exclude venv
 
   check-mode:
     runs-on: ubuntu-20.04
