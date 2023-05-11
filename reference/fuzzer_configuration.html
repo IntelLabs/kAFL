@@ -5,12 +5,12 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Deployment" href="deployment.html" /><link rel="prev" title="Fuzzing the Linux Kernel" href="../tutorials/fuzzing_linux_kernel.html" />
 
-    <!-- Generated with Sphinx 5.3.0 and Furo 2022.12.07 -->
+    <!-- Generated with Sphinx 5.3.0 and Furo 2023.03.27 -->
         <title>Fuzzer Configuration - kAFL</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=91d0f0d1c444bdcb17a68e833c7a53903343c195" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     
     
@@ -360,7 +360,7 @@ everything that you learn from Dynaconf’s documentation should also be applica
 <section id="cpu-offset">
 <h3><code class="docutils literal notranslate"><span class="pre">cpu_offset</span></code><a class="headerlink" href="#cpu-offset" title="Permalink to this heading">#</a></h3>
 <p>Modify automated CPU pinning to start at vCPU <code class="docutils literal notranslate"><span class="pre">n</span></code> and assign Qemu/Worker
-instances to the next <a class="reference internal" href="#processes"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">-p</span></code></span></a> vCPUs.</p>
+instances to the next <a class="reference internal" href="#processes"><code class="docutils literal notranslate"><span class="pre">-p</span></code></a> vCPUs.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Default: <code class="docutils literal notranslate"><span class="pre">0</span></code></p>
@@ -370,7 +370,7 @@ instances to the next <a class="reference internal" href="#processes"><span clas
 <section id="debug">
 <h3><code class="docutils literal notranslate"><span class="pre">debug</span></code><a class="headerlink" href="#debug" title="Permalink to this heading">#</a></h3>
 <p>Enable additional (expensive) debug checks during execution.</p>
-<p>Implies <a class="reference internal" href="#verbose"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">--verbose</span></code></span></a>.</p>
+<p>Implies <a class="reference internal" href="#verbose"><code class="docutils literal notranslate"><span class="pre">--verbose</span></code></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Default: <code class="docutils literal notranslate"><span class="pre">false</span></code></p>
@@ -450,7 +450,7 @@ kafl debug</label><div class="sd-tab-content docutils">
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Default: <a class="reference internal" href="#work-dir"><span class="std std-doc">workdir</span></a> value</p>
+<p>Default: <a class="reference internal" href="#work-dir">workdir</a> value</p>
 <p>Command-line: <code class="docutils literal notranslate"><span class="pre">--input</span> <span class="pre">&lt;path&gt;</span></code></p>
 </div>
 </section>
@@ -468,7 +468,7 @@ ranges may also be set by the agent using the (<code class="docutils literal not
 <section id="iterations">
 <h3><code class="docutils literal notranslate"><span class="pre">iterations</span></code><a class="headerlink" href="#iterations" title="Permalink to this heading">#</a></h3>
 <p>Execute the debugged payload <code class="docutils literal notranslate"><span class="pre">&lt;n&gt;</span></code> times.</p>
-<p>Used by <code class="docutils literal notranslate"><span class="pre">noise</span></code>, <code class="docutils literal notranslate"><span class="pre">trace</span></code> and <code class="docutils literal notranslate"><span class="pre">trace-qemu</span></code> debug <a class="reference internal" href="#action"><span class="std std-doc">actions</span></a> in case of
+<p>Used by <code class="docutils literal notranslate"><span class="pre">noise</span></code>, <code class="docutils literal notranslate"><span class="pre">trace</span></code> and <code class="docutils literal notranslate"><span class="pre">trace-qemu</span></code> debug <a class="reference internal" href="#action">actions</a> in case of
 non-deterministic execution.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -515,7 +515,7 @@ hprintf logs.</p>
 </section>
 <section id="log-hprintf">
 <h3><code class="docutils literal notranslate"><span class="pre">log_hprintf</span></code><a class="headerlink" href="#log-hprintf" title="Permalink to this heading">#</a></h3>
-<p>Redirect guest <code class="docutils literal notranslate"><span class="pre">hprintf</span></code> output to <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/hprintf_NN.log</span></code> (see <a class="reference internal" href="hypercall_api.html"><span class="doc std std-doc">PRINTF hypercall</span></a>).</p>
+<p>Redirect guest <code class="docutils literal notranslate"><span class="pre">hprintf</span></code> output to <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/hprintf_NN.log</span></code> (see <a class="reference internal" href="hypercall_api.html"><span class="std std-doc">PRINTF hypercall</span></a>).</p>
 <p>Creates a linear log of Guest execution across snapshot/restore. Recommended for
 debugging guest/harness execution.</p>
 <div class="admonition note">
@@ -553,7 +553,7 @@ debugging guest/harness execution.</p>
 </section>
 <section id="purge">
 <h3><code class="docutils literal notranslate"><span class="pre">purge</span></code><a class="headerlink" href="#purge" title="Permalink to this heading">#</a></h3>
-<p>Purge the <a class="reference internal" href="#work-dir"><span class="std std-doc">KAFL workdir</span></a> directory at startup.</p>
+<p>Purge the <a class="reference internal" href="#work-dir">KAFL workdir</a> directory at startup.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Default: <code class="docutils literal notranslate"><span class="pre">false</span></code></p>
@@ -562,7 +562,7 @@ debugging guest/harness execution.</p>
 </section>
 <section id="qemu-append">
 <h3><code class="docutils literal notranslate"><span class="pre">qemu_append</span></code><a class="headerlink" href="#qemu-append" title="Permalink to this heading">#</a></h3>
-<p>Kernel command line if <a class="reference internal" href="#qemu-kernel"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">--kernel</span></code></span></a> is used.</p>
+<p>Kernel command line if <a class="reference internal" href="#qemu-kernel"><code class="docutils literal notranslate"><span class="pre">--kernel</span></code></a> is used.</p>
 <p>Corresponds to QEMU <code class="docutils literal notranslate"><span class="pre">-append</span> <span class="pre">&lt;cmdline&gt;</span></code> argument.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -759,7 +759,7 @@ initialize based on existing Nyx <code class="docutils literal notranslate"><spa
 <h3><code class="docutils literal notranslate"><span class="pre">seed_dir</span></code><a class="headerlink" href="#seed-dir" title="Permalink to this heading">#</a></h3>
 <p>Specify a directory <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;</span></code> to use as seed directory. The directory is
 traversed recursively and files are copied to the kAFL
-<a class="reference internal" href="workdir_layout.html"><span class="doc std std-doc">workdir</span></a> as <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/imports/seed_xxx</span></code>,
+<a class="reference internal" href="workdir_layout.html"><span class="std std-doc">workdir</span></a> as <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/imports/seed_xxx</span></code>,
 where there are consumed upon fuzzer startup.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -839,9 +839,9 @@ works for non-deterministic targets.</p>
 <h3><code class="docutils literal notranslate"><span class="pre">verbose</span></code><a class="headerlink" href="#verbose" title="Permalink to this heading">#</a></h3>
 <p>Enable verbose output by setting Python <a class="reference external" href="https://docs.python.org/3/library/logging.html"><code class="docutils literal notranslate"><span class="pre">logging</span></code></a> level to <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging-levels"><code class="docutils literal notranslate"><span class="pre">DEBUG</span></code></a>.</p>
 <p>This option is also useful to dump and debug kafl configuration at load-time.</p>
-<p>Example with <a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html"><span class="doc std std-doc">Fuzzing the Linux kernel</span></a> tutorial, if <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> switch were to be added to the command line:</p>
+<p>Example with <a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html"><span class="std std-doc">Fuzzing the Linux kernel</span></a> tutorial, if <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> switch were to be added to the command line:</p>
 <p>First kAFL will dump the list of loaded configuration files.
-Check the <a class="reference internal" href="#configuration-sources-and-precedence"><span class="std std-doc">load order</span></a></p>
+Check the <a class="reference internal" href="#configuration-sources-and-precedence">load order</a></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Loaded</span> <span class="n">configuration</span> <span class="n">files</span><span class="p">:</span>
 <span class="p">[</span><span class="s1">&#39;/home/mtarral/kAFL/kafl/fuzzer/kafl_fuzzer/common/config/default_settings.yaml&#39;</span><span class="p">,</span>
  <span class="s1">&#39;/home/mtarral/kAFL/kafl/examples/linux-kernel/./kafl_config.yaml&#39;</span><span class="p">]</span>
@@ -895,7 +895,7 @@ It is the primary location for inspecting the status of a previous or still runn
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p>See also the <a class="reference internal" href="workdir_layout.html"><span class="doc std std-doc">Workdir Layout</span></a> reference.</p>
+<p>See also the <a class="reference internal" href="workdir_layout.html"><span class="std std-doc">Workdir Layout</span></a> reference.</p>
 </div>
 </section>
 </section>
@@ -1043,7 +1043,7 @@ It is the primary location for inspecting the status of a previous or still runn
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
     <script src="../_static/design-tabs.js"></script>
-    <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({startOnLoad:true});</script>
     </body>
 </html>
