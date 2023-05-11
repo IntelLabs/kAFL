@@ -113,3 +113,7 @@ A improved documentation is under work for these targets.
 
 - [@Wenzel - Mathieu Tarral](https://github.com/Wenzel) ([Intel](https://github.com/IntelLabs))
 - [@il-steffen - Steffen Schulz](https://github.com/il-steffen) ([InteLabs](https://github.com/IntelLabs))
+
+## License
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
