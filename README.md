@@ -109,40 +109,11 @@ Other targets are available such as:
 
 A improved documentation is under work for these targets.
 
-## Research
+## Maintainers
 
-kAFL a research project developed at [Ruhr University Bochum](https://www.ruhr-uni-bochum.de/en) by [Sergej Schumilo](https://schumilo.de/) and [Cornelius Aschermann](https://hexgolems.com/) and funded by [IntelLabs](https://www.intel.com/content/www/us/en/research/overview.html).
+- [@Wenzel - Mathieu Tarral](https://github.com/Wenzel) ([Intel](https://github.com/IntelLabs))
+- [@il-steffen - Steffen Schulz](https://github.com/il-steffen) ([InteLabs](https://github.com/IntelLabs))
 
-[Related papers](https://nyx-fuzz.com/papers/) 📚
+## License
 
-- kAFL: Hardware-Assisted Feedback Fuzzing for OS Kernels (2017)
-  - [Paper](https://nyx-fuzz.com/papers/kafl.pdf)
-  - [Slides](https://nyx-fuzz.com/papers/kafl_slides.pdf)
-  - [Talk](https://www.youtube.com/watch?v=gZ808d7rQYU)
-- REDQUEEN: Fuzzing with Input-to-State Correspondence (2019)
-  - [Paper](https://nyx-fuzz.com/papers/redqueen.pdf)
-  - [Slides](https://nyx-fuzz.com/papers/redqueen_slides.pdf)
-  - [Talk](https://www.youtube.com/watch?v=9JpanJ29r_U)
-- NAUTILUS: Fishing for Deep Bugs with Grammars (2019)
-  - [Paper](https://nyx-fuzz.com/papers/nautilus.pdf)
-  - [Slides](https://nyx-fuzz.com/papers/nautilus_slides.pdf)
-  - [Talk](https://www.youtube.com/watch?v=z0rpN_hxdnA)
-- GRIMOIRE: Synthesizing Structure while Fuzzing (2019)
-  - [Paper](https://nyx-fuzz.com/papers/grimoire.pdf)
-  - [Slides](https://nyx-fuzz.com/papers/grimoire_slides.pdf)
-  - [Talk](https://www.youtube.com/watch?v=VF9YcAnzMPI)
-- IJON: Exploring Deep State Spaces via Fuzzing (2020)
-  - [Paper](https://nyx-fuzz.com/papers/ijon.pdf)
-  - [Slides](https://nyx-fuzz.com/papers/ijon_slides.pdf)
-  - [Talk](https://www.youtube.com/watch?v=XuyF-Jb2hQ4)
-- HYPER-CUBE: High-Dimensional Hypervisor Fuzzing (2020)
-  - [Paper](https://nyx-fuzz.com/papers/hypercube.pdf)
-  - [Slides](https://nyx-fuzz.com/papers/hypercube_slides.pdf)
-  - [Talk](https://www.youtube.com/watch?v=GmIlLKT_nH8)
-- Nyx: Greybox Hypervisor Fuzzing using Fast Snapshots and Affine Types (2021)
-  - [Paper](https://www.usenix.org/system/files/sec21-schumilo.pdf)
-  - [Slides](https://www.usenix.org/system/files/sec21_slides_schumilo.pdf)
-  - [Talk](https://youtu.be/ZsW5_Ukzl_8)
-- Nyx-Net: Network Fuzzing with Incremental Snapshots (2021)
-  - [Paper](https://dl.acm.org/doi/pdf/10.1145/3492321.3519591)
-  - [Slides](https://schumilo.de/publications/nyx-net/slides.pdf)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
