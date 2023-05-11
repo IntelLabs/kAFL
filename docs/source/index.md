@@ -40,6 +40,13 @@ tutorials/fuzzing_linux_kernel
 
 ```{toctree}
 :maxdepth: 2
+:caption: How-to guides
+
+how_to/github_actions
+```
+
+```{toctree}
+:maxdepth: 2
 :caption: Reference
 
 reference/fuzzer_configuration
