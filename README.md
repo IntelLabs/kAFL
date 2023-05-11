@@ -109,3 +109,7 @@ Other targets are available such as:
 
 A improved documentation is under work for these targets.
 
+## Maintainers
+
+- [@Wenzel - Mathieu Tarral](https://github.com/Wenzel) ([Intel](https://github.com/IntelLabs))
+- [@il-steffen - Steffen Schulz](https://github.com/il-steffen) ([InteLabs](https://github.com/IntelLabs))
