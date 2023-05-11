@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="kAFL Workdir" href="workdir_layout.html" /><link rel="prev" title="Deployment" href="deployment.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Fuzzer Configuration" href="../reference/fuzzer_configuration.html" /><link rel="prev" title="Fuzzing the Linux Kernel" href="../tutorials/fuzzing_linux_kernel.html" />
 
     <!-- Generated with Sphinx 6.2.1 and Furo 2023.03.27 -->
-        <title>kAFL/Nyx Hypercall API - kAFL</title>
+        <title>Github Actions CI/CD - kAFL</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
@@ -163,16 +163,16 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Fuzzing the Linux Kernel</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../how_to/github_actions.html">Github Actions CI/CD</a></li>
+<ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Github Actions CI/CD</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Reference</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="fuzzer_configuration.html">Fuzzer Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="deployment.html">Deployment</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">kAFL/Nyx Hypercall API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workdir_layout.html">kAFL Workdir</a></li>
-<li class="toctree-l1"><a class="reference internal" href="user_interface.html">kAFL User Interface</a></li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../reference/fuzzer_configuration.html">Fuzzer Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/deployment.html">Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/hypercall_api.html">kAFL/Nyx Hypercall API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/workdir_layout.html">kAFL Workdir</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/user_interface.html">kAFL User Interface</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Context</span></p>
 <ul>
@@ -201,7 +201,7 @@
         </a>
         <div class="content-icon-container">
           <div class="edit-this-page">
-  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/reference/hypercall_api.md" title="Edit this page">
+  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/how_to/github_actions.md" title="Edit this page">
     <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
@@ -223,85 +223,101 @@
           </label>
         </div>
         <article role="main">
-          <section id="kafl-nyx-hypercall-api">
-<h1>kAFL/Nyx Hypercall API<a class="headerlink" href="#kafl-nyx-hypercall-api" title="Permalink to this heading">#</a></h1>
-<p>For fuzzing in kAFL/Nyx, the guest VM issues special hypercalls to bootstrap and
-coordinate the execution of the fuzzing harness with the fuzzer frontend.</p>
-<p>This approach offers a minimal low-level interface that can be used to take
-control and start injecting inputs at any point in VM guest execution.</p>
-<section id="essential-hypercalls">
-<h2>Essential hypercalls<a class="headerlink" href="#essential-hypercalls" title="Permalink to this heading">#</a></h2>
+          <section id="github-actions-ci-cd">
+<h1>Github Actions CI/CD<a class="headerlink" href="#github-actions-ci-cd" title="Permalink to this heading">#</a></h1>
+<p>kAFL can be integrated into your Github Actions CI/CD pipeline, thanks to the <a class="reference external" href="https://github.com/IntelLabs/kafl.actions"><code class="docutils literal notranslate"><span class="pre">IntelLabs/kafl.actions</span></code></a>.</p>
+<p>It acts as a basic-block to compose your workflows with kAFL.</p>
+<p>With this Action you can:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ACQUIRE</span> <span class="pre">/</span> <span class="pre">RELEASE</span></code> are used to enable/disable feedback collection and
-generally mark the start and stop of a single execution. One initial set of
-<code class="docutils literal notranslate"><span class="pre">ACQUIRE</span></code>/<code class="docutils literal notranslate"><span class="pre">RELEASE</span></code> hypercalls is also used for initial handshake with the host
-frontend. Reaching <code class="docutils literal notranslate"><span class="pre">RELEASE</span></code> generally means the execution is done with no
-errors (return OK). The newer Nyx backend will automatically restore a guest
-snapshot on RELEASE hypercall.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">GET_PAYLOAD</span></code> is not actually getting the payload but instead telling Qemu
-where to write the payload. The guest must take care to allocate a
-sufficiently large buffer and make it page-aligned. Qemu will mmap() this
-buffer to make it shared with the fuzzer frontend.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">NEXT_PAYLOAD</span></code> triggers the actual write of the next payload into the
-previously registered buffer. In Nyx, the first invocation will also create
-a snapshot before writing the payload, so our fuzzing “loop” actually always
-starts from this hypercall now. The <code class="docutils literal notranslate"><span class="pre">while()</span></code> loop in our guest agent is not
-actually needed anymore.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">PRINTF</span></code> send a pointer to a C string to the host, where it will be printed or
-logged. Very useful for general logging/debug, forwarding sanitizer reports
-and exception stack dumps.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">PANIC</span></code>, <code class="docutils literal notranslate"><span class="pre">KASAN</span></code> are used to raise a ‘crash’ or other error event to the host.
-Qemu will stop Guest execution, reload the snapshot and report the crash type
-to the frontend.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SUBMIT_PANIC</span></code>, <code class="docutils literal notranslate"><span class="pre">SUBMIT_KASAN</span></code> tell Qemu the address of existing panic or
-sanitizer handler functions in the guest. Qemu will overwrite the code at this
-address to perform <code class="docutils literal notranslate"><span class="pre">PANIC</span></code>/<code class="docutils literal notranslate"><span class="pre">KASAN</span></code> hypercalls so that the events are detected
-and fuzz inputs can be logged on the host side.  Rewrite can have unexpected
-results in case of inlined code or if the function is a macro etc. It is often
-preferable and more flexible to manually place hypercalls in the corresponding
-error and exception handlers.</p></li>
+<li><p>automate the fuzzing process of your target and building a reusable workflow</p></li>
+<li><p>delegate the kAFL setup from your local machine to a reproducible infrastucture</p></li>
+<li><p>build a regression test suite, continuously updated with new seeds, to be executed at your convenience (every PR, day, week, …)</p></li>
 </ul>
+<p>Requirements:</p>
+<ul class="simple">
+<li><p>A kAFL-compatible server (<strong>Intel PT</strong>) acting as <a class="reference external" href="https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners">Github Action Self-Hosted Runner</a></p></li>
+</ul>
+<section id="deploying-the-kernel">
+<h2>1 - Deploying the kernel<a class="headerlink" href="#deploying-the-kernel" title="Permalink to this heading">#</a></h2>
+<p>This first step will install the kAFL on the server of your choice.</p>
+<p>We can leverage kAFL’s <a class="reference internal" href="../reference/deployment.html"><span class="std std-doc">Ansible playbook</span></a> to automate this part.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> kAFL
+<span class="c1"># rewrite the Ansible inventory to deploy remotely on a specified server</span>
+<span class="nb">echo</span> <span class="s1">&#39;kafl-actions-runner.example.com&#39;</span> &gt; deploy/inventory
+<span class="c1"># only deploy the kernel</span>
+make deploy -- --tags kernel
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This command will:</p>
+<ul class="simple">
+<li><p>install the kernel</p></li>
+<li><p>update GRUB</p></li>
+<li><p><strong>reboot</strong> the server</p></li>
+</ul>
+</div>
+<p>➡️ Once this is done, you should find a <code class="docutils literal notranslate"><span class="pre">-nyx</span></code> tag in your server’s <code class="docutils literal notranslate"><span class="pre">uname</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uname -a <span class="p">|</span> grep nyx
+... <span class="m">6</span>.0.0-nyx+ ...
+</pre></div>
+</div>
 </section>
-<section id="further-optional-hypercalls">
-<h2>Further optional hypercalls<a class="headerlink" href="#further-optional-hypercalls" title="Permalink to this heading">#</a></h2>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">RANGE_SUBMIT</span></code> is used to configure the IP filter range for PT tracing. This
-is useful when code ranges are not known at startup time or simply easier to
-obtain as part of agent initialization. Overrides the corresponding <code class="docutils literal notranslate"><span class="pre">-ipN</span></code>
-setting by fuzzer frontend.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SUBMIT_CR3</span></code> tells Qemu to use the currently configured CR3 value as a filter
-for PT tracing. Useful to limit trace to a specific task/context.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">USER_ABORT</span></code> signals a fatal error to Qemu. Mainly useful as a kind of
-assert() from harness perspective (since we auto-resume on regular crash/hang).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">USER_SUBMIT_MODE</span></code> explicitly tells the host if the target is 32 or 64 bit code.
-Influences Qemu code rewrite and possibly libxdc decoder. Typically auto-detected.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SET_AGENT_CONFIG</span></code> tells Qemu about capabilities of the harness (agent), e.g.
-custom tracing options. Further options may be added by extending the handler on Qemu side.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">GET_HOST_CONFIG</span></code> can be used to query kAFL/Qemu configuration, e.g. size of the payload buffer.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">REQ_STREAM_DATA</span></code> fetches a named binary buffer from the host. Qemu fetches
-the data from correspondingly named files in the sharedir folder.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DUMP_FILE</span></code> can be used to send binary buffers that will be stored as files in
-$WORK_DIR/dump/. Supply NULL or a valid mkstemp() template as filename to
-let Qemu create a unique filename for you.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">USER_FAST_ACQUIRE</span></code> this is a combination of <code class="docutils literal notranslate"><span class="pre">NEXT_PAYLOAD</span></code> and <code class="docutils literal notranslate"><span class="pre">ACQUIRE</span></code> and
-mainly exists to save you a VM exit. Only tested for usermode fuzzing.</p></li>
-</ul>
+<section id="setting-up-docker">
+<h2>2 - Setting up Docker<a class="headerlink" href="#setting-up-docker" title="Permalink to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/IntelLabs/kafl.actions"><code class="docutils literal notranslate"><span class="pre">kafl.actions</span></code></a> will pull the latest <a class="reference external" href="https://hub.docker.com/r/intellabs/kafl"><code class="docutils literal notranslate"><span class="pre">intellabs/kafl</span></code></a> Docker image to run the kAFL userspace.</p>
+<p>Let’s setup Docker on the runner as well !</p>
+<p>➡️ <a class="reference external" href="https://docs.docker.com/engine/install/ubuntu/">Install Docker Engine on Ubuntu</a></p>
 </section>
-<section id="untested-and-not-fully-integrated">
-<h2>Untested and not fully integrated<a class="headerlink" href="#untested-and-not-fully-integrated" title="Permalink to this heading">#</a></h2>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">PRINTK_ADDR</span></code> – submit the pointer of a printk()-like logging function. Qemu
-will rewrite this with a <code class="docutils literal notranslate"><span class="pre">PRINTK</span></code> hypercall which can interpret printk() args.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">PANIC_EXTENDED</span></code> – a mix of PANIC and HPRINTF, raises a bug while also
-forwarding a pointer to a C string. Untested.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">CREATE_TMP_SNAPSHOT</span></code> – create an incremental snapshot and continue fuzzing
-from current position. Frontend and harness have to support this.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DEBUG_TMP_SNAPSHOT</span></code> – debug version of incremental snapshot</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">NESTED_*</span></code> - roughly equivalent hypercalls for use with nested virtualization
-(when agent is a L2 guest)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">USER_RANGE_ADVISE</span></code>, <code class="docutils literal notranslate"><span class="pre">GET_ARGV</span></code> – no idea</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">INFO</span></code>, <code class="docutils literal notranslate"><span class="pre">LOCK</span></code>, <code class="docutils literal notranslate"><span class="pre">GET_PROGRAM</span></code> – deprecated</p></li>
-</ul>
+<section id="setup-the-github-actions-runner">
+<h2>3 - Setup the Github Actions Runner<a class="headerlink" href="#setup-the-github-actions-runner" title="Permalink to this heading">#</a></h2>
+<p>Finally you can follow Github’s official guide to add a <a class="reference external" href="https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/adding-self-hosted-runners#adding-a-self-hosted-runner-to-a-repository">Self-Hosted Runner</a> to your repository.</p>
+<p>You should now have a runner available under <code class="docutils literal notranslate"><span class="pre">Settings</span></code> <code class="docutils literal notranslate"><span class="pre">Actions</span></code> <code class="docutils literal notranslate"><span class="pre">Runners</span></code></p>
+<p><img alt="kafl_runner" src="../_images/kafl_runner_added.png" /></p>
+</section>
+<section id="using-kafl-actions">
+<h2>4 - Using <code class="docutils literal notranslate"><span class="pre">kafl.actions</span></code><a class="headerlink" href="#using-kafl-actions" title="Permalink to this heading">#</a></h2>
+<p>Go check <a class="reference external" href="https://github.com/IntelLabs/kafl.actions"><code class="docutils literal notranslate"><span class="pre">kafl.actions</span></code></a>’s README and the example <a class="reference external" href="https://github.com/IntelLabs/kafl.actions/blob/master/.github/workflows/kernel.yml"><code class="docutils literal notranslate"><span class="pre">kernel.yml</span></code></a> to fuzz the Linux kernel !</p>
+<p>It boils down to invoking the action, specifing the subcommand, the workdir (to be mounted in the container), and a few <code class="docutils literal notranslate"><span class="pre">extra_args</span></code> for the kAFL command line.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fuzz Linux kernel</span><span class="w"></span>
+<span class="w">    </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IntelLabs/kafl.actions@master</span><span class="w"></span>
+<span class="w">    </span><span class="nt">with</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fuzz</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Build your own workflows, automate and fuzz all the things (continuously) !</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The default timeout for a Github Action’s job is limited to <code class="docutils literal notranslate"><span class="pre">6h</span></code>.</p>
+<p>It’s possible to bypass this limit by specifying a higher value in <a class="reference external" href="https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idtimeout-minutes"><code class="docutils literal notranslate"><span class="pre">jobs.&lt;job_id&gt;.timeout-minutes</span></code></a>.</p>
+<p>For example, you can set it to 2 weeks:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">jobs</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">fuzz</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># bypass 6h limitation</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># set to 2 weeks max job execution time</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># 60 * 24 * 7 * 2 = 20160 minutes</span><span class="w"></span>
+<span class="w">    </span><span class="nt">timeout-minutes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20160</span><span class="w"></span>
+</pre></div>
+</div>
+<p>And then limit your target fuzzing to any value you want (under that threshold):</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fuzz Linux kernel</span><span class="w"></span>
+<span class="w">    </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IntelLabs/kafl.actions@master</span><span class="w"></span>
+<span class="w">    </span><span class="nt">with</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fuzz</span><span class="w"></span>
+<span class="w">      </span><span class="c1"># 3 days</span><span class="w"></span>
+<span class="w">      </span><span class="c1"># 60 * 60 * 24 * 3 = 259200 seconds</span><span class="w"></span>
+<span class="w">      </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">259200</span><span class="w"></span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><a class="reference external" href="https://github.com/IntelLabs/kafl.actions">kafl.actions</a>’s fuzz timeout is specified in <strong>seconds</strong>, not minutes.</p>
+</div>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">#</a></h2>
+<p>The <a class="reference external" href="https://github.com/IntelLabs/kafl.actions"><code class="docutils literal notranslate"><span class="pre">kafl.actions</span></code></a> Github Action has been introduced to the <a class="reference external" href="https://www.youtube.com/watch?v=0adtDjSdSjc&amp;amp;t=230s">Tianocore community meeting</a> on May 4th 2023.</p>
 </section>
 </section>
 
@@ -310,23 +326,23 @@ from current position. Frontend and harness have to support this.</p></li>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="workdir_layout.html">
+          <a class="next-page" href="../reference/fuzzer_configuration.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">kAFL Workdir</div>
+                <div class="title">Fuzzer Configuration</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="deployment.html">
+          <a class="prev-page" href="../tutorials/fuzzing_linux_kernel.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Deployment</div>
+                <div class="title">Fuzzing the Linux Kernel</div>
                 
               </div>
             </a>
@@ -367,10 +383,12 @@ from current position. Frontend and harness have to support this.</p></li>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">kAFL/Nyx Hypercall API</a><ul>
-<li><a class="reference internal" href="#essential-hypercalls">Essential hypercalls</a></li>
-<li><a class="reference internal" href="#further-optional-hypercalls">Further optional hypercalls</a></li>
-<li><a class="reference internal" href="#untested-and-not-fully-integrated">Untested and not fully integrated</a></li>
+<li><a class="reference internal" href="#">Github Actions CI/CD</a><ul>
+<li><a class="reference internal" href="#deploying-the-kernel">1 - Deploying the kernel</a></li>
+<li><a class="reference internal" href="#setting-up-docker">2 - Setting up Docker</a></li>
+<li><a class="reference internal" href="#setup-the-github-actions-runner">3 - Setup the Github Actions Runner</a></li>
+<li><a class="reference internal" href="#using-kafl-actions">4 - Using <code class="docutils literal notranslate"><span class="pre">kafl.actions</span></code></a></li>
+<li><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
 </ul>

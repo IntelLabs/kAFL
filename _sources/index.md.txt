@@ -26,6 +26,7 @@ The project is structured around multiple components:
 - [`IntelLabs/kafl.qemu`](https://github.com/IntelLabs/kafl.qemu): Modified QEMU with fast-snapshots support
 - [`IntelLabs/kafl.libxdc`](https://github.com/IntelLabs/kafl.libxdc): Fast Intel PT decoding library
 - [`IntelLabs/kafl.targets`](https://github.com/IntelLabs/kafl.targets): Example kAFL targets
+- [`IntelLabs/kafl.actions`](https://github.com/IntelLabs/kafl.actions): Github Action for CI/CD integration
 
 ## Contents
 
@@ -36,6 +37,13 @@ The project is structured around multiple components:
 tutorials/introduction
 tutorials/installation
 tutorials/fuzzing_linux_kernel
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: How-to guides
+
+how_to/github_actions
 ```
 
 ```{toctree}
