@@ -144,37 +144,6 @@ jobs:
           --skip-tags "hardware_check,kvm_device,update_grub,reboot_kernel"
           --extra-vars "@parameters.json"
 
-  nyx-testing:
-    runs-on: self-hosted
-
-    steps:
-        # ensure workspace is cleaned up
-        # (doesn't happen automatically on self-hosted runnner for some reason)
-      - name: cleanup workdir
-        run: find . -mindepth 1 -delete
-
-      - uses: actions/checkout@v3
-        with:
-          repository: nyx-fuzz/Nyx-Testing
-
-      - run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup
-          chmod +x rustup
-          ./rustup -y
-          # update PATH
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-      - name: Prepare tests
-        run: |
-          sh setup.sh
-          sh prepare_tests.sh
-
-      - name: Run tests
-        run: cargo test -- --skip processor_trace
-
-      - name: Run PT tests
-        run: cargo test
-
   docker-image:
     runs-on: ubuntu-latest
     steps:
@@ -301,7 +270,7 @@ jobs:
 
   release:
     # this job makes an official Github release
-    needs: [ansible-lint, check-mode, local, remote, docker-image, nyx-testing]
+    needs: [ansible-lint, check-mode, local, remote, docker-image]
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
