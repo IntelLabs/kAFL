@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="kAFL User Interface" href="user_interface.html" /><link rel="prev" title="kAFL/Nyx Hypercall API" href="hypercall_api.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Building the documentation" href="../dev/documentation.html" /><link rel="prev" title="kAFL User Interface" href="../reference/user_interface.html" />
 
     <!-- Generated with Sphinx 6.2.1 and Furo 2023.03.27 -->
-        <title>kAFL Workdir - kAFL</title>
+        <title>Research Papers - kAFL</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
@@ -136,7 +136,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -163,16 +163,16 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Fuzzing the Linux Kernel</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Reference</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="fuzzer_configuration.html">Fuzzer Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="deployment.html">Deployment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hypercall_api.html">kAFL/Nyx Hypercall API</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">kAFL Workdir</a></li>
-<li class="toctree-l1"><a class="reference internal" href="user_interface.html">kAFL User Interface</a></li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../reference/fuzzer_configuration.html">Fuzzer Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/deployment.html">Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/hypercall_api.html">kAFL/Nyx Hypercall API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/workdir_layout.html">kAFL Workdir</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/user_interface.html">kAFL User Interface</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Context</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../context/research_papers.html">Research Papers</a></li>
+<ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Research Papers</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul>
@@ -197,7 +197,7 @@
         </a>
         <div class="content-icon-container">
           <div class="edit-this-page">
-  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/reference/workdir_layout.md" title="Edit this page">
+  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/context/research_papers.md" title="Edit this page">
     <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
@@ -213,129 +213,73 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main">
-          <section id="kafl-workdir">
-<h1>kAFL Workdir<a class="headerlink" href="#kafl-workdir" title="Permalink to this heading">#</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">workdir</span></code> is used by kAFL to accumulate results and communicate with QEMU
-and other processes. It is the primary location for inspecting the status of
-a previous or still running kAFL session. Also, any post-processing steps such
-as triage or coverage analysis typically builds up on an existing workdir.</p>
-<section id="usage-conventions">
-<h2>Usage Conventions<a class="headerlink" href="#usage-conventions" title="Permalink to this heading">#</a></h2>
-<p>Due to the frequent use by addition tools and scripts, the kAFL deployment
-defines a default workdir location in <code class="docutils literal notranslate"><span class="pre">env.sh</span></code>. It is recommended to use
-this <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR</span></code> and related environment variables rather than hard-coding
-paths in the various tools and helper scripts.</p>
-<p>The default value of <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR</span></code> points to a location in <code class="docutils literal notranslate"><span class="pre">/dev/shm/</span></code>.  This
-means the workdir is only stored in RAM, which tends to result in better
-performance and avoids unnecessary disk I/O during prototyping. To keep the
-results of a campaign, exit the fuzzer and copy the entire workdir to a more
-permanent location.</p>
-</section>
-<section id="configuration-options">
-<h2>Configuration Options<a class="headerlink" href="#configuration-options" title="Permalink to this heading">#</a></h2>
-<p>The target <code class="docutils literal notranslate"><span class="pre">workdir</span></code> is set using the commandline argument <a class="reference internal" href="fuzzer_configuration.html#work-dir"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">--work-dir</span></code></span></a> or
-corresponding configuration file entry <code class="docutils literal notranslate"><span class="pre">work_dir</span></code>. By default, it is expected to
-be a non-existing path that will be populated with several special files and
-folders on startup.</p>
-<p>The argument <a class="reference internal" href="fuzzer_configuration.html#purge"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">--purge</span></code></span></a> can be supplied to override this safety and
-purge a previously existing workdir on startup. This is mainly useful when
-developing or testing a harness.</p>
-<p>The argument <a class="reference internal" href="fuzzer_configuration.html#resume"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">--resume</span></code></span></a> can be supplied to the opposite effect - the workdir
-will not be deleted and any Qemu instances will be reloaded from the existing
-snapshot. This is currently only supported for triage or coverage
-analysis. The fuzzer itself does not yet support resuming from
-an existing workdir, but you can use one or more previously discovered
-input corpuses as seeds (<a class="reference internal" href="fuzzer_configuration.html#seed-dir"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">--seed-dir</span></code></span></a>).</p>
-</section>
-<section id="detailed-content">
-<h2>Detailed Content<a class="headerlink" href="#detailed-content" title="Permalink to this heading">#</a></h2>
-<p>Workdir content is a mix of status/output and program-internal IPC/SHM files.
-They are sorted here by relevance. The <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">mcat</span></code> tool can be used to view
-msgpack encoded files.</p>
-<p>Note that some files may not exist, e.g. log files are only created on first
-write. Also many of the internal IPC/SHM files will be deleted on exit.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ tree $KAFL_WORKDIR/
-│
-│ # fuzzer status, can be used by kafl fuzz, kafl plot, gnuplot...
-│
-├── config.yaml                  - config dump by kafl fuzz (YAML)
-├── stats                        - aggregated status (msgpack)
-├── stats.csv                    - aggregated status over time (csv table)
-├── worker_stats_N               - worker N status (msgpack)
-│
-│ # debug and crash logs
-│
-├── hprintf_NN.log               - hprintf log for Worker N (--log-hprintf)
-├── serial_NN.log                - Qemu serial log for Worker N
-├── debug.log                    - kAFL Fuzzer python log (--log)
-├── logs/                        - hprintf excerpts from irregular exits,
-│   ├── crash_XXXXXX.log           tagged with truncated hash of execution bitmap
-│   ├── kasan_XXXXXX.log
-│   └── timeo_XXXXXX.log
-│
-├── imports/                     - copy files here to evaluate them as input, also
-│                                  used for initial seed import (--seed-dir)
-│
-│ # campaign results
-│
-├── dump/                        - location for guest uploads (HYPERCALL_KAFL_DUMP_FILE)
-├── funky/                       - location for non-deterministic payloads (--funky)
-├── traces/                      - location for PT traces (see kafl cov and --trace)
-│
-├── corpus/                      - corpus of discovered payloads by Qemu exec result
-│   ├── crash/
-│   │   └── payload_AAAAA          =&gt; HYPERCALL_KAFL_PANIC
-│   ├── kasan/
-│   │   └── payload_BBBBB          =&gt; HYPERCALL_KAFL_KASAN
-│   ├── regular/
-│   │   └── payload_CCCCC          =&gt; HYPERCALL_KAFL_RELEASE
-│   └── timeout/
-│       └── payload_DDDDD          =&gt; timeout (catched by host side)
-│
-├── metadata/                    - meta info for each corpus payload (msgpack)
-│   ├── node_AAAAA
-│   ├── node_BBBBB
-│   ├── node_CCCCC
-│   └── node_DDDDD
-│
-│ # (not as interesting files)
-│
-├── kafl_socket                  - socket between kAFL manager and workers
-├── interface_N                  - socket between kAFL worker N and Qemu N
-├── payload_N                    - Worker/Qemu payload SHM
-├── aux_buffer_N                 - Worker/Qemu aux_buffer SHM
-├── bitmap_N                     - Worker/Qemu main bitmap SHM
-├── ijon_N                       - Worker/Qemu ijon bitmap SHM
-├── radamsa_N/                   - IPC for radamsa integration
-├── redqueen_workdir_N/          - IPC for redqueen integration
-│
-├── page_cache.addr              - Shared guest page cache for PT decode
-├── page_cache.dump
-├── page_cache.lock
-│
-├── bitmaps/                     - global feedback bitmaps by exec result
-│   ├── main_crash_bitmap
-│   ├── main_kasan_bitmap
-│   ├── main_normal_bitmap
-│   └── main_timeout_bitmap
-│
-└── snapshot/                    - Nyx snapshot files
-    ├── fast_snapshot.mem_dump
-    ├── fast_snapshot.mem_meta
-    ├── fast_snapshot.qemu_state
-    ├── fs_cache.meta
-    ├── global.state
-    ├── INFO.txt
-    └── ready.lock
-</pre></div>
-</div>
-</section>
+          <section id="research-papers">
+<h1>Research Papers<a class="headerlink" href="#research-papers" title="Permalink to this heading">#</a></h1>
+<p>kAFL a research project developed at <a class="reference external" href="https://www.ruhr-uni-bochum.de/en">Ruhr University Bochum</a> by <a class="reference external" href="https://schumilo.de/">Sergej Schumilo</a> and <a class="reference external" href="https://hexgolems.com/">Cornelius Aschermann</a> and funded by <a class="reference external" href="https://www.intel.com/content/www/us/en/research/overview.html">IntelLabs</a>.</p>
+<p><a class="reference external" href="https://nyx-fuzz.com/papers/">Related papers</a> 📚</p>
+<ul class="simple">
+<li><p>kAFL: Hardware-Assisted Feedback Fuzzing for OS Kernels (2017)</p>
+<ul>
+<li><p><a class="reference external" href="https://nyx-fuzz.com/papers/kafl.pdf">Paper</a></p></li>
+<li><p><a class="reference external" href="https://nyx-fuzz.com/papers/kafl_slides.pdf">Slides</a></p></li>
+<li><p><a class="reference external" href="https://www.youtube.com/watch?v=gZ808d7rQYU">Talk</a></p></li>
+</ul>
+</li>
+<li><p>REDQUEEN: Fuzzing with Input-to-State Correspondence (2019)</p>
+<ul>
+<li><p><a class="reference external" href="https://nyx-fuzz.com/papers/redqueen.pdf">Paper</a></p></li>
+<li><p><a class="reference external" href="https://nyx-fuzz.com/papers/redqueen_slides.pdf">Slides</a></p></li>
+<li><p><a class="reference external" href="https://www.youtube.com/watch?v=9JpanJ29r_U">Talk</a></p></li>
+</ul>
+</li>
+<li><p>NAUTILUS: Fishing for Deep Bugs with Grammars (2019)</p>
+<ul>
+<li><p><a class="reference external" href="https://nyx-fuzz.com/papers/nautilus.pdf">Paper</a></p></li>
+<li><p><a class="reference external" href="https://nyx-fuzz.com/papers/nautilus_slides.pdf">Slides</a></p></li>
+<li><p><a class="reference external" href="https://www.youtube.com/watch?v=z0rpN_hxdnA">Talk</a></p></li>
+</ul>
+</li>
+<li><p>GRIMOIRE: Synthesizing Structure while Fuzzing (2019)</p>
+<ul>
+<li><p><a class="reference external" href="https://nyx-fuzz.com/papers/grimoire.pdf">Paper</a></p></li>
+<li><p><a class="reference external" href="https://nyx-fuzz.com/papers/grimoire_slides.pdf">Slides</a></p></li>
+<li><p><a class="reference external" href="https://www.youtube.com/watch?v=VF9YcAnzMPI">Talk</a></p></li>
+</ul>
+</li>
+<li><p>IJON: Exploring Deep State Spaces via Fuzzing (2020)</p>
+<ul>
+<li><p><a class="reference external" href="https://nyx-fuzz.com/papers/ijon.pdf">Paper</a></p></li>
+<li><p><a class="reference external" href="https://nyx-fuzz.com/papers/ijon_slides.pdf">Slides</a></p></li>
+<li><p><a class="reference external" href="https://www.youtube.com/watch?v=XuyF-Jb2hQ4">Talk</a></p></li>
+</ul>
+</li>
+<li><p>HYPER-CUBE: High-Dimensional Hypervisor Fuzzing (2020)</p>
+<ul>
+<li><p><a class="reference external" href="https://nyx-fuzz.com/papers/hypercube.pdf">Paper</a></p></li>
+<li><p><a class="reference external" href="https://nyx-fuzz.com/papers/hypercube_slides.pdf">Slides</a></p></li>
+<li><p><a class="reference external" href="https://www.youtube.com/watch?v=GmIlLKT_nH8">Talk</a></p></li>
+</ul>
+</li>
+<li><p>Nyx: Greybox Hypervisor Fuzzing using Fast Snapshots and Affine Types (2021)</p>
+<ul>
+<li><p><a class="reference external" href="https://www.usenix.org/system/files/sec21-schumilo.pdf">Paper</a></p></li>
+<li><p><a class="reference external" href="https://www.usenix.org/system/files/sec21_slides_schumilo.pdf">Slides</a></p></li>
+<li><p><a class="reference external" href="https://youtu.be/ZsW5_Ukzl_8">Talk</a></p></li>
+</ul>
+</li>
+<li><p>Nyx-Net: Network Fuzzing with Incremental Snapshots (2021)</p>
+<ul>
+<li><p><a class="reference external" href="https://dl.acm.org/doi/pdf/10.1145/3492321.3519591">Paper</a></p></li>
+<li><p><a class="reference external" href="https://schumilo.de/publications/nyx-net/slides.pdf">Slides</a></p></li>
+</ul>
+</li>
+</ul>
 </section>
 
         </article>
@@ -343,23 +287,23 @@ write. Also many of the internal IPC/SHM files will be deleted on exit.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="user_interface.html">
+          <a class="next-page" href="../dev/documentation.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">kAFL User Interface</div>
+                <div class="title">Building the documentation</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="hypercall_api.html">
+          <a class="prev-page" href="../reference/user_interface.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">kAFL/Nyx Hypercall API</div>
+                <div class="title">kAFL User Interface</div>
                 
               </div>
             </a>
@@ -388,29 +332,8 @@ write. Also many of the internal IPC/SHM files will be deleted on exit.</p>
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">kAFL Workdir</a><ul>
-<li><a class="reference internal" href="#usage-conventions">Usage Conventions</a></li>
-<li><a class="reference internal" href="#configuration-options">Configuration Options</a></li>
-<li><a class="reference internal" href="#detailed-content">Detailed Content</a></li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>

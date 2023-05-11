@@ -51,6 +51,13 @@ reference/user_interface
 
 ```{toctree}
 :maxdepth: 2
+:caption: Context
+
+context/research_papers
+```
+
+```{toctree}
+:maxdepth: 2
 :caption: Development
 
 dev/documentation
