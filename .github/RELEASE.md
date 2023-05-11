@@ -4,7 +4,8 @@
 
 # ✨ Improvements
 
-/
+- Upgrade kAFL kernel from `5.10.73` -> `6.0` (#178)
+  - kernel base config from Ubuntu 22.04
 
 # 🔧 Fixes
 
