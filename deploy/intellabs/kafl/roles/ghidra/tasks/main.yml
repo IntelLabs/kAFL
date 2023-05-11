@@ -12,6 +12,7 @@
   register: stat_ghidra_bin
 
 - name: Install Ghidra if necessary
+  when: not stat_ghidra_bin.stat.exists and not ansible_check_mode
   block:
     - name: Download Ghidra
       ansible.builtin.get_url:
@@ -30,4 +31,3 @@
       ansible.builtin.file:
         path: "{{ kafl_install_root }}/ghidra.zip"
         state: absent
-  when: not stat_ghidra_bin.stat.exists and not ansible_check_mode

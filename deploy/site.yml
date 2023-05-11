@@ -1,10 +1,11 @@
-- hosts: all
+- name: KAFL deployment
+  hosts: all
   environment:
     http_proxy: "{{ proxy_env.http_proxy | default(lookup('env', 'http_proxy')) }}"
     https_proxy: "{{ proxy_env.https_proxy | default(lookup('env', 'https_proxy')) }}"
   pre_tasks:
-    - name: apt update to ensure root access is available (or fail early)
-      apt:
+    - name: Apt update to ensure root access is available (or fail early)
+      ansible.builtin.apt:
         update_cache: true
       become: true
 
