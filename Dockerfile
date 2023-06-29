@@ -23,7 +23,7 @@ RUN printf "%s\n" 'from kafl_fuzzer.__main__ import main' \
 # TODO: how to make pyinstaller detect Extension modules ?
 # move build/*/bitmap*.so as bitmap.so
 # include it in the pyinstaller executable
-RUN cd ./kafl/fuzzer && find build -name 'bitmap*.so' -exec mv {} bitmap.so \;
+RUN cd ./kafl/fuzzer && find . -name 'bitmap*.so' -exec mv {} bitmap.so \;
 # compile kafl as standalone python app
 RUN ./kafl/.venv/bin/pip install pyinstaller==${pyinstaller_version} && \
     cd ./kafl/fuzzer  && /app/kafl/.venv/bin/pyinstaller \
