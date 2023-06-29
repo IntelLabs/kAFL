@@ -33,11 +33,11 @@ Nothing else !
 
 | Target   | Description                                                                                                                    | EXTRA_ARGS |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------- |
-| `deploy` | Deploys kAFL components according to the playbook and the `deploy/inventory` file. Will be deployed on `localhost` by default. | ☑️         |
+| `deploy` | Deploys kAFL components according to the playbook and the `deploy/inventory` file. Will be deployed on `localhost` by default. | ☑️          |
 | `env`    | Enters a new sub-shell with the kAFL environment variables set.                                                                |            |
 | `clean`  | Removes the _virtualenv_ `deploy/venv`                                                                                         |            |
-| `update` | Forces to `git pull` on every repository managed by the playbook. Developer oriented target. Uses the `clone` _Ansible_ tag.   | ☑️         |
-| `build`  | Rebuilds every component that can be built. Developer oriented target. Uses the `build` _Ansible_ tag.                         | ☑️         |
+| `update` | Forces to `git pull` on every repository managed by the playbook. Developer oriented target. Uses the `clone` _Ansible_ tag.   | ☑️          |
+| `build`  | Rebuilds every component that can be built. Developer oriented target. Uses the `build` _Ansible_ tag.                         | ☑️          |
 
 
 
@@ -75,20 +75,21 @@ A set of [_Ansible_ tags](https://docs.ansible.com/ansible/latest/user_guide/pla
 
 They can be toggled or skipped with the [`--tags`](https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html#cmdoption-ansible-playbook-2) and [`--skip-tags`](https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html#cmdoption-ansible-playbook-skip-tags) _Ansible_ command line parameters, and directly added from the makefile target via `EXTRA_ARGS` feature (described previously).
 
-| Tag              | Description                                                                                                                    |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `kernel`         | Selects the [kernel](https://github.com/IntelLabs/kafl.linux) tasks                                                            |
-| `radamsa`        | Selects the [radamsa](https://gitlab.com/akihe/radamsa) tasks                                                                  |
-| `capstone`       | Selects the [capstone](https://github.com/aquynh/capstone) tasks                                                               |
-| `libxdc`         | Selects the [libxdc](https://github.com/IntelLabs/kafl.libxdc) tasks                                                           |
-| `qemu`           | Selects the [QEMU](https://github.com/IntelLabs/kafl.qemu) tasks                                                               |
-| `fuzzer`         | Selects the [fuzzer](https://github.com/IntelLabs/kafl.fuzzer) tasks                                                           |
-| `hardware_check` | Selects the hardware/kernel requirements checking tasks. Introduced to be skipped on the CI runs.                                     |
-| `kvm_device`     | Selects the tasks related to fixing permissions on the KVM node device. Introduced to be skipped on the CI runs.               |
-| `reboot_kernel`  | Selects the task responsible for rebooting the remote node after kernel installation. Introduced to be skipped on the CI runs. |
-| `update_grub`    | Selects the tasks related to GRUB entry update after kernel installation. Introduced to be skipped on the CI runs.             |
-| `build`          | Selects all tasks where a component can be rebuild (`QEMU`, `libxdc`, etc ...). Developer oriented tag.                        |
-| `clone`          | Selects all tasks where a repository is cloned. Developer oriented tag.                                                        |
+| Tag                         | Description                                                                                                                                  |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kernel`                    | Selects the [kernel](https://github.com/IntelLabs/kafl.linux) tasks                                                                          |
+| `radamsa`                   | Selects the [radamsa](https://gitlab.com/akihe/radamsa) tasks                                                                                |
+| `capstone`                  | Selects the [capstone](https://github.com/aquynh/capstone) tasks                                                                             |
+| `libxdc`                    | Selects the [libxdc](https://github.com/IntelLabs/kafl.libxdc) tasks                                                                         |
+| `qemu`                      | Selects the [QEMU](https://github.com/IntelLabs/kafl.qemu) tasks                                                                             |
+| `fuzzer`                    | Selects the [fuzzer](https://github.com/IntelLabs/kafl.fuzzer) tasks                                                                         |
+| `hardware_check`            | Selects the hardware/kernel requirements checking tasks. Introduced to be skipped on the CI runs.                                            |
+| `kvm_device`                | Selects the tasks related to fixing permissions on the KVM node device. Introduced to be skipped on the CI runs.                             |
+| `reboot_kernel`             | Selects the task responsible for rebooting the remote node after kernel installation. Introduced to be skipped on the CI runs.               |
+| `update_grub`               | Selects the tasks related to GRUB entry update after kernel installation. Introduced to be skipped on the CI runs.                           |
+| `build`                     | Selects all tasks where a component can be rebuild (`QEMU`, `libxdc`, etc ...). Developer oriented tag.                                      |
+| `clone`                     | Selects all tasks where a repository is cloned. Developer oriented tag.                                                                      |
+| `examples-template-windows` | Installs the required tooling to build the Windows template and run the examples. (Packer, Vagrant, agrant-plugins, qemu-bridge-helper, ...) |
 
 
 :::{note}
