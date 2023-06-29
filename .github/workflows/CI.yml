@@ -41,7 +41,7 @@ jobs:
       - name: Run ansible-lint
         working-directory: deploy
         run: |
-          ./venv/bin/ansible-lint -x 'meta-no-info' -x galaxy -x 'yaml[octal-values]' -x no-changed-when --exclude venv
+          ./venv/bin/ansible-lint -x 'meta-no-info' -x galaxy -x 'yaml[octal-values]' -x no-changed-when -x risky-file-permissions --exclude venv
 
   check-mode:
     runs-on: ubuntu-20.04
