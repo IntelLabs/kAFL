@@ -22,6 +22,19 @@ kAFL's installation process will start by checking your processor's compatibilit
 
 ### 1.2 Software
 
+kAFL userspace stack can be setup via 2 ways:
+- Our [`Ansible playbook`](#3-deploying-kafl--make-deploy) (**recommended**)
+- A prebuilt Docker image, which can be pulled from Dockerhub at [`intellabs/kafl:latest`](https://hub.docker.com/r/intellabs/kafl)
+
+:::{note}
+This Ansible playbook methods is recommended as it will give you a better understanding what gets installed, configured, and how.
+
+Furthermore, you will be able to modify these components and update them, should it be necessary for your target.
+
+Additionally, the docker command line is more complex since it requires mounting volumes into the container, and isn't recommended unless you are very familiar with the tool.
+:::
+
+The requirements for either of these setups:
 :::::{tab-set}
 ::::{tab-item} Local setup
 - _Python 3_ interpreter (`>= 3.9`)
@@ -37,13 +50,10 @@ Ubuntu (>=`20.04`) and Debian (>=`Bullseye`).
 ::::
 :::::
 
-
-
 ::::{important}
 The installation will require to download, install and **reboot** your system on a **modifed Linux kernel**.
 :::{note}
-Setup inside VM or container is not supported at
-this point.
+Setup inside VM is not supported at this point.
 :::
 ::::
 
@@ -67,7 +77,7 @@ make deploy
 ~~~
 ::::
 ::::{tab-item} Docker image
-If you follow the Docker image based setup for kAFL, on only need to install the kAFL kernel.
+If you follow the Docker image based setup for kAFL, you only need to install the kAFL kernel.
 
 This can be done with `make deploy`, by specifying an `Ansible` tag.
 
@@ -180,3 +190,10 @@ You should see the kAFL ACSII art logo:
 :::{note}
 The complete documentation regarding kAFL's installation is available at [reference/deployment](../reference/deployment)
 :::
+
+## 6. On to the next steps !
+
+Now you are ready to configure one of our pre-baked kAFL targets, and start the fuzzer !
+
+- ➡️ Continue by [fuzzing the Linux Kernel](./fuzzing_linux_kernel.md)
+- ➡️ Continue by [fuzzing Windows programs](./windows/index.md)
