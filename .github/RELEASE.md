@@ -14,6 +14,7 @@
 
 
 - add `examples-windows-template` tag (#205)
+- refactor the Reference/Hypercall API page, reorganizing the content and adding examples (#201)
 
 # 🧰 Behind the scenes
 

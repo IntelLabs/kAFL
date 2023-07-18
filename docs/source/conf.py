@@ -30,7 +30,8 @@ extensions = [
 ]
 myst_enable_extensions = ["colon_fence"]
 myst_heading_anchors = 3
-
+# pygments_style = "monokai" 
+# pygments_dark_style = "monokai"
 templates_path = ['_templates']
 exclude_patterns = []
 
