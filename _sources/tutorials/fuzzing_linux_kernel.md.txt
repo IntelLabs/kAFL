@@ -1,4 +1,4 @@
-# Fuzzing the Linux Kernel
+# Linux Kernel target
 
 This example shows how to fuzz an OS kernel by implementing the kAFL agent
 (harness) directly in the target.

@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="kAFL Workdir" href="workdir_layout.html" /><link rel="prev" title="Deployment" href="deployment.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.03.27 -->
+    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
         <title>kAFL/Nyx Hypercall API - kAFL</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -160,7 +160,13 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Fuzzing the Linux Kernel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/windows/windows_template.html">1. Windows VM Template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/windows/windows_userspace.html">2. Fuzzing Userspace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/windows/windows_driver.html">3. Fuzzing a Driver</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
 <ul>
@@ -243,14 +249,14 @@ control and start injecting inputs at any point in VM guest execution.</p>
 <div class="literal-block-wrapper docutils container" id="id1">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id1" title="Permalink to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// 🤝 kAFL handshake </span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="c1">// kAFL configuration, filters, etc...</span>
 <span class="c1">// 🟢 Enable feedback collection</span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">KAFL_HYPERCALL_ACQUIRE</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">KAFL_HYPERCALL_ACQUIRE</span><span class="p">);</span>
 <span class="c1">// ⚡call target func ...</span>
 <span class="c1">// ⚪ Disable feedback collection</span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">KAFL_HYPERCALL_RELEASE</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">KAFL_HYPERCALL_RELEASE</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -281,18 +287,18 @@ where to write the payload by providing it the payload’s guest address.</p>
 Linux</label><div class="sd-tab-content docutils">
 <div class="literal-block-wrapper docutils container" id="id2">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id2" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;unistd.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sys/mman.h&gt;</span><span class="cp"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;unistd.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdlib.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sys/mman.h&gt;</span>
 
 <span class="c1">// allocate page aligned 64KB buffer</span>
-<span class="kt">long</span><span class="w"> </span><span class="n">page_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sysconf</span><span class="p">(</span><span class="n">_SC_PAGESIZE</span><span class="p">);</span><span class="w"></span>
-<span class="kt">size_t</span><span class="w"> </span><span class="n">buffer_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span><span class="w"></span>
-<span class="n">kAFL_payload</span><span class="w"> </span><span class="o">*</span><span class="n">payload_buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">aligned_alloc</span><span class="p">((</span><span class="kt">size_t</span><span class="p">)</span><span class="n">page_size</span><span class="p">,</span><span class="w"> </span><span class="n">buffer_size</span><span class="p">);</span><span class="w"></span>
+<span class="kt">long</span><span class="w"> </span><span class="n">page_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sysconf</span><span class="p">(</span><span class="n">_SC_PAGESIZE</span><span class="p">);</span>
+<span class="kt">size_t</span><span class="w"> </span><span class="n">buffer_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span>
+<span class="n">kAFL_payload</span><span class="w"> </span><span class="o">*</span><span class="n">payload_buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">aligned_alloc</span><span class="p">((</span><span class="kt">size_t</span><span class="p">)</span><span class="n">page_size</span><span class="p">,</span><span class="w"> </span><span class="n">buffer_size</span><span class="p">);</span>
 <span class="c1">// ensure in resident memory</span>
-<span class="n">mlock</span><span class="p">(</span><span class="n">payload_buffer</span><span class="p">,</span><span class="w"> </span><span class="n">buffer_size</span><span class="p">);</span><span class="w"></span>
+<span class="n">mlock</span><span class="p">(</span><span class="n">payload_buffer</span><span class="p">,</span><span class="w"> </span><span class="n">buffer_size</span><span class="p">);</span>
 <span class="c1">// ↔️ mmap shared buffer between QEMU and the fuzzer</span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_GET_PAYLOAD</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="n">payload_buffer</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_GET_PAYLOAD</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="n">payload_buffer</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -302,16 +308,16 @@ Linux</label><div class="sd-tab-content docutils">
 Windows</label><div class="sd-tab-content docutils">
 <div class="literal-block-wrapper docutils container" id="id3">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id3" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;windows.h&gt;</span><span class="cp"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;windows.h&gt;</span>
 
 <span class="c1">// allocate page aligned 64KB buffer</span>
 <span class="c1">// VirtualAlloc garantees a page aligned allocation</span>
-<span class="n">SIZE_T</span><span class="w"> </span><span class="n">buffer_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span><span class="w"></span>
-<span class="n">kAFL_payload</span><span class="w"> </span><span class="o">*</span><span class="n">payload_buffer</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">VirtualAlloc</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="n">buffer_size</span><span class="p">,</span><span class="w"> </span><span class="n">MEM_RESERVE</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">MEM_COMMIT</span><span class="p">,</span><span class="w"> </span><span class="n">PAGE_READWRITE</span><span class="p">);</span><span class="w"></span>
+<span class="n">SIZE_T</span><span class="w"> </span><span class="n">buffer_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span>
+<span class="n">kAFL_payload</span><span class="w"> </span><span class="o">*</span><span class="n">payload_buffer</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">VirtualAlloc</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="n">buffer_size</span><span class="p">,</span><span class="w"> </span><span class="n">MEM_RESERVE</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">MEM_COMMIT</span><span class="p">,</span><span class="w"> </span><span class="n">PAGE_READWRITE</span><span class="p">);</span>
 <span class="c1">// ensure in resident memory</span>
-<span class="n">VirtualLock</span><span class="p">(</span><span class="n">payload_buffer</span><span class="p">,</span><span class="w"> </span><span class="n">buffer_size</span><span class="p">);</span><span class="w"></span>
+<span class="n">VirtualLock</span><span class="p">(</span><span class="n">payload_buffer</span><span class="p">,</span><span class="w"> </span><span class="n">buffer_size</span><span class="p">);</span>
 <span class="c1">// ↔️ mmap shared buffer between QEMU and the fuzzer</span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_GET_PAYLOAD</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="n">payload_buffer</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_GET_PAYLOAD</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="n">payload_buffer</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -319,10 +325,10 @@ Windows</label><div class="sd-tab-content docutils">
 </div>
 <div class="literal-block-wrapper docutils container" id="id4">
 <div class="code-block-caption"><span class="caption-text">kAFL_payload struct</span><a class="headerlink" href="#id4" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="kt">int32_t</span><span class="w"> </span><span class="n">size</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">data</span><span class="p">[];</span><span class="w"></span>
-<span class="p">}</span><span class="w"> </span><span class="n">kAFL_payload</span><span class="p">;</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">int32_t</span><span class="w"> </span><span class="n">size</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">data</span><span class="p">[];</span>
+<span class="p">}</span><span class="w"> </span><span class="n">kAFL_payload</span><span class="p">;</span>
 </pre></div>
 </div>
 </div>
@@ -342,13 +348,13 @@ Windows</label><div class="sd-tab-content docutils">
 <div class="code-block-caption"><span class="caption-text">Snapshot restore example</span><a class="headerlink" href="#id5" title="Permalink to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// 🔁 write next payload into the buffer</span>
 <span class="c1">//    (take a snapshot on first call)</span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_NEXT_PAYLOAD</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_NEXT_PAYLOAD</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="c1">// 🟢 start coverage feedback collection</span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="c1">// ⚡ call fuzz target with the buffer</span>
-<span class="n">target_entry</span><span class="p">(</span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">);</span><span class="w"></span>
+<span class="n">target_entry</span><span class="p">(</span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">);</span>
 <span class="c1">// ⚪ stop coverage feedback collection</span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -360,26 +366,26 @@ Windows</label><div class="sd-tab-content docutils">
 <p>The target will only be restored in case of timeouts or crashes.</p>
 <div class="literal-block-wrapper docutils container" id="id6">
 <div class="code-block-caption"><span class="caption-text">Snapshot restore disabled example</span><a class="headerlink" href="#id6" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">agent_config_t</span><span class="w"> </span><span class="n">agent_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">agent_magic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NYX_AGENT_MAGIC</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">agent_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NYX_AGENT_VERSION</span><span class="p">,</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">agent_config_t</span><span class="w"> </span><span class="n">agent_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">.</span><span class="n">agent_magic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NYX_AGENT_MAGIC</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">agent_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NYX_AGENT_VERSION</span><span class="p">,</span>
 <span class="w">    </span><span class="c1">// Disable snapshot restore</span>
-<span class="w">    </span><span class="p">.</span><span class="n">agent_non_reload_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_SET_AGENT_CONFIG</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="o">&amp;</span><span class="n">agent_config</span><span class="p">);</span><span class="w"></span>
-<span class="p">...</span><span class="w"></span>
-<span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="nb">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">.</span><span class="n">agent_non_reload_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="p">};</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_SET_AGENT_CONFIG</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="o">&amp;</span><span class="n">agent_config</span><span class="p">);</span>
+<span class="p">...</span>
+<span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="nb">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="c1">// 🔁 write next payload into the buffer</span>
 <span class="w">  </span><span class="c1">//    (take a snapshot on first call, execution loop will start here)</span>
-<span class="w">  </span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_NEXT_PAYLOAD</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_NEXT_PAYLOAD</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="w">  </span><span class="c1">// 🟢 start coverage feedback collection</span>
-<span class="w">  </span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="w">  </span><span class="c1">// ⚡ call fuzz target with the buffer</span>
-<span class="w">  </span><span class="n">target_entry</span><span class="p">(</span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">target_entry</span><span class="p">(</span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">);</span>
 <span class="w">  </span><span class="c1">// ⚪ stop coverage feedback collection</span>
 <span class="w">  </span><span class="c1">// target is not restored from the snapshot</span>
-<span class="w">  </span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </div>
@@ -400,29 +406,29 @@ Windows</label><div class="sd-tab-content docutils">
 <p>Used to query the host kAFL/QEMU configuration, for example to get the payload buffer size.</p>
 <div class="literal-block-wrapper docutils container" id="id7">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id7" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">host_config_t</span><span class="w"> </span><span class="n">host_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_GET_HOST_CONFIG</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="o">&amp;</span><span class="n">host_config</span><span class="p">);</span><span class="w"></span>
-<span class="n">hprintf</span><span class="p">(</span><span class="s">&quot;[host_config] payload size = %dKB</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">host_config</span><span class="p">.</span><span class="n">payload_buffer_size</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">host_config_t</span><span class="w"> </span><span class="n">host_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_GET_HOST_CONFIG</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="o">&amp;</span><span class="n">host_config</span><span class="p">);</span>
+<span class="n">hprintf</span><span class="p">(</span><span class="s">&quot;[host_config] payload size = %dKB</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">host_config</span><span class="p">.</span><span class="n">payload_buffer_size</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
 <div class="literal-block-wrapper docutils container" id="id8">
 <div class="code-block-caption"><span class="caption-text">host_config_t struct</span><a class="headerlink" href="#id8" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="c1">// Safety check to be verified by the agent against his NYX_HOST_MAGIC value</span>
-<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">host_magic</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">host_magic</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// Safety check to be verified by the agent against his NYX_AGENT_MAGIC value</span>
-<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">host_version</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">host_version</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// Size of the bitmap</span>
-<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">bitmap_size</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">bitmap_size</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// TODO: not supported by the fuzzer frontend</span>
-<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">ijon_bitmap_size</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">ijon_bitmap_size</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// Size of the payload buffer allocated by the host.</span>
 <span class="w">  </span><span class="c1">// Agent payload buffer should be equal or larger than this value.</span>
-<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">payload_buffer_size</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">payload_buffer_size</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// kAFL fuzzer worker ID</span>
-<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">worker_id</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"> </span><span class="n">host_config_t</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">worker_id</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="n">host_config_t</span><span class="p">;</span>
 </pre></div>
 </div>
 </div>
@@ -438,42 +444,42 @@ Windows</label><div class="sd-tab-content docutils">
 <p>Tells QEMU about capabilities of the agent harness and set custom tracing options.</p>
 <div class="literal-block-wrapper docutils container" id="id9">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id9" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">agent_config_t</span><span class="w"> </span><span class="n">agent_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">agent_magic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NYX_AGENT_MAGIC</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">agent_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NYX_AGENT_VERSION</span><span class="p">,</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">agent_config_t</span><span class="w"> </span><span class="n">agent_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">.</span><span class="n">agent_magic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NYX_AGENT_MAGIC</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">agent_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NYX_AGENT_VERSION</span><span class="p">,</span>
 <span class="w">    </span><span class="c1">// customize agent tracing options</span>
-<span class="w">    </span><span class="p">.</span><span class="n">agent_non_reload_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_SET_AGENT_CONFIG</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="o">&amp;</span><span class="n">agent_config</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">.</span><span class="n">agent_non_reload_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="p">};</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_SET_AGENT_CONFIG</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="o">&amp;</span><span class="n">agent_config</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
 <div class="literal-block-wrapper docutils container" id="id10">
 <div class="code-block-caption"><span class="caption-text">agent_config_t struct</span><a class="headerlink" href="#id10" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="c1">// TODO</span>
-<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">agent_magic</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">agent_magic</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// TODO</span>
-<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">agent_version</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">agent_version</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// TODO</span>
-<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">agent_timeout_detection</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">agent_timeout_detection</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// The agent will perform the tracing. Disable host Intel-PT tracing.</span>
-<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">agent_tracing</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">agent_tracing</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// TODO</span>
-<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">agent_ijon_tracing</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">agent_ijon_tracing</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// Disable [`reload`](fuzzer_configuration.md#reload) mode</span>
-<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">agent_non_reload_mode</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">agent_non_reload_mode</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// When using software instrumentation, define our own bitmap</span>
-<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">trace_buffer_vaddr</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">trace_buffer_vaddr</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// TODO</span>
-<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">ijon_trace_buffer_vaddr</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">ijon_trace_buffer_vaddr</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// TODO</span>
-<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">coverage_bitmap_size</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">coverage_bitmap_size</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// TODO</span>
-<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">input_buffer_size</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">input_buffer_size</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// TODO</span>
-<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">dump_payloads</span><span class="p">;</span><span class="w"> </span><span class="cm">/* set by hypervisor */</span><span class="w"></span>
-<span class="p">}</span><span class="w"> </span><span class="n">agent_config_t</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">dump_payloads</span><span class="p">;</span><span class="w"> </span><span class="cm">/* set by hypervisor */</span>
+<span class="p">}</span><span class="w"> </span><span class="n">agent_config_t</span><span class="p">;</span>
 </pre></div>
 </div>
 </div>
@@ -491,9 +497,9 @@ Windows</label><div class="sd-tab-content docutils">
 to the frontend.</p>
 <div class="literal-block-wrapper docutils container" id="id11">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id11" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_PANIC</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_PANIC</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="c1">// or</span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_KASAN</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_KASAN</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -505,10 +511,10 @@ QEMU will overwrite the code at this address to perform <code class="docutils li
 that the events are detected and fuzz inputs can be logged on the host side.</p>
 <div class="literal-block-wrapper docutils container" id="id12">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id12" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">panic_kebugcheck</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">resolve_KeBugCheck</span><span class="p">(</span><span class="s">&quot;KeBugCheck&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="n">panic_kebugcheck2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">resolve_KeBugCheck</span><span class="p">(</span><span class="s">&quot;KeBugCheckEx&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_SUBMIT_PANIC</span><span class="p">,</span><span class="w"> </span><span class="n">panic_kebugcheck</span><span class="p">);</span><span class="w"></span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_SUBMIT_PANIC</span><span class="p">,</span><span class="w"> </span><span class="n">panic_kebugcheck2</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">panic_kebugcheck</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">resolve_KeBugCheck</span><span class="p">(</span><span class="s">&quot;KeBugCheck&quot;</span><span class="p">);</span>
+<span class="n">panic_kebugcheck2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">resolve_KeBugCheck</span><span class="p">(</span><span class="s">&quot;KeBugCheckEx&quot;</span><span class="p">);</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_SUBMIT_PANIC</span><span class="p">,</span><span class="w"> </span><span class="n">panic_kebugcheck</span><span class="p">);</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_SUBMIT_PANIC</span><span class="p">,</span><span class="w"> </span><span class="n">panic_kebugcheck2</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -529,7 +535,7 @@ See <a class="reference external" href="https://github.com/IntelLabs/kafl.qemu/b
 <span class="cm"> * 48 c7 c1 00 00 00 00    mov    rcx,0x0</span>
 <span class="cm"> * 0f 01 c1                vmcall</span>
 <span class="cm"> * f4                      hlt</span>
-<span class="cm"> */</span><span class="w"></span>
+<span class="cm"> */</span>
 <span class="cp">#define PANIC_PAYLOAD_64                                                           \</span>
 <span class="cp">    &quot;\xFA\x48\xC7\xC0\x1F\x00\x00\x00\x48\xC7\xC3\x08\x00\x00\x00\x48\xC7\xC1\x00&quot; \</span>
 <span class="cp">    &quot;\x00\x00\x00\x0F\x01\xC1\xF4&quot;</span>
@@ -547,7 +553,7 @@ See <a class="reference external" href="https://github.com/IntelLabs/kafl.qemu/b
 <p>Very useful for general logging/debug, forwarding sanitizer reports and exception stack dumps.</p>
 <div class="literal-block-wrapper docutils container" id="id14">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id14" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_PRINTF</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;kAFL fuzzer initialized.&quot;</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_PRINTF</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;kAFL fuzzer initialized.&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -569,11 +575,11 @@ which provides variadic arguments and string formatting.</p>
 obtain as part of agent initialization.</p>
 <div class="literal-block-wrapper docutils container" id="id15">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id15" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">buffer</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">buffer</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
 <span class="n">buffer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="c1">// IP filter index [0-3]</span>
 <span class="n">buffer</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0xfffff8010e0b0000</span><span class="w"> </span><span class="c1">// low range</span>
 <span class="n">buffer</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0xfffff8010e0b7000</span><span class="w"> </span><span class="c1">// high range</span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RANGE_SUBMIT</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">buffer</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RANGE_SUBMIT</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">buffer</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -588,7 +594,7 @@ obtain as part of agent initialization.</p>
 for PT tracing. Useful to limit trace to a specific task/context.</p>
 <div class="literal-block-wrapper docutils container" id="id16">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id16" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_SUBMIT_CR3</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_SUBMIT_CR3</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -607,7 +613,7 @@ for PT tracing. Useful to limit trace to a specific task/context.</p>
 <h3><code class="docutils literal notranslate"><span class="pre">USER_ABORT</span></code><a class="headerlink" href="#user-abort" title="Permalink to this heading">#</a></h3>
 <p>Signals a fatal error to QEMU.</p>
 <p>Mainly useful as a kind of <code class="docutils literal notranslate"><span class="pre">assert()</span></code> from harness perspective (since we auto-resume on regular crash/hang).</p>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_USER_ABORT</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Host payload size too large!&quot;</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_USER_ABORT</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Host payload size too large!&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
 </section>
@@ -616,7 +622,7 @@ for PT tracing. Useful to limit trace to a specific task/context.</p>
 <p>Explicitly tells the host if the target is 32 or 64 bit code.</p>
 <p>Influences QEMU code rewrite and possibly libxdc decoder. Typically auto-detected.</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// submit 64 bits mode</span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_USER_SUBMIT_MODE</span><span class="p">,</span><span class="w"> </span><span class="n">KAFL_MODE_64</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_USER_SUBMIT_MODE</span><span class="p">,</span><span class="w"> </span><span class="n">KAFL_MODE_64</span><span class="p">);</span>
 </pre></div>
 </div>
 </section>
@@ -625,26 +631,26 @@ for PT tracing. Useful to limit trace to a specific task/context.</p>
 <p>Advise the guest of the IP filters settings in the fuzzer configuration.</p>
 <div class="literal-block-wrapper docutils container" id="id17">
 <div class="code-block-caption"><span class="caption-text">kAFL_ranges struct</span><a class="headerlink" href="#id17" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">ip</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span><span class="w"></span>
-<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">size</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span><span class="w"></span>
-<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">enabled</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">ip</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">size</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
+<span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">enabled</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
 <span class="p">}</span><span class="w"> </span><span class="n">kAFL_ranges</span><span class="p">;</span><span class="w"> </span>
 </pre></div>
 </div>
 </div>
 <div class="literal-block-wrapper docutils container" id="id18">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id18" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;inttypes.h&gt;</span><span class="cp"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;inttypes.h&gt;</span>
 <span class="cp">#define INTEL_PT_MAX_RANGES 4</span>
 
-<span class="n">kAFL_ranges</span><span class="w"> </span><span class="n">ranges</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_USER_RANGE_ADVISE</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="o">&amp;</span><span class="n">ranges</span><span class="p">);</span><span class="w"></span>
-<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">INTEL_PT_MAX_RANGES</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;IP filter index: %&quot;</span><span class="w"> </span><span class="n">PRId64</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ranges</span><span class="p">.</span><span class="n">ip</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span><span class="w"></span>
+<span class="n">kAFL_ranges</span><span class="w"> </span><span class="n">ranges</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_USER_RANGE_ADVISE</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="o">&amp;</span><span class="n">ranges</span><span class="p">);</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">INTEL_PT_MAX_RANGES</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;IP filter index: %&quot;</span><span class="w"> </span><span class="n">PRId64</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ranges</span><span class="p">.</span><span class="n">ip</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
 <span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;IP range size: %&quot;</span><span class="w"> </span><span class="n">PRIx64</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ranges</span><span class="p">.</span><span class="n">size</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span><span class="w"> </span><span class="c1">// high - low</span>
-<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;IP range enabled: %&quot;</span><span class="w"> </span><span class="n">PRId8</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ranges</span><span class="p">.</span><span class="n">enabled</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;IP range enabled: %&quot;</span><span class="w"> </span><span class="n">PRId8</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ranges</span><span class="p">.</span><span class="n">enabled</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </div>
@@ -662,7 +668,7 @@ the data from correspondingly named files in the <code class="docutils literal n
 <p>Assuming a file exists</p>
 <div class="literal-block-wrapper docutils container" id="id19">
 <div class="code-block-caption"><span class="caption-text">Host sharedir content</span><a class="headerlink" href="#id19" title="Permalink to this code">#</a></div>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span> <span class="s2">&quot;Hello kAFL !&quot;</span> &gt; sharedir/example.txt
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Hello kAFL !&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>sharedir/example.txt
 </pre></div>
 </div>
 </div>
@@ -670,10 +676,10 @@ the data from correspondingly named files in the <code class="docutils literal n
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id20" title="Permalink to this code">#</a></div>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">#define SHAREDIR_FILENAME &quot;example.txt&quot;</span>
 
-uint8_t buffer<span class="o">[</span>0x1000<span class="o">]</span> <span class="o">=</span> <span class="o">{</span><span class="m">0</span><span class="o">}</span><span class="p">;</span>
-strncpy<span class="o">(</span>buffer, SHAREDIR_FILENAME, strlen<span class="o">(</span>SHAREDIR_FILENAME<span class="o">)</span> - <span class="m">1</span><span class="o">)</span><span class="p">;</span>
-kAFL_hypercall<span class="o">(</span>HYPERCALL_KAFL_REQ_STREAM_DATA, <span class="o">(</span>uint64_t<span class="o">)</span>buffer<span class="o">)</span><span class="p">;</span>
-printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>, buffer<span class="o">)</span><span class="p">;</span> // prints <span class="s2">&quot;Hello kAFL !&quot;</span>
+uint8_t<span class="w"> </span>buffer<span class="o">[</span>0x1000<span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">{</span><span class="m">0</span><span class="o">}</span><span class="p">;</span>
+strncpy<span class="o">(</span>buffer,<span class="w"> </span>SHAREDIR_FILENAME,<span class="w"> </span>strlen<span class="o">(</span>SHAREDIR_FILENAME<span class="o">)</span><span class="w"> </span>-<span class="w"> </span><span class="m">1</span><span class="o">)</span><span class="p">;</span>
+kAFL_hypercall<span class="o">(</span>HYPERCALL_KAFL_REQ_STREAM_DATA,<span class="w"> </span><span class="o">(</span>uint64_t<span class="o">)</span>buffer<span class="o">)</span><span class="p">;</span>
+printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>,<span class="w"> </span>buffer<span class="o">)</span><span class="p">;</span><span class="w"> </span>//<span class="w"> </span>prints<span class="w"> </span><span class="s2">&quot;Hello kAFL !&quot;</span>
 </pre></div>
 </div>
 </div>
@@ -684,28 +690,28 @@ printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>, buffer<s
 <p>Supply <code class="docutils literal notranslate"><span class="pre">NULL</span></code> or a valid <code class="docutils literal notranslate"><span class="pre">mkstemp()</span></code> template as filename to let QEMU create a unique filename for you.</p>
 <div class="literal-block-wrapper docutils container" id="id21">
 <div class="code-block-caption"><span class="caption-text">kafl_dump_file_t struct</span><a class="headerlink" href="#id21" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">file_name_str_ptr</span><span class="p">;</span><span class="w"> </span><span class="c1">// desired filename</span>
 <span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">data_ptr</span><span class="p">;</span><span class="w"> </span><span class="c1">// buffer to be dumped</span>
 <span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">bytes</span><span class="p">;</span><span class="w"> </span><span class="c1">// size of the buffer</span>
 <span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">append</span><span class="p">;</span><span class="w"> </span><span class="c1">// whether to append to an existing file or not</span>
-<span class="p">}</span><span class="w"> </span><span class="n">kafl_dump_file_t</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="n">kafl_dump_file_t</span>
 </pre></div>
 </div>
 </div>
 <div class="literal-block-wrapper docutils container" id="id22">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id22" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">FILE</span><span class="o">*</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fopen</span><span class="p">(</span><span class="s">&quot;/proc/kallsyms&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;rb&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="kt">char</span><span class="w"> </span><span class="n">buffer</span><span class="p">[</span><span class="mi">4096</span><span class="p">];</span><span class="w"></span>
-<span class="n">fread</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">4095</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">);</span><span class="w"></span>
-<span class="n">buffer</span><span class="p">[</span><span class="mi">4095</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;\0&#39;</span><span class="p">;</span><span class="w"></span>
-<span class="n">kafl_dump_file_t</span><span class="w"> </span><span class="n">dump_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="p">.</span><span class="n">file_name_str_ptr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">.</span><span class="n">data_ptr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">.</span><span class="n">bytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4096</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">.</span><span class="n">append</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_DUMP_FILE</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">buffer</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">FILE</span><span class="o">*</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fopen</span><span class="p">(</span><span class="s">&quot;/proc/kallsyms&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;rb&quot;</span><span class="p">);</span>
+<span class="kt">char</span><span class="w"> </span><span class="n">buffer</span><span class="p">[</span><span class="mi">4096</span><span class="p">];</span>
+<span class="n">fread</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">4095</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">);</span>
+<span class="n">buffer</span><span class="p">[</span><span class="mi">4095</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+<span class="n">kafl_dump_file_t</span><span class="w"> </span><span class="n">dump_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="p">.</span><span class="n">file_name_str_ptr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">,</span>
+<span class="w">  </span><span class="p">.</span><span class="n">data_ptr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span>
+<span class="w">  </span><span class="p">.</span><span class="n">bytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4096</span><span class="p">,</span>
+<span class="w">  </span><span class="p">.</span><span class="n">append</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="p">};</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_DUMP_FILE</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">buffer</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -717,11 +723,11 @@ printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>, buffer<s
 <p>Only tested for usermode fuzzing.</p>
 <div class="literal-block-wrapper docutils container" id="id23">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id23" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_USER_FAST_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_USER_FAST_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="c1">// ⚡ call fuzz target with the buffer</span>
-<span class="n">target_entry</span><span class="p">(</span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">);</span><span class="w"></span>
+<span class="n">target_entry</span><span class="p">(</span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">);</span>
 <span class="c1">// ⚪ stop coverage feedback collection</span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -738,12 +744,12 @@ printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>, buffer<s
 <div class="literal-block-wrapper docutils container" id="id24">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id24" title="Permalink to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// will take a snapshot and terminate QEMU</span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_LOCK</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_LOCK</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="c1">// fuzzer will restore the VM from here</span>
 <span class="c1">// kAFL initialization can begin</span>
 <span class="c1">// 🤝 handshake </span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="c1">// ...</span>
 </pre></div>
 </div>
@@ -762,11 +768,11 @@ printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>, buffer<s
 <p>This hypercall serves basically the same purpose as REQ_STREAM_DATA, but can be used to achieve much better transfer speeds for larger files due to bulk operations instead of fetching only 4KB per executed hypercall.</p>
 <div class="literal-block-wrapper docutils container" id="id25">
 <div class="code-block-caption"><span class="caption-text">kafl_dump_file_t struct</span><a class="headerlink" href="#id25" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="kt">char</span><span class="w"> </span><span class="n">file_name</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span><span class="w">  </span><span class="c1">// requested sharedir filename</span>
 <span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">num_addresses</span><span class="p">;</span><span class="w"> </span><span class="c1">// addresses array count. must be &lt;= 479</span>
 <span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">addresses</span><span class="p">[</span><span class="mi">479</span><span class="p">];</span><span class="w"> </span><span class="c1">// </span>
-<span class="p">}</span><span class="w"> </span><span class="n">req_data_bulk_t</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="n">req_data_bulk_t</span><span class="p">;</span>
 </pre></div>
 </div>
 </div>
@@ -780,8 +786,8 @@ printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>, buffer<s
 <p>This hypercall excludes a single page frame from being reset by the snapshot restore mechanism.</p>
 <div class="literal-block-wrapper docutils container" id="id26">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id26" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">pfn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x8048000</span><span class="p">;</span><span class="w"></span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_PERSIST_PAGE_PAST_SNAPSHOT</span><span class="p">,</span><span class="w"> </span><span class="n">pfn</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">pfn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x8048000</span><span class="p">;</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_PERSIST_PAGE_PAST_SNAPSHOT</span><span class="p">,</span><span class="w"> </span><span class="n">pfn</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -799,14 +805,14 @@ for convenience.</p>
 <h3><code class="docutils literal notranslate"><span class="pre">habort</span></code><a class="headerlink" href="#habort" title="Permalink to this heading">#</a></h3>
 <div class="literal-block-wrapper docutils container" id="id27">
 <div class="code-block-caption"><span class="caption-text">Definition</span><a class="headerlink" href="#id27" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">habort</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">msg</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">habort</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">msg</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
 <p>Convenience function to abort execution.</p>
 <div class="literal-block-wrapper docutils container" id="id28">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id28" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">habort</span><span class="p">(</span><span class="s">&quot;Host payload size too large!&quot;</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">habort</span><span class="p">(</span><span class="s">&quot;Host payload size too large!&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -815,14 +821,14 @@ for convenience.</p>
 <h3><code class="docutils literal notranslate"><span class="pre">hprintf</span></code><a class="headerlink" href="#hprintf" title="Permalink to this heading">#</a></h3>
 <div class="literal-block-wrapper docutils container" id="id29">
 <div class="code-block-caption"><span class="caption-text">Definition</span><a class="headerlink" href="#id29" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">hprintf</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">format</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">hprintf</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">format</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
 </pre></div>
 </div>
 </div>
 <p>This function is the equivalent of <a class="reference external" href="https://cplusplus.com/reference/cstdio/printf/"><code class="docutils literal notranslate"><span class="pre">printf</span></code></a>, accepting with variadic arguments, but using the <a class="reference internal" href="#printf"><code class="docutils literal notranslate"><span class="pre">KAFL_HYPERCALL_PRINTF</span></code></a> as printing backend.</p>
 <div class="literal-block-wrapper docutils container" id="id30">
 <div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id30" title="Permalink to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">hprintf</span><span class="p">(</span><span class="s">&quot;kAFL: Address of payload buffer %lp...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">payload_buffer</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">hprintf</span><span class="p">(</span><span class="s">&quot;kAFL: Address of payload buffer %lp...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">payload_buffer</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -968,7 +974,5 @@ from current position. Frontend and harness have to support this.</p></li>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
     <script src="../_static/design-tabs.js"></script>
-    <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
-    <script>mermaid.initialize({startOnLoad:true});</script>
     </body>
 </html>

@@ -3,12 +3,12 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Fuzzer Configuration" href="../reference/fuzzer_configuration.html" /><link rel="prev" title="Fuzzing the Linux Kernel" href="../tutorials/fuzzing_linux_kernel.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Fuzzer Configuration" href="../reference/fuzzer_configuration.html" /><link rel="prev" title="3. Fuzzing a Driver" href="../tutorials/windows/windows_driver.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.03.27 -->
+    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
         <title>Github Actions CI/CD - kAFL</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -160,7 +160,13 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Fuzzing the Linux Kernel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/windows/windows_template.html">1. Windows VM Template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/windows/windows_userspace.html">2. Fuzzing Userspace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/windows/windows_driver.html">3. Fuzzing a Driver</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
 <ul class="current">
@@ -241,11 +247,11 @@
 <h2>1 - Deploying the kernel<a class="headerlink" href="#deploying-the-kernel" title="Permalink to this heading">#</a></h2>
 <p>This first step will install the kAFL on the server of your choice.</p>
 <p>We can leverage kAFL’s <a class="reference internal" href="../reference/deployment.html"><span class="std std-doc">Ansible playbook</span></a> to automate this part.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> kAFL
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>kAFL
 <span class="c1"># rewrite the Ansible inventory to deploy remotely on a specified server</span>
-<span class="nb">echo</span> <span class="s1">&#39;kafl-actions-runner.example.com&#39;</span> &gt; deploy/inventory
+<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;kafl-actions-runner.example.com&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>deploy/inventory
 <span class="c1"># only deploy the kernel</span>
-make deploy -- --tags kernel
+make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </span>--tags<span class="w"> </span>kernel
 </pre></div>
 </div>
 <div class="admonition note">
@@ -258,8 +264,8 @@ make deploy -- --tags kernel
 </ul>
 </div>
 <p>➡️ Once this is done, you should find a <code class="docutils literal notranslate"><span class="pre">-nyx</span></code> tag in your server’s <code class="docutils literal notranslate"><span class="pre">uname</span></code></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uname -a <span class="p">|</span> grep nyx
-... <span class="m">6</span>.0.0-nyx+ ...
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uname<span class="w"> </span>-a<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>nyx
+...<span class="w"> </span><span class="m">6</span>.0.0-nyx+<span class="w"> </span>...
 </pre></div>
 </div>
 </section>
@@ -279,10 +285,10 @@ make deploy -- --tags kernel
 <h2>4 - Using <code class="docutils literal notranslate"><span class="pre">kafl.actions</span></code><a class="headerlink" href="#using-kafl-actions" title="Permalink to this heading">#</a></h2>
 <p>Go check <a class="reference external" href="https://github.com/IntelLabs/kafl.actions"><code class="docutils literal notranslate"><span class="pre">kafl.actions</span></code></a>’s README and the example <a class="reference external" href="https://github.com/IntelLabs/kafl.actions/blob/master/.github/workflows/kernel.yml"><code class="docutils literal notranslate"><span class="pre">kernel.yml</span></code></a> to fuzz the Linux kernel !</p>
 <p>It boils down to invoking the action, specifing the subcommand, the workdir (to be mounted in the container), and a few <code class="docutils literal notranslate"><span class="pre">extra_args</span></code> for the kAFL command line.</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fuzz Linux kernel</span><span class="w"></span>
-<span class="w">    </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IntelLabs/kafl.actions@master</span><span class="w"></span>
-<span class="w">    </span><span class="nt">with</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fuzz</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fuzz Linux kernel</span>
+<span class="w">    </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IntelLabs/kafl.actions@master</span>
+<span class="w">    </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fuzz</span>
 </pre></div>
 </div>
 <p>Build your own workflows, automate and fuzz all the things (continuously) !</p>
@@ -291,22 +297,22 @@ make deploy -- --tags kernel
 <p>The default timeout for a Github Action’s job is limited to <code class="docutils literal notranslate"><span class="pre">6h</span></code>.</p>
 <p>It’s possible to bypass this limit by specifying a higher value in <a class="reference external" href="https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idtimeout-minutes"><code class="docutils literal notranslate"><span class="pre">jobs.&lt;job_id&gt;.timeout-minutes</span></code></a>.</p>
 <p>For example, you can set it to 2 weeks:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">jobs</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">fuzz</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="c1"># bypass 6h limitation</span><span class="w"></span>
-<span class="w">    </span><span class="c1"># set to 2 weeks max job execution time</span><span class="w"></span>
-<span class="w">    </span><span class="c1"># 60 * 24 * 7 * 2 = 20160 minutes</span><span class="w"></span>
-<span class="w">    </span><span class="nt">timeout-minutes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20160</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">jobs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">fuzz</span><span class="p">:</span>
+<span class="w">    </span><span class="c1"># bypass 6h limitation</span>
+<span class="w">    </span><span class="c1"># set to 2 weeks max job execution time</span>
+<span class="w">    </span><span class="c1"># 60 * 24 * 7 * 2 = 20160 minutes</span>
+<span class="w">    </span><span class="nt">timeout-minutes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20160</span>
 </pre></div>
 </div>
 <p>And then limit your target fuzzing to any value you want (under that threshold):</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fuzz Linux kernel</span><span class="w"></span>
-<span class="w">    </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IntelLabs/kafl.actions@master</span><span class="w"></span>
-<span class="w">    </span><span class="nt">with</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fuzz</span><span class="w"></span>
-<span class="w">      </span><span class="c1"># 3 days</span><span class="w"></span>
-<span class="w">      </span><span class="c1"># 60 * 60 * 24 * 3 = 259200 seconds</span><span class="w"></span>
-<span class="w">      </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">259200</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fuzz Linux kernel</span>
+<span class="w">    </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IntelLabs/kafl.actions@master</span>
+<span class="w">    </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fuzz</span>
+<span class="w">      </span><span class="c1"># 3 days</span>
+<span class="w">      </span><span class="c1"># 60 * 60 * 24 * 3 = 259200 seconds</span>
+<span class="w">      </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">259200</span>
 </pre></div>
 </div>
 <div class="admonition warning">
@@ -335,14 +341,14 @@ make deploy -- --tags kernel
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../tutorials/fuzzing_linux_kernel.html">
+          <a class="prev-page" href="../tutorials/windows/windows_driver.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Fuzzing the Linux Kernel</div>
+                <div class="title">3. Fuzzing a Driver</div>
                 
               </div>
             </a>
@@ -407,7 +413,5 @@ make deploy -- --tags kernel
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
     <script src="../_static/design-tabs.js"></script>
-    <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
-    <script>mermaid.initialize({startOnLoad:true});</script>
     </body>
 </html>

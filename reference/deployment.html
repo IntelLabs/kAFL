@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="kAFL/Nyx Hypercall API" href="hypercall_api.html" /><link rel="prev" title="Fuzzer Configuration" href="fuzzer_configuration.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.03.27 -->
+    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
         <title>Deployment - kAFL</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -160,7 +160,13 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Fuzzing the Linux Kernel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/windows/windows_template.html">1. Windows VM Template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/windows/windows_userspace.html">2. Fuzzing Userspace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/windows/windows_driver.html">3. Fuzzing a Driver</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
 <ul>
@@ -300,11 +306,11 @@ Docker image</label><div class="sd-tab-content docutils">
 <p>These arguments will be passed to the underlying <em>Ansible</em> command line.</p>
 <p>Example:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># toggle Ansible 3rd level verbosity</span>
-make deploy -- -vvv
+make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </span>-vvv
 <span class="c1"># toggle the &#39;kernel&#39; Ansible tag</span>
-make deploy -- --tags kernel
+make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </span>--tags<span class="w"> </span>kernel
 <span class="c1"># skip the hardware_check Ansible tag</span>
-make deploy -- --skip-tags hardare_check
+make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </span>--skip-tags<span class="w"> </span>hardare_check
 </pre></div>
 </div>
 <div class="admonition warning">
@@ -312,8 +318,8 @@ make deploy -- --skip-tags hardare_check
 <p>Since we use a <a class="reference external" href="https://stackoverflow.com/a/14061796/3017219">Makefile hack</a> to convert additional targets as <code class="docutils literal notranslate"><span class="pre">EXTRA_ARGS</span></code>, it’s not possible to use keyword arguments, or pass a quoted string:</p>
 <p>Example:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># doesn&#39;t work</span>
-make deploy -- --extra-vars <span class="nv">ansible_connection</span><span class="o">=</span><span class="nb">local</span>
-make deploy -- --extra-vars <span class="s1">&#39;{&quot;ansible_connection&quot;: &quot;local&quot;}&#39;</span>
+make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </span>--extra-vars<span class="w"> </span><span class="nv">ansible_connection</span><span class="o">=</span><span class="nb">local</span>
+make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </span>--extra-vars<span class="w"> </span><span class="s1">&#39;{&quot;ansible_connection&quot;: &quot;local&quot;}&#39;</span>
 </pre></div>
 </div>
 </div>
@@ -376,7 +382,7 @@ make deploy -- --extra-vars <span class="s1">&#39;{&quot;ansible_connection&quot
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>You can list available tags with</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make deploy -- --list-tags
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </span>--list-tags
 </pre></div>
 </div>
 </div>
@@ -391,8 +397,8 @@ make deploy -- --extra-vars <span class="s1">&#39;{&quot;ansible_connection&quot
 <p>The <a class="reference external" href="https://github.com/IntelLabs/kAFL/tree/master/deploy/intellabs/kafl"><code class="docutils literal notranslate"><span class="pre">intellabs.kafl</span></code></a> collection is available in the <a class="reference external" href="https://github.com/IntelLabs/kAFL/tree/master/deploy">📁<code class="docutils literal notranslate"><span class="pre">deploy</span></code></a> directory.</p>
 <p>It regroups all the essential components required to setup kAFL (kernel package, QEMU, libxdc, capstone, fuzzer frontend …).</p>
 <p>The roles are depending on each other, in such a way that including the <code class="docutils literal notranslate"><span class="pre">fuzzer</span></code> role will pull out the others:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="nt">roles</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">role</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">intellabs.kafl.fuzzer</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="nt">roles</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">role</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">intellabs.kafl.fuzzer</span>
 </pre></div>
 </div>
 <div class="mermaid">
@@ -419,11 +425,11 @@ make deploy -- --extra-vars <span class="s1">&#39;{&quot;ansible_connection&quot
 <p class="admonition-title">Note</p>
 <p>The <a class="reference external" href="https://github.com/IntelLabs/kAFL/tree/master/deploy/intellabs/kafl"><code class="docutils literal notranslate"><span class="pre">intellabs.kafl</span></code></a> Ansible collection is not yet publicly distributed on the <a class="reference external" href="https://galaxy.ansible.com/">Ansible Galaxy</a> website.</p>
 <p>It can be referenced in your <a class="reference external" href="https://docs.ansible.com/ansible/latest/galaxy/user_guide.html#install-multiple-collections-with-a-requirements-file"><code class="docutils literal notranslate"><span class="pre">requirements.yml</span></code></a> via the git repository:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">collections</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">intellabs.kafl</span><span class="w"></span>
-<span class="w">    </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">git+https://github.com/IntelLabs/kAFL#/deploy/intellabs/</span><span class="w"></span>
-<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">git</span><span class="w"></span>
-<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">master</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">collections</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">intellabs.kafl</span>
+<span class="w">    </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">git+https://github.com/IntelLabs/kAFL#/deploy/intellabs/</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">git</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">master</span>
 </pre></div>
 </div>
 </div>
@@ -520,7 +526,7 @@ make deploy -- --extra-vars <span class="s1">&#39;{&quot;ansible_connection&quot
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
     <script src="../_static/design-tabs.js"></script>
-    <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({startOnLoad:true});</script>
     </body>
 </html>

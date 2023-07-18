@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Introduction" href="tutorials/introduction.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.03.27 -->
+    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
         <title>kAFL</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -160,7 +160,13 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/fuzzing_linux_kernel.html">Fuzzing the Linux Kernel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/windows/windows_template.html">1. Windows VM Template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/windows/windows_userspace.html">2. Fuzzing Userspace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/windows/windows_driver.html">3. Fuzzing a Driver</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
 <ul>
@@ -263,9 +269,10 @@ modifications.</p></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/installation.html#deploying-kafl-make-deploy">3. Deploying kAFL : <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">deploy</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/installation.html#setting-kafl-environment-make-env">4. Setting kAFL environment : <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">env</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/installation.html#verify-the-installation">5. Verify the installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/installation.html#on-to-the-next-steps">6. On to the next steps !</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/fuzzing_linux_kernel.html">Fuzzing the Linux Kernel</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/fuzzing_linux_kernel.html">Linux Kernel target</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/fuzzing_linux_kernel.html#download-patched-linux-kernel-or-port-to-your-preferred-kernel">1. Download patched Linux kernel (or port to your preferred kernel)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/fuzzing_linux_kernel.html#configure-and-build-target-kernel">2. Configure and build target kernel</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/fuzzing_linux_kernel.html#start-fuzzing">3. Start fuzzing!</a></li>
@@ -273,6 +280,12 @@ modifications.</p></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/fuzzing_linux_kernel.html#coverage">5. Coverage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/fuzzing_linux_kernel.html#next-steps">6. Next Steps</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/fuzzing_linux_kernel.html#known-issues">7) Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/windows/index.html">Windows Target</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/windows/windows_template.html">1. Windows VM Template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/windows/windows_userspace.html">2. Fuzzing Userspace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/windows/windows_driver.html">3. Fuzzing a Driver</a></li>
 </ul>
 </li>
 </ul>
@@ -417,7 +430,5 @@ modifications.</p></li>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>
     <script src="_static/design-tabs.js"></script>
-    <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
-    <script>mermaid.initialize({startOnLoad:true});</script>
     </body>
 </html>

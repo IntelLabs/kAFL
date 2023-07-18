@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="prev" title="Research Papers" href="../context/research_papers.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.03.27 -->
+    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
         <title>Building the documentation - kAFL</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -160,7 +160,13 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Fuzzing the Linux Kernel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/windows/windows_template.html">1. Windows VM Template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/windows/windows_userspace.html">2. Fuzzing Userspace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/windows/windows_driver.html">3. Fuzzing a Driver</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
 <ul>
@@ -227,9 +233,9 @@
 <h1>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permalink to this heading">#</a></h1>
 <p>The project’s documentation is hosted online at <a class="reference external" href="https://IntelLabs.github.io/kAFL/"><img alt="online_docs" src="https://img.shields.io/badge/Online-Documentation-green" /></a></p>
 <p>To build the docs locally:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> docs
-make html
-xdg-open build/html/index.html
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>docs
+make<span class="w"> </span>html
+xdg-open<span class="w"> </span>build/html/index.html
 </pre></div>
 </div>
 </section>
@@ -289,7 +295,5 @@ xdg-open build/html/index.html
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
     <script src="../_static/design-tabs.js"></script>
-    <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
-    <script>mermaid.initialize({startOnLoad:true});</script>
     </body>
 </html>

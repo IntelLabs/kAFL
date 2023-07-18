@@ -1,0 +1,544 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="2. Fuzzing Userspace" href="windows_userspace.html" /><link rel="prev" title="Windows Target" href="index.html" />
+
+    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
+        <title>1. Windows VM Template - kAFL</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../index.html"><div class="brand">kAFL</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
+  
+  
+  <span class="sidebar-brand-text">kAFL</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Windows Target</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">1. Windows VM Template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="windows_userspace.html">2. Fuzzing Userspace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="windows_driver.html">3. Fuzzing a Driver</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../how_to/github_actions.html">Github Actions CI/CD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/fuzzer_configuration.html">Fuzzer Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/deployment.html">Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/hypercall_api.html">kAFL/Nyx Hypercall API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/workdir_layout.html">kAFL Workdir</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/user_interface.html">kAFL User Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Context</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../context/research_papers.html">Research Papers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../dev/documentation.html">Building the documentation</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/tutorials/windows/windows_template.md" title="Edit this page">
+    <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
+      <line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />
+    </svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="windows-vm-template">
+<h1>1. Windows VM Template<a class="headerlink" href="#windows-vm-template" title="Permalink to this heading">#</a></h1>
+<p>In order to execute the targets, we need a Windows VM to play with and configured to compile and load a driver.</p>
+<p>Fortunately, we already provide this template and the necessary tooling under <a class="reference external" href="https://github.com/IntelLabs/kafl.targets/tree/master/templates/windows"><code class="docutils literal notranslate"><span class="pre">templates/windows</span></code></a>.</p>
+<p>Our Windows template is based on a <a class="reference external" href="https://www.microsoft.com/en-us/evalcenter/download-windows-10-enterprise"><code class="docutils literal notranslate"><span class="pre">Windows</span> <span class="pre">10</span> <span class="pre">Enterprise</span> <span class="pre">x64</span></code></a> image with <code class="docutils literal notranslate"><span class="pre">22H2</span></code> feature updates.</p>
+<p>The following software is installed:</p>
+<ul class="simple">
+<li><p>MSVC compiler</p></li>
+<li><p>latest <a class="reference external" href="https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/">SDK</a> and <a class="reference external" href="https://learn.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk">WDK</a></p></li>
+<li><p>WDK integration in Visual Studio</p></li>
+<li><p>Test mode enabled (load testsigned drivers)</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The template is simply a recipe to build Windows 10 and setup the software components mentionned above.</p>
+<p>As a user, you are not receiving any license to any third-party software from Intel through this.</p>
+</div>
+<section id="setup-the-tooling">
+<h2>Setup the tooling<a class="headerlink" href="#setup-the-tooling" title="Permalink to this heading">#</a></h2>
+<p>The following tooling is required to build and use the VM in our tutorial:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.packer.io/">Packer</a>: an image build automation tool that will be used to create the initial qcow2</p></li>
+<li><p><a class="reference external" href="https://www.vagrantup.com/">Vagrant</a>: a simplified development environment to manage our VM and improve our workflow to edit the our harness sources, upload them and configure them to be triggered when Windows boot</p></li>
+<li><p><a class="reference external" href="https://github.com/hashicorp/vagrant/wiki/Available-Vagrant-Plugins">Vagrant plugins</a>: A set of plugins extended the possiblities of vagrant. We will mainly use the <a class="reference external" href="https://github.com/vagrant-libvirt/vagrant-libvirt"><code class="docutils literal notranslate"><span class="pre">vagrant-libvirt</span></code></a> provider to import our VM under libvirt’s <code class="docutils literal notranslate"><span class="pre">qemu:///session</span></code> connection.</p></li>
+<li><p><a class="reference external" href="https://docs.ansible.com/ansible/latest/os_guide/windows_winrm.html">Ansible and WinRM</a>: Ansible will be used in conjonction with the Windows builtin <code class="docutils literal notranslate"><span class="pre">WinRM</span></code> node management protocol to provision the VM</p></li>
+</ul>
+<p>The initial kAFL Ansible playbook that you have already used during the <a class="reference internal" href="../installation.html#deploying-kafl-make-deploy"><span class="std std-ref">installation</span></a> phase can be reused to install those tools !</p>
+<p>We only need to specify some extra tags this time:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </span>--tags<span class="w"> </span>examples,examples-template-windows
+</pre></div>
+</div>
+<p>To verify your installation:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>packer<span class="w"> </span>version
+Packer<span class="w"> </span>v1.9.1<span class="w"> </span><span class="c1"># or above</span>
+$<span class="w"> </span>vagrant<span class="w"> </span>version
+Installed<span class="w"> </span>Version:<span class="w"> </span><span class="m">2</span>.3.6<span class="w"> </span><span class="c1"># pinned 2.3.6</span>
+Latest<span class="w"> </span>Version:<span class="w"> </span><span class="m">2</span>.3.7
+...
+$<span class="w"> </span>vagrant<span class="w"> </span>plugin<span class="w"> </span>list
+vagrant-host-shell<span class="w"> </span><span class="o">(</span><span class="m">0</span>.0.4,<span class="w"> </span>global<span class="o">)</span><span class="w"> </span><span class="c1"># or above</span>
+vagrant-libvirt<span class="w"> </span><span class="o">(</span><span class="m">0</span>.12.2,<span class="w"> </span>global<span class="o">)</span><span class="w"> </span><span class="c1"># or above</span>
+</pre></div>
+</div>
+</section>
+<section id="build-the-windows-vm-template">
+<h2>Build the Windows VM Template<a class="headerlink" href="#build-the-windows-vm-template" title="Permalink to this heading">#</a></h2>
+<p>Now we can continue with building the actual image !</p>
+<p>Let’s move to the windows image template directory, and run the build:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>kAFL/kafl/examples/templates/windows
+make<span class="w"> </span>build
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Default values for allocated ressources to build the VM:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">4</span></code> cpus</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">4G</span></code> of RAM</p></li>
+</ul>
+<p>You can modify these values either in <code class="docutils literal notranslate"><span class="pre">win10.pkrvars.hcl</span></code>, or by updating the Packer command line in the <code class="docutils literal notranslate"><span class="pre">Makefile</span></code> <code class="docutils literal notranslate"><span class="pre">build</span></code> target:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>packer<span class="w"> </span>build<span class="w"> </span>-var-file<span class="w"> </span>win10.pkrvars.hcl<span class="w"> </span>-var<span class="w"> </span><span class="nv">cpus</span><span class="o">=</span><span class="m">8</span><span class="w"> </span>-var<span class="w"> </span><span class="nv">memory</span><span class="o">=</span><span class="m">8192</span><span class="w"> </span>windows.pkr.hcl
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If for any reason you wish to opt-out of the automated provisioning step and want to setup the software components yourself (licensing issues, legal, etc),
+you can remove the <code class="docutils literal notranslate"><span class="pre">provisioner</span> <span class="pre">&quot;ansible&quot;</span></code> section from the main <code class="docutils literal notranslate"><span class="pre">windows.pkr.hcl</span></code> template file.</p>
+</div>
+</div>
+<div class="docutils">
+<p>You should get the following output:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>/home/user/kafl/kafl/examples/templates/windows/../../venv/bin/activate<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>packer<span class="w"> </span>build<span class="w"> </span>-var-file<span class="w"> </span>win10.pkrvars.hcl<span class="w"> </span>windows.pkr.hcl
+qemu.windows:<span class="w"> </span>output<span class="w"> </span>will<span class="w"> </span>be<span class="w"> </span><span class="k">in</span><span class="w"> </span>this<span class="w"> </span>color.
+
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>Retrieving<span class="w"> </span><span class="nv">ISO</span>
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>Trying<span class="w"> </span>https://go.microsoft.com/fwlink/p/?LinkID<span class="o">=</span><span class="m">2208844</span><span class="p">&amp;</span><span class="nv">clcid</span><span class="o">=</span>0x409<span class="p">&amp;</span><span class="nv">culture</span><span class="o">=</span>en-us<span class="p">&amp;</span><span class="nv">country</span><span class="o">=</span><span class="nv">US</span>
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>Trying<span class="w"> </span>https://go.microsoft.com/fwlink/p/?LinkID<span class="o">=</span><span class="m">2208844</span><span class="p">&amp;</span><span class="nv">checksum</span><span class="o">=</span>sha256%3Aef7312733a9f5d7d51cfa04ac497671995674ca5e1058d5164d6028f0938d668<span class="p">&amp;</span><span class="nv">clcid</span><span class="o">=</span>0x409<span class="p">&amp;</span><span class="nv">country</span><span class="o">=</span>US<span class="p">&amp;</span><span class="nv">culture</span><span class="o">=</span>en-us
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>https://go.microsoft.com/fwlink/p/?LinkID<span class="o">=</span><span class="m">2208844</span><span class="p">&amp;</span><span class="nv">checksum</span><span class="o">=</span>sha256%3Aef7312733a9f5d7d51cfa04ac497671995674ca5e1058d5164d6028f0938d668<span class="p">&amp;</span><span class="nv">clcid</span><span class="o">=</span>0x409<span class="p">&amp;</span><span class="nv">country</span><span class="o">=</span>US<span class="p">&amp;</span><span class="nv">culture</span><span class="o">=</span>en-us<span class="w"> </span><span class="o">=</span>&gt;<span class="w"> </span>/home/user/.cache/packer/d731b3f758e61d53033aa8a67d3d8a3050aa1122.iso
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>Creating<span class="w"> </span>floppy<span class="w"> </span>disk...
+<span class="w">    </span>qemu.windows:<span class="w"> </span>Copying<span class="w"> </span>files<span class="w"> </span>flatly<span class="w"> </span>from<span class="w"> </span>floppy_files
+<span class="w">    </span>qemu.windows:<span class="w"> </span>Copying<span class="w"> </span>file:<span class="w"> </span>answer_files/10/Autounattend.xml
+<span class="w">    </span>qemu.windows:<span class="w"> </span>Copying<span class="w"> </span>file:<span class="w"> </span>scripts/fixnetwork.ps1
+<span class="w">    </span>qemu.windows:<span class="w"> </span>Copying<span class="w"> </span>file:<span class="w"> </span>scripts/setup_winrm_public.bat
+<span class="w">    </span>qemu.windows:<span class="w"> </span>Done<span class="w"> </span>copying<span class="w"> </span>files<span class="w"> </span>from<span class="w"> </span>floppy_files
+<span class="w">    </span>qemu.windows:<span class="w"> </span>Collecting<span class="w"> </span>paths<span class="w"> </span>from<span class="w"> </span>floppy_dirs
+<span class="w">    </span>qemu.windows:<span class="w"> </span>Resulting<span class="w"> </span>paths<span class="w"> </span>from<span class="w"> </span>floppy_dirs<span class="w"> </span>:<span class="w"> </span><span class="o">[]</span>
+<span class="w">    </span>qemu.windows:<span class="w"> </span>Done<span class="w"> </span>copying<span class="w"> </span>paths<span class="w"> </span>from<span class="w"> </span>floppy_dirs
+<span class="w">    </span>qemu.windows:<span class="w"> </span>Copying<span class="w"> </span>files<span class="w"> </span>from<span class="w"> </span>floppy_content
+<span class="w">    </span>qemu.windows:<span class="w"> </span>Done<span class="w"> </span>copying<span class="w"> </span>files<span class="w"> </span>from<span class="w"> </span><span class="nv">floppy_content</span>
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>Found<span class="w"> </span>port<span class="w"> </span><span class="k">for</span><span class="w"> </span>communicator<span class="w"> </span><span class="o">(</span>SSH,<span class="w"> </span>WinRM,<span class="w"> </span>etc<span class="o">)</span>:<span class="w"> </span><span class="m">3573</span>.
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>Looking<span class="w"> </span><span class="k">for</span><span class="w"> </span>available<span class="w"> </span>port<span class="w"> </span>between<span class="w"> </span><span class="m">5900</span><span class="w"> </span>and<span class="w"> </span><span class="m">6000</span><span class="w"> </span>on<span class="w"> </span><span class="m">0</span>.0.0.0
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>Starting<span class="w"> </span>VM,<span class="w"> </span>booting<span class="w"> </span>from<span class="w"> </span>CD-ROM
+<span class="w">    </span>qemu.windows:<span class="w"> </span>The<span class="w"> </span>VM<span class="w"> </span>will<span class="w"> </span>be<span class="w"> </span>run<span class="w"> </span>headless,<span class="w"> </span>without<span class="w"> </span>a<span class="w"> </span>GUI.<span class="w"> </span>If<span class="w"> </span>you<span class="w"> </span>want<span class="w"> </span>to
+<span class="w">    </span>qemu.windows:<span class="w"> </span>view<span class="w"> </span>the<span class="w"> </span>screen<span class="w"> </span>of<span class="w"> </span>the<span class="w"> </span>VM,<span class="w"> </span>connect<span class="w"> </span>via<span class="w"> </span>VNC<span class="w"> </span>without<span class="w"> </span>a<span class="w"> </span>password<span class="w"> </span>to
+<span class="w">    </span>qemu.windows:<span class="w"> </span>vnc://0.0.0.0:5973
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>Overriding<span class="w"> </span>default<span class="w"> </span>Qemu<span class="w"> </span>arguments<span class="w"> </span>with<span class="w"> </span>qemuargs<span class="w"> </span>template<span class="w"> </span>option...
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>Waiting<span class="w"> </span>5s<span class="w"> </span><span class="k">for</span><span class="w"> </span>boot...
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>Connecting<span class="w"> </span>to<span class="w"> </span>VM<span class="w"> </span>via<span class="w"> </span>VNC<span class="w"> </span><span class="o">(</span><span class="m">0</span>.0.0.0:5973<span class="o">)</span>
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>Typing<span class="w"> </span>the<span class="w"> </span>boot<span class="w"> </span>commands<span class="w"> </span>over<span class="w"> </span>VNC...
+<span class="w">    </span>qemu.windows:<span class="w"> </span>Not<span class="w"> </span>using<span class="w"> </span>a<span class="w"> </span>NetBridge<span class="w"> </span>--<span class="w"> </span>skipping<span class="w"> </span><span class="nv">StepWaitGuestAddress</span>
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>Using<span class="w"> </span>WinRM<span class="w"> </span>communicator<span class="w"> </span>to<span class="w"> </span>connect:<span class="w"> </span><span class="m">127</span>.0.0.1
+<span class="o">==</span>&gt;<span class="w"> </span>qemu.windows:<span class="w"> </span>Waiting<span class="w"> </span><span class="k">for</span><span class="w"> </span>WinRM<span class="w"> </span>to<span class="w"> </span>become<span class="w"> </span>available...
+</pre></div>
+</div>
+<p>Building the image and generating the build artifacts should take <code class="docutils literal notranslate"><span class="pre">~1h</span></code> to complete.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If for any reason the build fails:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">==&gt;</span> <span class="n">qemu</span><span class="o">.</span><span class="n">windows</span><span class="p">:</span> <span class="n">Error</span> <span class="n">launching</span> <span class="n">VM</span><span class="p">:</span> <span class="n">Qemu</span> <span class="n">failed</span> <span class="n">to</span> <span class="n">start</span><span class="o">.</span> <span class="n">Please</span> <span class="n">run</span> <span class="k">with</span> <span class="n">PACKER_LOG</span><span class="o">=</span><span class="mi">1</span> <span class="n">to</span> <span class="n">get</span> <span class="n">more</span> <span class="n">info</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>You can set the environment variable <code class="docutils literal notranslate"><span class="pre">PACKER_LOG</span></code> to get more verbose output:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nv">PACKER_LOG</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>make<span class="w"> </span>build
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="import-the-template-into-vagrant">
+<h2>Import the template into Vagrant<a class="headerlink" href="#import-the-template-into-vagrant" title="Permalink to this heading">#</a></h2>
+<p>Then, we will import the generated build artifact <code class="docutils literal notranslate"><span class="pre">packer_windows_libvirt.box</span></code> as a Box available for Vagrant.</p>
+<p>Again, use the Makefile:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>import
+</pre></div>
+</div>
+<p>Expected output</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>vagrant<span class="w"> </span>box<span class="w"> </span>remove<span class="w"> </span>kafl_windows<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
+Box<span class="w"> </span><span class="s1">&#39;kafl_windows&#39;</span><span class="w"> </span><span class="o">(</span>v0<span class="o">)</span><span class="w"> </span>with<span class="w"> </span>provider<span class="w"> </span><span class="s1">&#39;libvirt&#39;</span><span class="w"> </span>appears
+to<span class="w"> </span>still<span class="w"> </span>be<span class="w"> </span><span class="k">in</span><span class="w"> </span>use<span class="w"> </span>by<span class="w"> </span>at<span class="w"> </span>least<span class="w"> </span>one<span class="w"> </span>Vagrant<span class="w"> </span>environment.<span class="w"> </span>Removing
+the<span class="w"> </span>box<span class="w"> </span>could<span class="w"> </span>corrupt<span class="w"> </span>the<span class="w"> </span>environment.<span class="w"> </span>We<span class="w"> </span>recommend<span class="w"> </span>destroying
+these<span class="w"> </span>environments<span class="w"> </span>first:
+
+vagrant-kafl-windows<span class="w"> </span><span class="o">(</span>ID:<span class="w"> </span>aa61f0e482954cec9b853f9b8837a088<span class="o">)</span>
+
+Are<span class="w"> </span>you<span class="w"> </span>sure<span class="w"> </span>you<span class="w"> </span>want<span class="w"> </span>to<span class="w"> </span>remove<span class="w"> </span>this<span class="w"> </span>box?<span class="w"> </span><span class="o">[</span>y/N<span class="o">]</span><span class="w"> </span>y
+Removing<span class="w"> </span>box<span class="w"> </span><span class="s1">&#39;kafl_windows&#39;</span><span class="w"> </span><span class="o">(</span>v0<span class="o">)</span><span class="w"> </span>with<span class="w"> </span>provider<span class="w"> </span><span class="s1">&#39;libvirt&#39;</span>...
+Vagrant-libvirt<span class="w"> </span>plugin<span class="w"> </span>removed<span class="w"> </span>box<span class="w"> </span>only<span class="w"> </span>from<span class="w"> </span>/home/user/.vagrant.d/boxes<span class="w"> </span>directory
+From<span class="w"> </span>Libvirt<span class="w"> </span>storage<span class="w"> </span>pool<span class="w"> </span>you<span class="w"> </span>have<span class="w"> </span>to<span class="w"> </span>delete<span class="w"> </span>image<span class="w"> </span>manually<span class="o">(</span>virsh,<span class="w"> </span>virt-manager<span class="w"> </span>or<span class="w"> </span>by<span class="w"> </span>any<span class="w"> </span>other<span class="w"> </span>tool<span class="o">)</span>
+vagrant<span class="w"> </span>box<span class="w"> </span>add<span class="w"> </span>packer_windows_libvirt.box<span class="w"> </span>--name<span class="w"> </span><span class="nv">kafl_windows</span>
+<span class="o">==</span>&gt;<span class="w"> </span>box:<span class="w"> </span>Box<span class="w"> </span>file<span class="w"> </span>was<span class="w"> </span>not<span class="w"> </span>detected<span class="w"> </span>as<span class="w"> </span>metadata.<span class="w"> </span>Adding<span class="w"> </span>it<span class="w"> </span>directly...
+<span class="o">==</span>&gt;<span class="w"> </span>box:<span class="w"> </span>Adding<span class="w"> </span>box<span class="w"> </span><span class="s1">&#39;kafl_windows&#39;</span><span class="w"> </span><span class="o">(</span>v0<span class="o">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span>provider:
+<span class="w">    </span>box:<span class="w"> </span>Unpacking<span class="w"> </span>necessary<span class="w"> </span>files<span class="w"> </span>from:<span class="w"> </span>file:///home/user/kafl/kafl/examples/templates/windows/packer_windows_libvirt.box
+<span class="o">==</span>&gt;<span class="w"> </span>box:<span class="w"> </span>Successfully<span class="w"> </span>added<span class="w"> </span>box<span class="w"> </span><span class="s1">&#39;kafl_windows&#39;</span><span class="w"> </span><span class="o">(</span>v0<span class="o">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="s1">&#39;libvirt&#39;</span>!
+</pre></div>
+</div>
+<p>We can confirm that the box has been imported:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>vagrant<span class="w"> </span>box<span class="w"> </span>list
+kafl_windows<span class="w"> </span><span class="o">(</span>libvirt,<span class="w"> </span><span class="m">0</span><span class="o">)</span>
+</pre></div>
+</div>
+</section>
+<section id="import-into-libvirt">
+<h2>Import into libvirt<a class="headerlink" href="#import-into-libvirt" title="Permalink to this heading">#</a></h2>
+<p>Finally, the last step of this section will be have a VM defined in libvirt’s <code class="docutils literal notranslate"><span class="pre">qemu:///session</span></code> connection, and take a snapshot when WinRM is available,
+so we can restore that snapshot and provision it right away !</p>
+<p>Let’s go to the <code class="docutils literal notranslate"><span class="pre">examples/windows-x86_64</span></code> folder and run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">init</span></code></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>../../windows_x86_64
+make<span class="w"> </span>init
+</pre></div>
+</div>
+<p>Expected output:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="o">[</span><span class="m">1</span><span class="o">]</span>:<span class="w"> </span>Entering<span class="w"> </span>directory<span class="w"> </span><span class="s1">&#39;/home/user/kafl/kafl/examples/windows_x86_64&#39;</span>
+vagrant<span class="w"> </span>up<span class="w"> </span>--no-provision
+Bringing<span class="w"> </span>machine<span class="w"> </span><span class="s1">&#39;vagrant-kafl-windows&#39;</span><span class="w"> </span>up<span class="w"> </span>with<span class="w"> </span><span class="s1">&#39;libvirt&#39;</span><span class="w"> </span>provider...
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>No<span class="w"> </span>version<span class="w"> </span>detected<span class="w"> </span><span class="k">for</span><span class="w"> </span>kafl_windows,<span class="w"> </span>using<span class="w"> </span>timestamp<span class="w"> </span>to<span class="w"> </span>watch<span class="w"> </span><span class="k">for</span><span class="w"> </span>modifications.<span class="w"> </span><span class="nv">Consider</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>generating<span class="w"> </span>a<span class="w"> </span><span class="nb">local</span><span class="w"> </span>metadata<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>box<span class="w"> </span>with<span class="w"> </span>a<span class="w"> </span>version<span class="w"> </span>to<span class="w"> </span>allow<span class="w"> </span>better<span class="w"> </span>handling.
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>See<span class="w"> </span>https://www.vagrantup.com/docs/boxes/format#box-metadata<span class="w"> </span><span class="k">for</span><span class="w"> </span>further<span class="w"> </span>details.
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Creating<span class="w"> </span>image<span class="w"> </span><span class="o">(</span>snapshot<span class="w"> </span>of<span class="w"> </span>base<span class="w"> </span>box<span class="w"> </span>volume<span class="o">)</span>.
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Creating<span class="w"> </span>domain<span class="w"> </span>with<span class="w"> </span>the<span class="w"> </span>following<span class="w"> </span>settings...
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Name:<span class="w">              </span>windows_x86_64_vagrant-kafl-windows
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Description:<span class="w">       </span>Source:<span class="w"> </span>/home/user/kafl/kafl/examples/windows_x86_64/Vagrantfile
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Domain<span class="w"> </span>type:<span class="w">       </span><span class="nv">kvm</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Cpus:<span class="w">              </span><span class="nv">4</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Feature:<span class="w">           </span><span class="nv">acpi</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Feature:<span class="w">           </span><span class="nv">apic</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Feature:<span class="w">           </span><span class="nv">pae</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Clock<span class="w"> </span>offset:<span class="w">      </span><span class="nv">utc</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Memory:<span class="w">            </span><span class="nv">4096M</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Base<span class="w"> </span>box:<span class="w">          </span><span class="nv">kafl_windows</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Storage<span class="w"> </span>pool:<span class="w">      </span><span class="nv">default</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Image<span class="o">(</span>vda<span class="o">)</span>:<span class="w">        </span>/home/user/.local/share/libvirt/images/windows_x86_64_vagrant-kafl-windows.img,<span class="w"> </span>virtio,<span class="w"> </span><span class="nv">64G</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Disk<span class="w"> </span>driver<span class="w"> </span>opts:<span class="w">  </span><span class="nv">cache</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Graphics<span class="w"> </span>Type:<span class="w">     </span><span class="nv">spice</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Graphics<span class="w"> </span>Websocket:
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Graphics<span class="w"> </span>Port:
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Graphics<span class="w"> </span>IP:
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Graphics<span class="w"> </span>Password:<span class="w"> </span>Not<span class="w"> </span><span class="nv">defined</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Video<span class="w"> </span>Type:<span class="w">        </span><span class="nv">cirrus</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Video<span class="w"> </span>VRAM:<span class="w">        </span><span class="nv">16384</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Video<span class="w"> </span>3D<span class="w"> </span>accel:<span class="w">    </span><span class="nb">false</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>Keymap:<span class="w">            </span>en-us
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>TPM<span class="w"> </span>Backend:<span class="w">       </span><span class="nv">passthrough</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>INPUT:<span class="w">             </span><span class="nv">type</span><span class="o">=</span>mouse,<span class="w"> </span><span class="nv">bus</span><span class="o">=</span><span class="nv">ps2</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>CHANNEL:<span class="w">             </span><span class="nv">type</span><span class="o">=</span>spicevmc,<span class="w"> </span><span class="nv">mode</span><span class="o">=</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w">  </span>--<span class="w"> </span>CHANNEL:<span class="w">             </span><span class="nv">target_type</span><span class="o">=</span>virtio,<span class="w"> </span><span class="nv">target_name</span><span class="o">=</span>com.redhat.spice.0
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Creating<span class="w"> </span>shared<span class="w"> </span>folders<span class="w"> </span>metadata...
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Updating<span class="w"> </span>domain<span class="w"> </span>definition<span class="w"> </span>due<span class="w"> </span>to<span class="w"> </span>configuration<span class="w"> </span><span class="nv">change</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Starting<span class="w"> </span>domain.
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Waiting<span class="w"> </span><span class="k">for</span><span class="w"> </span>domain<span class="w"> </span>to<span class="w"> </span>get<span class="w"> </span>an<span class="w"> </span>IP<span class="w"> </span>address...
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Waiting<span class="w"> </span><span class="k">for</span><span class="w"> </span>machine<span class="w"> </span>to<span class="w"> </span>boot.<span class="w"> </span>This<span class="w"> </span>may<span class="w"> </span>take<span class="w"> </span>a<span class="w"> </span>few<span class="w"> </span>minutes...
+<span class="w">    </span>vagrant-kafl-windows:<span class="w"> </span>WinRM<span class="w"> </span>address:<span class="w"> </span><span class="m">192</span>.168.122.168:5985
+<span class="w">    </span>vagrant-kafl-windows:<span class="w"> </span>WinRM<span class="w"> </span>username:<span class="w"> </span>vagrant
+<span class="w">    </span>vagrant-kafl-windows:<span class="w"> </span>WinRM<span class="w"> </span>execution_time_limit:<span class="w"> </span>PT2H
+<span class="w">    </span>vagrant-kafl-windows:<span class="w"> </span>WinRM<span class="w"> </span>transport:<span class="w"> </span><span class="nv">negotiate</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Machine<span class="w"> </span>booted<span class="w"> </span>and<span class="w"> </span>ready!
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Forwarding<span class="w"> </span>ports...
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span><span class="m">5985</span><span class="w"> </span><span class="o">(</span>guest<span class="o">)</span><span class="w"> </span><span class="o">=</span>&gt;<span class="w"> </span><span class="m">55985</span><span class="w"> </span><span class="o">(</span>host<span class="o">)</span><span class="w"> </span><span class="o">(</span>adapter<span class="w"> </span>eth0<span class="o">)</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span><span class="m">5986</span><span class="w"> </span><span class="o">(</span>guest<span class="o">)</span><span class="w"> </span><span class="o">=</span>&gt;<span class="w"> </span><span class="m">55986</span><span class="w"> </span><span class="o">(</span>host<span class="o">)</span><span class="w"> </span><span class="o">(</span>adapter<span class="w"> </span>eth0<span class="o">)</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Machine<span class="w"> </span>not<span class="w"> </span>provisioned<span class="w"> </span>because<span class="w"> </span><span class="sb">`</span>--no-provision<span class="sb">`</span><span class="w"> </span>is<span class="w"> </span>specified.
+vagrant<span class="w"> </span>snapshot<span class="w"> </span>save<span class="w"> </span><span class="s1">&#39;ready_provision&#39;</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Snapshotting<span class="w"> </span>the<span class="w"> </span>machine<span class="w"> </span>as<span class="w"> </span><span class="s1">&#39;ready_provision&#39;</span>...
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Snapshot<span class="w"> </span>saved!<span class="w"> </span>You<span class="w"> </span>can<span class="w"> </span>restore<span class="w"> </span>the<span class="w"> </span>snapshot<span class="w"> </span>at<span class="w"> </span>any<span class="w"> </span><span class="nb">time</span><span class="w"> </span><span class="nv">by</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>using<span class="w"> </span><span class="sb">`</span>vagrant<span class="w"> </span>snapshot<span class="w"> </span>restore<span class="sb">`</span>.<span class="w"> </span>You<span class="w"> </span>can<span class="w"> </span>delete<span class="w"> </span>it<span class="w"> </span><span class="nv">using</span>
+<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span><span class="sb">`</span>vagrant<span class="w"> </span>snapshot<span class="w"> </span>delete<span class="sb">`</span>.
+make<span class="o">[</span><span class="m">1</span><span class="o">]</span>:<span class="w"> </span>Leaving<span class="w"> </span>directory<span class="w"> </span><span class="s1">&#39;/home/user/kafl/kafl/examples/windows_x86_64&#39;</span>
+</pre></div>
+</div>
+<p>Congratulations ! 🎉</p>
+<p>You are now ready to setup our Windows targets and almost there to start fuzzing ! ⚡</p>
+<ul class="simple">
+<li><p>➡️ Continue by <a class="reference internal" href="windows_userspace.html"><span class="std std-doc">fuzzing userspace programs</span></a></p></li>
+<li><p>➡️ Continue by <a class="reference internal" href="windows_driver.html"><span class="std std-doc">fuzzing a driver</span></a></p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="windows_userspace.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">2. Fuzzing Userspace</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="index.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Windows Target</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, Steffen Schulz - Mathieu Tarral
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/IntelLabs/kAFL" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">1. Windows VM Template</a><ul>
+<li><a class="reference internal" href="#setup-the-tooling">Setup the tooling</a></li>
+<li><a class="reference internal" href="#build-the-windows-vm-template">Build the Windows VM Template</a></li>
+<li><a class="reference internal" href="#import-the-template-into-vagrant">Import the template into Vagrant</a></li>
+<li><a class="reference internal" href="#import-into-libvirt">Import into libvirt</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/scripts/furo.js"></script>
+    <script src="../../_static/clipboard.min.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <script src="../../_static/design-tabs.js"></script>
+    </body>
+</html>
