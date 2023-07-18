@@ -37,6 +37,7 @@ The project is structured around multiple components:
 tutorials/introduction
 tutorials/installation
 tutorials/fuzzing_linux_kernel
+tutorials/windows/index
 ```
 
 ```{toctree}
