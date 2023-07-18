@@ -102,9 +102,9 @@ As a first fuzzing example, we recommend [Fuzzing the Linux Kernel](https://inte
 
 Other targets are available such as:
 
-- [UEFI OVMF](https://github.com/IntelLabs/kafl.targets/tree/master/uefi_ovmf_64)
+- [Windows driver/userspace](https://intellabs.github.io/kAFL/tutorials/windows/index.html)
 - [Linux userspace](https://github.com/IntelLabs/kafl.targets/tree/master/linux-user)
-- [Windows driver/userspace](https://github.com/IntelLabs/kafl.targets/tree/master/windows_x86_64)
+- [UEFI OVMF](https://github.com/IntelLabs/kafl.targets/tree/master/uefi_ovmf_64)
 
 A improved documentation is under work for these targets.
 
