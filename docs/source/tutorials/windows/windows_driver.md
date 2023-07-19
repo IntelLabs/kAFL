@@ -92,8 +92,6 @@ DeviceIoControl(kafl_vuln_handle,
 kAFL_hypercall(HYPERCALL_KAFL_RELEASE, 0);
 ~~~
 
-The goal will be to trigger these 2 paths with kAFL, get the associated payload and replay those as needed.
-
 
 ## Provision the guest VM
 
