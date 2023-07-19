@@ -315,7 +315,6 @@
 <span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>The goal will be to trigger these 2 paths with kAFL, get the associated payload and replay those as needed.</p>
 <section id="provision-the-guest-vm">
 <h2>Provision the guest VM<a class="headerlink" href="#provision-the-guest-vm" title="Permalink to this heading">#</a></h2>
 <p>To compile and setup both the  <code class="docutils literal notranslate"><span class="pre">kAFLvulnerabledriver.sys</span></code> and <code class="docutils literal notranslate"><span class="pre">vuln_test.exe</span></code> target binaries into the VM, we provide a Makefile and an Ansible playbook that will upload the resulting binary into the guest, and setup it to be executed during the boot sequence (by creating a symlink into the user <code class="docutils literal notranslate"><span class="pre">Sartup</span></code> folder).</p>

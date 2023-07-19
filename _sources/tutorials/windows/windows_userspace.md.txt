@@ -37,8 +37,6 @@ void fuzzme(uint8_t* input, int size){
 The `panic()` function is simply a wrapper over a call to `HYPERCALL_KAFL_PANIC`.
 :::
 
-The goal will be to trigger these 2 paths with kAFL, get the associated payload and replay those as needed.
-
 ## Provision the guest VM
 
 To compile and setup the `selffuzz.exe` target binary into the VM, we provide a Makefile and an Ansible playbook that will upload the resulting binary into the guest,

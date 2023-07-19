@@ -265,7 +265,6 @@
 <p class="admonition-title">Note</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">panic()</span></code> function is simply a wrapper over a call to <code class="docutils literal notranslate"><span class="pre">HYPERCALL_KAFL_PANIC</span></code>.</p>
 </div>
-<p>The goal will be to trigger these 2 paths with kAFL, get the associated payload and replay those as needed.</p>
 <section id="provision-the-guest-vm">
 <h2>Provision the guest VM<a class="headerlink" href="#provision-the-guest-vm" title="Permalink to this heading">#</a></h2>
 <p>To compile and setup the <code class="docutils literal notranslate"><span class="pre">selffuzz.exe</span></code> target binary into the VM, we provide a Makefile and an Ansible playbook that will upload the resulting binary into the guest,
