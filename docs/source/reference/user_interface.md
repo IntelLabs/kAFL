@@ -2,11 +2,17 @@
 
 ## kAFL GUI
 
-The `kafl_gui.py` renders the various status and metadata files of a workdir
+The `kafl gui` command renders the various status and metadata files of a workdir
 into a curses based text UI. You can also use it on an old / archived workdir to
 obtain a quick overview of the campaign status and average performance:
 
-    $ kafl_gui.py /path/to/workdir
+:::{Note}
+The workdir path is automatically detected through your environment.
+
+You can specify an explicit workdir with `-w <workdir_path>`
+:::
+
+    $ kafl gui
     
       ┏━┫▌kAFL Grand UI▐┣━┓
     ┏━┻━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
