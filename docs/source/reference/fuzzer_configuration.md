@@ -140,7 +140,11 @@ Command-line: `--cpu-offset <n>`
 
 ### `debug`
 
-Enable additional (expensive) debug checks during execution.
+Enable additional (expensive) debug messages during execution.
+
+- switches logging to `DEBUG` level
+- toggles QEMU `nyx` log item (`-d nyx`), only effective if [`--log`](#log) has been specified
+- stores funky input data in `$WORKDIR/funky`. See [`--funky`](#funky) and [workdir reference](./workdir_layout.md)
 
 Implies [`--verbose`](#verbose).
 
