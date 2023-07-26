@@ -233,10 +233,15 @@
 <h1>kAFL User Interface<a class="headerlink" href="#kafl-user-interface" title="Permalink to this heading">#</a></h1>
 <section id="kafl-gui">
 <h2>kAFL GUI<a class="headerlink" href="#kafl-gui" title="Permalink to this heading">#</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">kafl_gui.py</span></code> renders the various status and metadata files of a workdir
+<p>The <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">gui</span></code> command renders the various status and metadata files of a workdir
 into a curses based text UI. You can also use it on an old / archived workdir to
 obtain a quick overview of the campaign status and average performance:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ kafl_gui.py /path/to/workdir
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The workdir path is automatically detected through your environment.</p>
+<p>You can specify an explicit workdir with <code class="docutils literal notranslate"><span class="pre">-w</span> <span class="pre">&lt;workdir_path&gt;</span></code></p>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ kafl gui
 
   ┏━┫▌kAFL Grand UI▐┣━┓
 ┏━┻━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓

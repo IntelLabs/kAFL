@@ -383,7 +383,12 @@ instances to the next <a class="reference internal" href="#processes"><code clas
 </section>
 <section id="debug">
 <h3><code class="docutils literal notranslate"><span class="pre">debug</span></code><a class="headerlink" href="#debug" title="Permalink to this heading">#</a></h3>
-<p>Enable additional (expensive) debug checks during execution.</p>
+<p>Enable additional (expensive) debug messages during execution.</p>
+<ul class="simple">
+<li><p>switches logging to <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> level</p></li>
+<li><p>toggles QEMU <code class="docutils literal notranslate"><span class="pre">nyx</span></code> log item (<code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">nyx</span></code>), only effective if <a class="reference internal" href="#log"><code class="docutils literal notranslate"><span class="pre">--log</span></code></a> has been specified</p></li>
+<li><p>stores funky input data in <code class="docutils literal notranslate"><span class="pre">$WORKDIR/funky</span></code>. See <a class="reference internal" href="#funky"><code class="docutils literal notranslate"><span class="pre">--funky</span></code></a> and <a class="reference internal" href="workdir_layout.html"><span class="std std-doc">workdir reference</span></a></p></li>
+</ul>
 <p>Implies <a class="reference internal" href="#verbose"><code class="docutils literal notranslate"><span class="pre">--verbose</span></code></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
