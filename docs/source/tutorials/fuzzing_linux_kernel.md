@@ -49,9 +49,9 @@ launching the fuzzer is as simple as booting the kernel:
 :::{tab-item} Local setup
 ```shell
 KAFL_CONFIG_FILE=./kafl_config.yaml kafl fuzz --purge \
-	--redqueen --grimoire -D --radamsa \
-	--kernel linux-guest/arch/x86/boot/bzImage \
-	-t 0.1 -ts 0.01 -m 512 --log-crashes -p 2
+        --redqueen --grimoire -D --radamsa \
+        --kernel linux-guest/arch/x86/boot/bzImage \
+        -t 0.1 -ts 0.01 -m 512 --log-crashes -p 2
 ```
 :::
 :::{tab-item} Docker image
@@ -176,39 +176,16 @@ ls $KAFL_WORKDIR/logs/
 
 ## 5. Coverage
 
-For coverage reports, we need to first find out what PT filter ranges are used for the kernel image.
-They are auto-detected on startup and can be logged using `--log-hprintf` parameter.
+To gather the coverage, use `kafl cov` subcommand with `--resume`. This will reload the guest state directly from the Nyx fast-snapshot used during fuzzing and re-use the existing `$KAFL_WORKDIR/page_cache*` files, leading to better reproducibility.
 
-Try to launch with `--log-hprintf -p 1` instead of the above `--log-crashes` and look at `$KAFL_WORKDIR/hprintf_00.log`.
+PT traces produced by QEMU/worker instances are picked up from `$KAFL_WORKDIR/pt_trace_dump_NN` and stored at `$KAFL_WORKDIR/traces/*bin.lz4`.
 
-Sample content for `KAFL_WORKDIR/hprintf_00.log`:
-```
-...
-Submitting payload buffer address to hypervisor (ffffffff859ad000)
-Setting range 0: ffffffff81000000-ffffffff83603000
-Setting range 1: ffffffff855ed000-ffffffff856e4000
-Starting kAFL loop...
-...
-```
-
-Lets extract these IP ranges, and export them in environment variables:
-
-```shell
-export IP0=$(grep -oP 'Setting range 0:\s+\K.*-.*' $KAFL_WORKDIR/hprintf_00.log)
-export IP1=$(grep -oP 'Setting range 1:\s+\K.*-.*' $KAFL_WORKDIR/hprintf_00.log)
-```
-
-Then use `kafl cov` subcommand with `--resume` will reload the guest state directly from the Nyx fast-snapshot used during fuzzing and re-use the existing `$KAFL_WORKDIR/page_cache*` files, leading to better reproducibility.
-
-PT traces produced by Qemu/worker instances are
-picked up from `$KAFL_WORKDIR/pt_trace_dump_NN` and stored at `$KAFL_WORKDIR/traces/*bin.lz4`.
 The `kafl cov` tool then calls `ptdump` with the given PT filter range and
 `page_cache` files to decode to a corresponding text file `$KAFL_WORKDIR/traces/*.txt.lz4`.
 
 For best results, it is recommended to collect binary PT traces already during
-fuzzing (using `kafl fuzz --trace` option). The `kafl cov` tool will detect the
-existing binary traces in `$KAFL_WORKDIR/traces/` and skip re-executing the corpus,
-providing accurate coverage traces even for non-deterministic targets.
+fuzzing (using `kafl fuzz [--trace](../reference/fuzzer_configuration.md#trace)` option). The `kafl cov` tool will detect the
+existing binary traces in `$KAFL_WORKDIR/traces/` and skip re-executing the corpus, providing accurate coverage traces even for non-deterministic targets.
 
 For big corpuses, you can parallelize this process using `-p`:
 
@@ -217,8 +194,6 @@ For big corpuses, you can parallelize this process using `-p`:
 ```shell
 KAFL_CONFIG_FILE=kafl_config.yaml kafl cov \
 	--kernel linux-guest/arch/x86/boot/bzImage \
-	-ip0 $IP0 \
-	-ip1 $IP1 \
 	--resume -m 512 -t 2 -p 24
 ```
 :::
@@ -238,8 +213,6 @@ docker run \
         -w /mnt/workdir \
         --input /mnt/workdir \
         --kernel /mnt/kernel \
-        -ip0 $IP0 \
-        -ip1 $IP1 \
         --resume -m 512 -t 2 -p 24
 ```
 :::
