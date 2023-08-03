@@ -48,7 +48,7 @@ launching the fuzzer is as simple as booting the kernel:
 ::::{tab-set}
 :::{tab-item} Local setup
 ```shell
-KAFL_CONFIG_FILE=./kafl_config.yaml kafl fuzz --purge \
+kafl fuzz --purge \
         --redqueen --grimoire -D --radamsa \
         --kernel linux-guest/arch/x86/boot/bzImage \
         -t 0.1 -ts 0.01 -m 512 --log-crashes -p 2
@@ -62,10 +62,10 @@ mkdir -p /dev/shm/kafl_$(id -un)
 docker run \
         -ti --rm \
         --device /dev/kvm \
-        -v $(pwd)/kafl_config.yaml:/mnt/kafl_config.yaml \
+        -v $(pwd)/kafl.yaml:/mnt/kafl.yaml \
         -v /dev/shm/kafl_$(id -un):/mnt/workdir \
         -v $(pwd)/linux-guest/arch/x86/boot/bzImage:/mnt/kernel \
-        -e KAFL_CONFIG_FILE=/mnt/kafl_config.yaml \
+        -e KAFL_CONFIG_FILE=/mnt/kafl.yaml \
         --user $(id -u):$(id -g) \
         --group-add $(getent group kvm | cut -d: -f3) \
         intellabs/kafl \
@@ -192,7 +192,7 @@ For big corpuses, you can parallelize this process using `-p`:
 ::::{tab-set}
 :::{tab-item} Local setup
 ```shell
-KAFL_CONFIG_FILE=kafl_config.yaml kafl cov \
+kafl cov \
 	--kernel linux-guest/arch/x86/boot/bzImage \
 	--resume -m 512 -t 2 -p 24
 ```
@@ -202,10 +202,10 @@ KAFL_CONFIG_FILE=kafl_config.yaml kafl cov \
 docker run \
         -ti --rm \
         --device /dev/kvm \
-        -v $(pwd)/kafl_config.yaml:/mnt/kafl_config.yaml \
+        -v $(pwd)/kafl.yaml:/mnt/kafl.yaml \
         -v /dev/shm/kafl_$(id -un):/mnt/workdir \
         -v $(pwd)/linux-guest/arch/x86/boot/bzImage:/mnt/kernel \
-        -e KAFL_CONFIG_FILE=/mnt/kafl_config.yaml \
+        -e KAFL_CONFIG_FILE=/mnt/kafl.yaml \
         --user $(id -u):$(id -g) \
         --group-add $(getent group kvm | cut -d: -f3) \
         intellabs/kafl \
