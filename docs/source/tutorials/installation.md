@@ -40,6 +40,12 @@ The requirements for either of these setups:
 - _Python 3_ interpreter (`>= 3.9`)
 - _Git_
 - Essential toolchain to build software (`make`, `gcc`, ...)
+
+The following command will install the required software on Ubuntu
+```shell
+sudo apt-get install -y python3-dev git build-essential
+```
+
 :::{note}
 The userspace installation and fuzzing workflow has been tested for recent
 Ubuntu (>=`20.04`) and Debian (>=`Bullseye`).
