@@ -1,4 +1,4 @@
-# 1. Windows VM Template
+# Windows VM Template
 
 In order to execute the targets, we need a Windows VM to play with and configured to compile and load a driver.
 
@@ -237,5 +237,3 @@ Congratulations ! 🎉
 
 You are now ready to setup our Windows targets and almost there to start fuzzing ! ⚡
 
-- ➡️ Continue by [fuzzing userspace programs](./windows_userspace.md)
-- ➡️ Continue by [fuzzing a driver](./windows_driver.md)
