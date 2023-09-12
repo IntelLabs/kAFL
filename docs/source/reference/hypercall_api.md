@@ -370,9 +370,9 @@ obtain as part of agent initialization.
 caption: Example
 ---
 uint64_t buffer[3] = {0};
-buffer[0] = 0; // IP filter index [0-3]
-buffer[1] = 0xfffff8010e0b0000 // low range
-buffer[2] = 0xfffff8010e0b7000 // high range
+buffer[0] = 0xfffff8010e0b0000 // low range
+buffer[1] = 0xfffff8010e0b7000 // high range
+buffer[2] = 0; // IP filter index [0-3]
 kAFL_hypercall(HYPERCALL_KAFL_RANGE_SUBMIT, (uint64_t)buffer);
 ```
 
