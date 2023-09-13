@@ -14,6 +14,7 @@
 - Security fixes (#215, #217)
 - Switch QEMU revision pinning to a tag instead of a branch (#214)
 - `kafl.targets`: simplify linux kernel tutorial and use predefined load path for kAFL configuration ([`kafl.targets#23`](https://github.com/IntelLabs/kafl.targets/pull/23))
+- examples role: fix shell used to unpacking GPG key (#233)
 
 # 📖 Documentation
 
