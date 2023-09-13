@@ -18,6 +18,8 @@
 
     - name: Unpack GPG key
       ansible.builtin.shell: set -o pipefail && cat /tmp/hashicorp.key | gpg --batch --yes --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+      args:
+        executable: /bin/bash
       become: true
 
     - name: Remove temp file
