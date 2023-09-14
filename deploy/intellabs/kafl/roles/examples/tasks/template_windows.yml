@@ -66,6 +66,11 @@
     create: true
   become: true
 
+- name: Ensure QEMU binaries are available
+  ansible.builtin.package:
+    name: qemu-system-x86
+  become: true
+
 - name: Ensure qemu-bridge-helper is setuid
   ansible.builtin.file:
     path: /usr/lib/qemu/qemu-bridge-helper
