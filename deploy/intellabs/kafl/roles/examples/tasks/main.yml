@@ -11,3 +11,7 @@
 - name: Import template windows tasks
   ansible.builtin.import_tasks: template_windows.yml
   when: "'examples-template-windows' in ansible_run_tags"
+
+- name: Import dvkm tasks
+  ansible.builtin.import_tasks: dvkm.yml
+  when: "'examples-linux-dvkm' in ansible_run_tags"
