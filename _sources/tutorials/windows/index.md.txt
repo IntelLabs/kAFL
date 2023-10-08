@@ -8,7 +8,6 @@ This tutorial assumes that your machine can allocate `4G` of RAM to build and ru
 :maxdepth: 2
 :caption: Fuzzing on Windows
 
-windows_template
-windows_userspace
-windows_driver
+driver/index
+userspace/index
 ```

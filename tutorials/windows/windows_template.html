@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="2. Fuzzing Userspace" href="windows_userspace.html" /><link rel="prev" title="Windows Target" href="index.html" />
+<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Provision the guest VM" href="driver/target_setup.html" /><link rel="prev" title="Target analysis" href="driver/target.html" />
 
     <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
-        <title>1. Windows VM Template - kAFL</title>
+        <title>Windows VM Template - kAFL</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
@@ -162,9 +162,22 @@
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../fuzzing_linux_kernel.html">Linux Kernel target</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Windows Target</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">1. Windows VM Template</a></li>
-<li class="toctree-l2"><a class="reference internal" href="windows_userspace.html">2. Fuzzing Userspace</a></li>
-<li class="toctree-l2"><a class="reference internal" href="windows_driver.html">3. Fuzzing a Driver</a></li>
+<li class="toctree-l2 current has-children"><a class="reference internal" href="driver/index.html">Driver</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="driver/target.html">Target analysis</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Windows VM Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="driver/target_setup.html">Provision the guest VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="driver/campaign.html">Fuzzing Campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="driver/crash.html">Crash Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children"><a class="reference internal" href="userspace/index.html">Userspace</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="userspace/target.html">Target analysis</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">Windows VM Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="userspace/target_setup.html">Provision the guest VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="userspace/campaign.html">Fuzzing Campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="userspace/improvements.html">Improvments</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -230,7 +243,7 @@
         </div>
         <article role="main">
           <section id="windows-vm-template">
-<h1>1. Windows VM Template<a class="headerlink" href="#windows-vm-template" title="Permalink to this heading">#</a></h1>
+<h1>Windows VM Template<a class="headerlink" href="#windows-vm-template" title="Permalink to this heading">#</a></h1>
 <p>In order to execute the targets, we need a Windows VM to play with and configured to compile and load a driver.</p>
 <p>Fortunately, we already provide this template and the necessary tooling under <a class="reference external" href="https://github.com/IntelLabs/kafl.targets/tree/master/templates/windows"><code class="docutils literal notranslate"><span class="pre">templates/windows</span></code></a>.</p>
 <p>Our Windows template is based on a <a class="reference external" href="https://www.microsoft.com/en-us/evalcenter/download-windows-10-enterprise"><code class="docutils literal notranslate"><span class="pre">Windows</span> <span class="pre">10</span> <span class="pre">Enterprise</span> <span class="pre">x64</span></code></a> image with <code class="docutils literal notranslate"><span class="pre">22H2</span></code> feature updates.</p>
@@ -448,10 +461,6 @@ make<span class="o">[</span><span class="m">1</span><span class="o">]</span>:<sp
 </div>
 <p>Congratulations ! 🎉</p>
 <p>You are now ready to setup our Windows targets and almost there to start fuzzing ! ⚡</p>
-<ul class="simple">
-<li><p>➡️ Continue by <a class="reference internal" href="windows_userspace.html"><span class="std std-doc">fuzzing userspace programs</span></a></p></li>
-<li><p>➡️ Continue by <a class="reference internal" href="windows_driver.html"><span class="std std-doc">fuzzing a driver</span></a></p></li>
-</ul>
 </section>
 </section>
 
@@ -460,23 +469,23 @@ make<span class="o">[</span><span class="m">1</span><span class="o">]</span>:<sp
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="windows_userspace.html">
+          <a class="next-page" href="driver/target_setup.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">2. Fuzzing Userspace</div>
+                <div class="title">Provision the guest VM</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="index.html">
+          <a class="prev-page" href="driver/target.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Windows Target</div>
+                <div class="title">Target analysis</div>
                 
               </div>
             </a>
@@ -517,7 +526,7 @@ make<span class="o">[</span><span class="m">1</span><span class="o">]</span>:<sp
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">1. Windows VM Template</a><ul>
+<li><a class="reference internal" href="#">Windows VM Template</a><ul>
 <li><a class="reference internal" href="#setup-the-tooling">Setup the tooling</a></li>
 <li><a class="reference internal" href="#build-the-windows-vm-template">Build the Windows VM Template</a></li>
 <li><a class="reference internal" href="#import-the-template-into-vagrant">Import the template into Vagrant</a></li>

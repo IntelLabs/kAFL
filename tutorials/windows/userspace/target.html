@@ -3,15 +3,15 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="3. Fuzzing a Driver" href="windows_driver.html" /><link rel="prev" title="1. Windows VM Template" href="windows_template.html" />
+<link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="Provision the guest VM" href="target_setup.html" /><link rel="prev" title="Userspace" href="index.html" />
 
     <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
-        <title>2. Fuzzing Userspace - kAFL</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+        <title>Target analysis - kAFL</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     
     
 
@@ -125,7 +125,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">kAFL</div></a>
+      <a href="../../../index.html"><div class="brand">kAFL</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -145,12 +145,12 @@
   <aside class="sidebar-drawer">
     <div class="sidebar-container">
       
-      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
   
   <span class="sidebar-brand-text">kAFL</span>
   
-</a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
   <input type="hidden" name="area" value="default">
@@ -158,35 +158,48 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../fuzzing_linux_kernel.html">Linux Kernel target</a></li>
-<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Windows Target</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="windows_template.html">1. Windows VM Template</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">2. Fuzzing Userspace</a></li>
-<li class="toctree-l2"><a class="reference internal" href="windows_driver.html">3. Fuzzing a Driver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">Windows Target</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="../driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../driver/target.html">Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../windows_template.html">Windows VM Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../driver/target_setup.html">Provision the guest VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../driver/campaign.html">Fuzzing Campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../driver/crash.html">Crash Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children"><a class="reference internal" href="index.html">Userspace</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../windows_template.html">Windows VM Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="target_setup.html">Provision the guest VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="campaign.html">Fuzzing Campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="improvements.html">Improvments</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../how_to/github_actions.html">Github Actions CI/CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to/github_actions.html">Github Actions CI/CD</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../reference/fuzzer_configuration.html">Fuzzer Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../reference/deployment.html">Deployment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../reference/hypercall_api.html">kAFL/Nyx Hypercall API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../reference/workdir_layout.html">kAFL Workdir</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../reference/user_interface.html">kAFL User Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/fuzzer_configuration.html">Fuzzer Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/deployment.html">Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/hypercall_api.html">kAFL/Nyx Hypercall API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/workdir_layout.html">kAFL Workdir</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/user_interface.html">kAFL User Interface</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Context</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../context/research_papers.html">Research Papers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../context/research_papers.html">Research Papers</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../dev/documentation.html">Building the documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/documentation.html">Building the documentation</a></li>
 </ul>
 
 </div>
@@ -207,7 +220,7 @@
         </a>
         <div class="content-icon-container">
           <div class="edit-this-page">
-  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/tutorials/windows/windows_userspace.md" title="Edit this page">
+  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/tutorials/windows/userspace/target.md" title="Edit this page">
     <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
@@ -229,11 +242,28 @@
           </label>
         </div>
         <article role="main">
-          <section id="fuzzing-userspace">
-<h1>2. Fuzzing Userspace<a class="headerlink" href="#fuzzing-userspace" title="Permalink to this heading">#</a></h1>
-<p>In this section we are going to fuzz a userspace program called <a class="reference external" href="https://github.com/IntelLabs/kafl.targets/blob/master/windows_x86_64/src/userspace/selffuzz_test.c"><code class="docutils literal notranslate"><span class="pre">selffuzz.exe</span></code></a>.</p>
-<p>This program contains a small <code class="docutils literal notranslate"><span class="pre">fuzzme()</span></code> function, where two <code class="docutils literal notranslate"><span class="pre">panic()</span></code> calls have been nested into a set of conditionals.</p>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">fuzzme</span><span class="p">(</span><span class="kt">uint8_t</span><span class="o">*</span><span class="w"> </span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">size</span><span class="p">){</span>
+          <section id="target-analysis">
+<h1>Target analysis<a class="headerlink" href="#target-analysis" title="Permalink to this heading">#</a></h1>
+<section id="objectives">
+<h2>Objectives<a class="headerlink" href="#objectives" title="Permalink to this heading">#</a></h2>
+<p>The objective of this tutorial is to fuzz a Windows program, built for educational purposes.</p>
+<p>Like the <a class="reference internal" href="../driver/index.html"><span class="std std-doc">driver</span></a> that we’ve previously covered, this program doesn’t interact with anything, except issuing kAFL hypercalls, and calling it’s own function.</p>
+</section>
+<section id="source-code">
+<h2>Source code<a class="headerlink" href="#source-code" title="Permalink to this heading">#</a></h2>
+<p>The source code is located at <a class="reference external" href="https://github.com/IntelLabs/kafl.targets/blob/master/windows_x86_64/src/userspace/selffuzz_test.c"><code class="docutils literal notranslate"><span class="pre">kafl.targets/windows_x86_64/src/userspace/selffuzz_test.c</span></code></a></p>
+<p>The code is deliberatly kept straightforward to enhance understanding and learning experience.</p>
+<ol class="arabic simple">
+<li><p>Initialization of kAFL agent</p></li>
+<li><p>Allocation of kAFL payload buffer</p></li>
+<li><p>Ensure fuzzing ranges are locked</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fuzzme()</span></code> function is called with kAFL payload buffer</p></li>
+</ol>
+</section>
+<section id="vulnerability">
+<h2>Vulnerability<a class="headerlink" href="#vulnerability" title="Permalink to this heading">#</a></h2>
+<p>Two <a class="reference internal" href="../../../reference/hypercall_api.html#panic-kasan"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">PANIC</span></code></span></a> kAFL Hypercalls have been inserted into the <code class="docutils literal notranslate"><span class="pre">fuzzme()</span></code> function:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">fuzzme</span><span class="p">(</span><span class="kt">uint8_t</span><span class="o">*</span><span class="w"> </span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">size</span><span class="p">){</span>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">size</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mh">0x11</span><span class="p">){</span>
 <span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">input</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="sc">&#39;K&#39;</span><span class="p">)</span>
 <span class="w">            </span><span class="k">if</span><span class="p">(</span><span class="n">input</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="sc">&#39;3&#39;</span><span class="p">)</span>
@@ -261,96 +291,19 @@
 <span class="p">};</span>
 </pre></div>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">panic()</span></code> function is simply a wrapper over a call to <code class="docutils literal notranslate"><span class="pre">HYPERCALL_KAFL_PANIC</span></code>.</p>
-</div>
-<section id="provision-the-guest-vm">
-<h2>Provision the guest VM<a class="headerlink" href="#provision-the-guest-vm" title="Permalink to this heading">#</a></h2>
-<p>To compile and setup the <code class="docutils literal notranslate"><span class="pre">selffuzz.exe</span></code> target binary into the VM, we provide a Makefile and an Ansible playbook that will upload the resulting binary into the guest,
-and setup it to be executed during the boot sequence (by creating a symlink into the user <code class="docutils literal notranslate"><span class="pre">Sartup</span></code> folder).</p>
-<p>Make sure you are located into the <a class="reference external" href="https://github.com/IntelLabs/kafl.targets/tree/master/windows_x86_64"><code class="docutils literal notranslate"><span class="pre">windows_x86_64</span></code></a> folder</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># from kAFL root repo</span>
-<span class="nb">cd</span><span class="w"> </span>kafl/examples/windows_x86_64
-</pre></div>
-</div>
-<p>And execute the provisioning userspace target.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>provision_userspace
-</pre></div>
-</div>
-<p>Expected output:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="o">[</span><span class="m">1</span><span class="o">]</span>:<span class="w"> </span>Entering<span class="w"> </span>directory<span class="w"> </span><span class="s1">&#39;/home/user/kafl/kafl/examples/windows_x86_64&#39;</span>
-mkdir<span class="w"> </span>-p<span class="w"> </span>bin/<span class="o">{</span>userspace,driver<span class="o">}</span>
-x86_64-w64-mingw32-gcc<span class="w"> </span>src/userspace/selffuzz_test.c<span class="w"> </span>-I<span class="w"> </span>../<span class="w"> </span>-o<span class="w"> </span>bin/userspace/selffuzz_test.exe<span class="w"> </span>-Wall<span class="w"> </span>-mwindows
-x86_64-w64-mingw32-gcc<span class="w"> </span>src/driver/vuln_test.c<span class="w"> </span>-I<span class="w"> </span>../<span class="w"> </span>-o<span class="w"> </span>bin/driver/vuln_test.exe<span class="w"> </span>-Wall<span class="w"> </span>-lntdll<span class="w"> </span>-lpsapi
-vagrant<span class="w"> </span>snapshot<span class="w"> </span>restore<span class="w"> </span><span class="s1">&#39;ready_provision&#39;</span>
-<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Restoring<span class="w"> </span>the<span class="w"> </span>snapshot<span class="w"> </span><span class="s1">&#39;ready_provision&#39;</span>...
-<span class="nv">TARGET_HARNESS</span><span class="o">=</span><span class="s1">&#39;userspace&#39;</span><span class="w"> </span>vagrant<span class="w"> </span><span class="nv">provision</span>
-<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Running<span class="w"> </span>provisioner:<span class="w"> </span>host_shell...
-<span class="o">[</span>stdout<span class="o">]</span>
-PLAY<span class="w"> </span><span class="o">[</span>Setup<span class="w"> </span>target<span class="o">]</span><span class="w"> </span>************************************************************
-
-TASK<span class="w"> </span><span class="o">[</span>Gathering<span class="w"> </span>Facts<span class="o">]</span><span class="w"> </span>*********************************************************
-
-<span class="o">[</span>stdout<span class="o">]</span><span class="w"> </span>ok:<span class="w"> </span><span class="o">[</span><span class="m">192</span>.168.122.168<span class="o">]</span>
-
-TASK<span class="w"> </span><span class="o">[</span>Set<span class="w"> </span>default<span class="w"> </span>value<span class="w"> </span><span class="k">for</span><span class="w"> </span>target_harness<span class="o">]</span><span class="w"> </span>************************************
-
-<span class="o">[</span>stdout<span class="o">]</span><span class="w"> </span>skipping:<span class="w"> </span><span class="o">[</span><span class="m">192</span>.168.122.168<span class="o">]</span>
-
-TASK<span class="w"> </span><span class="o">[</span>Upload<span class="w"> </span>binaries<span class="o">]</span><span class="w"> </span>*********************************************************
-
-<span class="o">[</span>stdout<span class="o">]</span><span class="w"> </span>changed:<span class="w"> </span><span class="o">[</span><span class="m">192</span>.168.122.168<span class="o">]</span>
-
-TASK<span class="w"> </span><span class="o">[</span>Setup<span class="w"> </span>userspace<span class="w"> </span>target<span class="w"> </span>to<span class="w"> </span>run<span class="w"> </span>at<span class="w"> </span>user<span class="w"> </span>login<span class="o">]</span><span class="w"> </span>*****************************
-
-<span class="o">[</span>stdout<span class="o">]</span><span class="w"> </span>changed:<span class="w"> </span><span class="o">[</span><span class="m">192</span>.168.122.168<span class="o">]</span>
-
-TASK<span class="w"> </span><span class="o">[</span>Upload<span class="w"> </span>vuln<span class="w"> </span>driver<span class="w"> </span>sources<span class="o">]</span><span class="w"> </span>**********************************************
-
-<span class="o">[</span>stdout<span class="o">]</span><span class="w"> </span>skipping:<span class="w"> </span><span class="o">[</span><span class="m">192</span>.168.122.168<span class="o">]</span>
-
-TASK<span class="w"> </span><span class="o">[</span>Compile<span class="w"> </span>driver<span class="w"> </span>with<span class="w"> </span>MSBuild<span class="o">]</span><span class="w"> </span>*********************************************
-
-<span class="o">[</span>stdout<span class="o">]</span><span class="w"> </span>skipping:<span class="w"> </span><span class="o">[</span><span class="m">192</span>.168.122.168<span class="o">]</span>
-
-TASK<span class="w"> </span><span class="o">[</span>Set<span class="w"> </span>service<span class="w"> </span>to<span class="w"> </span>start<span class="w"> </span>vuln_driver.sys<span class="w"> </span>at<span class="w"> </span>boot<span class="o">]</span><span class="w"> </span>****************************
-
-<span class="o">[</span>stdout<span class="o">]</span><span class="w"> </span>skipping:<span class="w"> </span><span class="o">[</span><span class="m">192</span>.168.122.168<span class="o">]</span>
-
-TASK<span class="w"> </span><span class="o">[</span>Set<span class="w"> </span>service<span class="w"> </span>to<span class="w"> </span>start<span class="w"> </span>vuln_test<span class="w"> </span>to<span class="w"> </span>trigger<span class="w"> </span>the<span class="w"> </span>driver<span class="o">]</span><span class="w"> </span>********************
-
-<span class="o">[</span>stdout<span class="o">]</span><span class="w"> </span>skipping:<span class="w"> </span><span class="o">[</span><span class="m">192</span>.168.122.168<span class="o">]</span>
-
-PLAY<span class="w"> </span>RECAP<span class="w"> </span>*********************************************************************
-<span class="m">192</span>.168.122.168<span class="w">            </span>:<span class="w"> </span><span class="nv">ok</span><span class="o">=</span><span class="m">3</span><span class="w">    </span><span class="nv">changed</span><span class="o">=</span><span class="m">2</span><span class="w">    </span><span class="nv">unreachable</span><span class="o">=</span><span class="m">0</span><span class="w">    </span><span class="nv">failed</span><span class="o">=</span><span class="m">0</span><span class="w">    </span><span class="nv">skipped</span><span class="o">=</span><span class="m">5</span><span class="w">    </span><span class="nv">rescued</span><span class="o">=</span><span class="m">0</span><span class="w">    </span><span class="nv">ignored</span><span class="o">=</span><span class="m">0</span>
-
-
-vagrant<span class="w"> </span><span class="nv">halt</span>
-<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Clearing<span class="w"> </span>any<span class="w"> </span>previously<span class="w"> </span><span class="nb">set</span><span class="w"> </span>forwarded<span class="w"> </span>ports...
-<span class="o">==</span>&gt;<span class="w"> </span>vagrant-kafl-windows:<span class="w"> </span>Attempting<span class="w"> </span>graceful<span class="w"> </span>shutdown<span class="w"> </span>of<span class="w"> </span>VM...
-make<span class="o">[</span><span class="m">1</span><span class="o">]</span>:<span class="w"> </span>Leaving<span class="w"> </span>directory<span class="w"> </span><span class="s1">&#39;/home/user/kafl/kafl/examples/windows_x86_64&#39;</span>
-</pre></div>
-</div>
-</section>
-<section id="start-fuzzing">
-<h2>Start Fuzzing<a class="headerlink" href="#start-fuzzing" title="Permalink to this heading">#</a></h2>
-<p>Everything is in place to start fuzzing our target now !</p>
-<p>You can review the <a class="reference external" href="https://github.com/IntelLabs/kafl.targets/blob/master/windows_x86_64/kafl.yaml"><code class="docutils literal notranslate"><span class="pre">kafl.yaml</span></code></a> where the <code class="docutils literal notranslate"><span class="pre">qemu_image</span></code> parameter has already been configured for you.</p>
-<p>Make sure you are running inside the kAFL virtualenv.</p>
-<p>To start fuzzing, , and run the <code class="docutils literal notranslate"><span class="pre">kalf</span> <span class="pre">fuzz</span></code> command:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># root of kAFL repo</span>
-make<span class="w"> </span>env
-<span class="nb">cd</span><span class="w"> </span>kafl/examples/windows_x86_64
-<span class="o">(</span>venv<span class="o">)</span><span class="w"> </span>kafl<span class="w"> </span>fuzz
-</pre></div>
-</div>
-<p>The fuzzer will boot the QEMU Windows image, and the <code class="docutils literal notranslate"><span class="pre">selffuzz.exe</span></code> program should start its execution around 1 minute afterwards.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>For the full command-line reference, please refer to <a class="reference internal" href="../../reference/fuzzer_configuration.html"><span class="std std-doc">Fuzzer Configuration</span></a> page.</p>
-</div>
-<p>➡️ You can start the <a class="reference internal" href="../../reference/user_interface.html"><span class="std std-doc">kAFL GUI</span></a> to watch the campaign progress live in your terminal</p>
+<p>We can recognize 2 paths leading to a crash:</p>
+<div class="mermaid">
+            graph TD
+    classDef red fill:#ff7d7d
+    subgraph Userspace
+        crashme --&gt;|&quot;K3rN3lAFL#&quot;| panic[&quot;panic()&quot;]:::red
+        crashme --&gt;|&quot;PwnT0wn!&quot;| panic
+    end
+        </div></section>
+<section id="kafl-agent-implementation">
+<h2>kAFL Agent Implementation<a class="headerlink" href="#kafl-agent-implementation" title="Permalink to this heading">#</a></h2>
+<p>The Agent is initialized following the usual hypercall sequence and the harness is implemented around <code class="docutils literal notranslate"><span class="pre">fuzzme()</span></code> function.</p>
+<p>You can check the <a class="reference internal" href="../driver/target.html#agent-initialization"><span class="std std-ref">driver</span></a> for a similar implementation.</p>
 </section>
 </section>
 
@@ -359,23 +312,23 @@ make<span class="w"> </span>env
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="windows_driver.html">
+          <a class="next-page" href="target_setup.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">3. Fuzzing a Driver</div>
+                <div class="title">Provision the guest VM</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="windows_template.html">
+          <a class="prev-page" href="index.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">1. Windows VM Template</div>
+                <div class="title">Userspace</div>
                 
               </div>
             </a>
@@ -416,9 +369,11 @@ make<span class="w"> </span>env
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">2. Fuzzing Userspace</a><ul>
-<li><a class="reference internal" href="#provision-the-guest-vm">Provision the guest VM</a></li>
-<li><a class="reference internal" href="#start-fuzzing">Start Fuzzing</a></li>
+<li><a class="reference internal" href="#">Target analysis</a><ul>
+<li><a class="reference internal" href="#objectives">Objectives</a></li>
+<li><a class="reference internal" href="#source-code">Source code</a></li>
+<li><a class="reference internal" href="#vulnerability">Vulnerability</a></li>
+<li><a class="reference internal" href="#kafl-agent-implementation">kAFL Agent Implementation</a></li>
 </ul>
 </li>
 </ul>
@@ -430,12 +385,14 @@ make<span class="w"> </span>env
       
     </aside>
   </div>
-</div><script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
-    <script src="../../_static/scripts/furo.js"></script>
-    <script src="../../_static/clipboard.min.js"></script>
-    <script src="../../_static/copybutton.js"></script>
-    <script src="../../_static/design-tabs.js"></script>
+</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/scripts/furo.js"></script>
+    <script src="../../../_static/clipboard.min.js"></script>
+    <script src="../../../_static/copybutton.js"></script>
+    <script src="../../../_static/design-tabs.js"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
     </body>
 </html>
