@@ -1,43 +1,4 @@
-# 2. Fuzzing Userspace
-
-In this section we are going to fuzz a userspace program called [`selffuzz.exe`](https://github.com/IntelLabs/kafl.targets/blob/master/windows_x86_64/src/userspace/selffuzz_test.c).
-
-This program contains a small `fuzzme()` function, where two `panic()` calls have been nested into a set of conditionals.
-
-~~~C
-void fuzzme(uint8_t* input, int size){
-    if (size > 0x11){
-        if(input[0] == 'K')
-            if(input[1] == '3')
-                if(input[2] == 'r')
-                    if(input[3] == 'N')
-                        if(input[4] == '3')
-                            if(input[5] == 'l')
-                                if(input[6] == 'A')
-                                    if(input[7] == 'F')
-                                        if(input[8] == 'L')
-                                            if(input[9] == '#')
-                                                panic();
-
-        if(input[0] == 'P')
-            if(input[1] == 'w')
-                if(input[2] == 'n')
-                    if(input[3] == 'T')
-                        if(input[4] == '0')     
-                            if(input[5] == 'w')     
-                                if(input[6] == 'n')
-                                    if(input[7] == '!')
-                                        panic();
-
-    }
-};
-~~~
-
-:::{Note}
-The `panic()` function is simply a wrapper over a call to `HYPERCALL_KAFL_PANIC`.
-:::
-
-## Provision the guest VM
+# Provision the guest VM
 
 To compile and setup the `selffuzz.exe` target binary into the VM, we provide a Makefile and an Ansible playbook that will upload the resulting binary into the guest,
 and setup it to be executed during the boot sequence (by creating a symlink into the user `Sartup` folder).
@@ -109,28 +70,3 @@ vagrant halt
 ==> vagrant-kafl-windows: Attempting graceful shutdown of VM...
 make[1]: Leaving directory '/home/user/kafl/kafl/examples/windows_x86_64'
 ~~~
-
-## Start Fuzzing
-
-Everything is in place to start fuzzing our target now !
-
-You can review the [`kafl.yaml`](https://github.com/IntelLabs/kafl.targets/blob/master/windows_x86_64/kafl.yaml) where the `qemu_image` parameter has already been configured for you.
-
-Make sure you are running inside the kAFL virtualenv.
-
-To start fuzzing, , and run the `kalf fuzz` command:
-
-~~~shell
-# root of kAFL repo
-make env
-cd kafl/examples/windows_x86_64
-(venv) kafl fuzz
-~~~
-
-The fuzzer will boot the QEMU Windows image, and the `selffuzz.exe` program should start its execution around 1 minute afterwards.
-
-:::{Note}
-For the full command-line reference, please refer to [Fuzzer Configuration](../../reference/fuzzer_configuration.md) page.
-:::
-
-➡️ You can start the [kAFL GUI](../../reference/user_interface.md) to watch the campaign progress live in your terminal
