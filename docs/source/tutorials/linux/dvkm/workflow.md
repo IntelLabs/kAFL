@@ -59,16 +59,14 @@ Additionally, you must set up a communication channel with the VM. Several optio
 - [Ansible playbook](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html)
 
 :::{note}
-If you want to have a look at this kind of workflow, the [Windows driver](../../windows/driver/index.md) target is a good example.
-
-It combines [Packer](https://www.packer.io/), [Vagrant](https://www.vagrantup.com/), and [Ansible](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html) with [WinRM](https://learn.microsoft.com/en-us/windows/win32/winrm/portal) channel to provide a convenient setup.
+The [Windows driver](../../windows/driver/index.md) example target demonstrates how to combine [Packer](https://www.packer.io/), [Vagrant](https://www.vagrantup.com/), and [Ansible](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html) with [WinRM](https://learn.microsoft.com/en-us/windows/win32/winrm/portal) channel to provide a convenient setup.
 :::
 
 ### Direct Kernel Boot and initrd
 
-For targets that are kernel-based, such as ours, a more efficient approach is to use QEMU's [Direct Linux Boot](https://qemu-project.gitlab.io/qemu/system/linuxboot.html) feature in tandem with a custom initrd.
+Open source kernel and firmware targets can often be booted using QEMU's [Direct Linux Boot](https://qemu-project.gitlab.io/qemu/system/linuxboot.html) feature.
 
-This configuration forms a lightweight execution environment that can bypass the need for a full OS image.
+This approach is often more efficient than bootng a full-VM image and easier to customize and script.
 
 ```{code-block} shell
 ---
@@ -76,8 +74,6 @@ caption: Example using `qemu_kernel` (`--kernel`) and `qemu_initrd` (`--initrd`)
 ---
 (venv) $ kafl fuzz --kernel /path/to/linux/arch/x86/boot/bzImage --initrd /path/to/initrd.cpio.gz
 ```
-
-Below, we outline how to construct an efficient development workflow leveraging this approach.
 
 ## Initrd and `agent.sh` workflow
 
