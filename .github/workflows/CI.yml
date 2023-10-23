@@ -9,10 +9,12 @@ on:
     paths-ignore:
       - '**/README.md'
       - '.github/RELEASE.md'
+      - 'docs'
   pull_request:
     paths-ignore:
       - '**/README.md'
       - '.github/RELEASE.md'
+      - 'docs'
 
 env:
   image_name: intellabs/kafl
