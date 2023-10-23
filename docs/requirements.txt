@@ -1,5 +1,5 @@
 furo==2023.5.20
-GitPython==3.1.35
+GitPython==3.1.37
 myst-parser==2.0.0
 Sphinx==6.2.1
 sphinx-copybutton==0.5.2
