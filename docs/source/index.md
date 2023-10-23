@@ -36,6 +36,7 @@ The project is structured around multiple components:
 
 tutorials/introduction
 tutorials/installation
+tutorials/concepts
 tutorials/fuzzing_linux_kernel
 tutorials/windows/index
 ```

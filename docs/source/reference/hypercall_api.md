@@ -8,7 +8,7 @@ control and start injecting inputs at any point in VM guest execution.
 
 The hypercall API can be found in the [nyx_api.h](https://github.com/IntelLabs/kafl.targets/blob/master/nyx_api.h) C header.
 
-The following hypercalls should be prefixed by `kAFL_HYPERCALL_`.
+The following hypercalls should be prefixed by `HYPERCALL_KAFL_`.
 
 ## Essential hypercalls
 
