@@ -160,6 +160,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/concepts.html">Concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -249,7 +250,7 @@ coordinate the execution of the fuzzing harness with the fuzzer frontend.</p>
 <p>This approach offers a minimal low-level interface that can be used to take
 control and start injecting inputs at any point in VM guest execution.</p>
 <p>The hypercall API can be found in the <a class="reference external" href="https://github.com/IntelLabs/kafl.targets/blob/master/nyx_api.h">nyx_api.h</a> C header.</p>
-<p>The following hypercalls should be prefixed by <code class="docutils literal notranslate"><span class="pre">kAFL_HYPERCALL_</span></code>.</p>
+<p>The following hypercalls should be prefixed by <code class="docutils literal notranslate"><span class="pre">HYPERCALL_KAFL_</span></code>.</p>
 <section id="essential-hypercalls">
 <h2>Essential hypercalls<a class="headerlink" href="#essential-hypercalls" title="Permalink to this heading">#</a></h2>
 <section id="acquire-release">
