@@ -3,7 +3,7 @@
 
 ARG baseimage=python:3.11-slim
 FROM ${baseimage} as build
-ARG pyinstaller_version=5.7.0
+ARG pyinstaller_version=6.1.0
 
 WORKDIR /app
 COPY . .
