@@ -90,7 +90,7 @@ They can be toggled or skipped with the [`--tags`](https://docs.ansible.com/ansi
 | `build`                     | Selects all tasks where a component can be rebuild (`QEMU`, `libxdc`, etc ...). Developer oriented tag.                                      |
 | `clone`                     | Selects all tasks where a repository is cloned. Developer oriented tag.                                                                      |
 | `examples-template-windows` | Installs the required tooling to build the Windows template and run the examples. (Packer, Vagrant, agrant-plugins, qemu-bridge-helper, ...) |
-
+| `examples-dvkm`             | Installs the required packages and submodules to use the Damn Vulnerable Kernel Module linux example                                         |
 
 :::{note}
 You can list available tags with

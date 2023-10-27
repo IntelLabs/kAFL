@@ -1,0 +1,15 @@
+- name: Install required packages
+  ansible.builtin.apt:
+    # required for lddtree
+    name: pax-utils
+  become: true
+
+- name: Clone required submodules
+  ansible.builtin.command: >-
+    "git submodule update --init --depth 200
+    --jobs {{ ansible_processor_nproc }}
+    {{ dvkm_sub_path }}
+    {{ linux_agent_sub_path }}"
+    # noqa: command-instead-of-module
+  args:
+    chdir: "{{ examples_root }}"
