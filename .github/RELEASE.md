@@ -22,7 +22,7 @@
 
 - Misc fixes (#213)
 - Linux kernel tutorial: use implicit IP filters from snapshot metadata: (https://intellabs.github.io/kAFL/reference/hypercall_api.html#range-submit) (#216)
-
+- Fix `DUMP_FILE` hypercall argument (#254) (Thanks @sangjun !)
 
 # 🧰 Behind the scenes
 
