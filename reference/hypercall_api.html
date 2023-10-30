@@ -725,7 +725,7 @@ printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>,<span cla
 <span class="w">  </span><span class="p">.</span><span class="n">bytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4096</span><span class="p">,</span>
 <span class="w">  </span><span class="p">.</span><span class="n">append</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
 <span class="p">};</span>
-<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_DUMP_FILE</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">buffer</span><span class="p">);</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_DUMP_FILE</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="o">&amp;</span><span class="n">dump_file</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>

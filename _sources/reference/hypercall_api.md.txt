@@ -517,7 +517,7 @@ kafl_dump_file_t dump_file = {
   .bytes = 4096,
   .append = 0
 };
-kAFL_hypercall(HYPERCALL_KAFL_DUMP_FILE, (uint64_t)buffer);
+kAFL_hypercall(HYPERCALL_KAFL_DUMP_FILE, (uintptr_t)&dump_file);
 ```
 
 ### `USER_FAST_ACQUIRE`
