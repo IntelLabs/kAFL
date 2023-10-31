@@ -329,21 +329,19 @@
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you want to have a look at this kind of workflow, the <a class="reference internal" href="../../windows/driver/index.html"><span class="std std-doc">Windows driver</span></a> target is a good example.</p>
-<p>It combines <a class="reference external" href="https://www.packer.io/">Packer</a>, <a class="reference external" href="https://www.vagrantup.com/">Vagrant</a>, and <a class="reference external" href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html">Ansible</a> with <a class="reference external" href="https://learn.microsoft.com/en-us/windows/win32/winrm/portal">WinRM</a> channel to provide a convenient setup.</p>
+<p>The <a class="reference internal" href="../../windows/driver/index.html"><span class="std std-doc">Windows driver</span></a> example target demonstrates how to combine <a class="reference external" href="https://www.packer.io/">Packer</a>, <a class="reference external" href="https://www.vagrantup.com/">Vagrant</a>, and <a class="reference external" href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html">Ansible</a> with <a class="reference external" href="https://learn.microsoft.com/en-us/windows/win32/winrm/portal">WinRM</a> channel to provide a convenient setup.</p>
 </div>
 </section>
 <section id="direct-kernel-boot-and-initrd">
 <h3>Direct Kernel Boot and initrd<a class="headerlink" href="#direct-kernel-boot-and-initrd" title="Link to this heading">#</a></h3>
-<p>For targets that are kernel-based, such as ours, a more efficient approach is to use QEMU’s <a class="reference external" href="https://qemu-project.gitlab.io/qemu/system/linuxboot.html">Direct Linux Boot</a> feature in tandem with a custom initrd.</p>
-<p>This configuration forms a lightweight execution environment that can bypass the need for a full OS image.</p>
+<p>Open source kernel and firmware targets can often be booted using QEMU’s <a class="reference external" href="https://qemu-project.gitlab.io/qemu/system/linuxboot.html">Direct Linux Boot</a> feature.</p>
+<p>This approach is often more efficient than bootng a full-VM image and easier to customize and script.</p>
 <div class="literal-block-wrapper docutils container" id="id2">
 <div class="code-block-caption"><span class="caption-text">Example using <code class="docutils literal notranslate"><span class="pre">qemu_kernel</span></code> (<code class="docutils literal notranslate"><span class="pre">--kernel</span></code>) and <code class="docutils literal notranslate"><span class="pre">qemu_initrd</span></code> (<code class="docutils literal notranslate"><span class="pre">--initrd</span></code>) kAFL parameters</span><a class="headerlink" href="#id2" title="Link to this code">#</a></div>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>venv<span class="o">)</span><span class="w"> </span>$<span class="w"> </span>kafl<span class="w"> </span>fuzz<span class="w"> </span>--kernel<span class="w"> </span>/path/to/linux/arch/x86/boot/bzImage<span class="w"> </span>--initrd<span class="w"> </span>/path/to/initrd.cpio.gz
 </pre></div>
 </div>
 </div>
-<p>Below, we outline how to construct an efficient development workflow leveraging this approach.</p>
 </section>
 </section>
 <section id="initrd-and-agent-sh-workflow">

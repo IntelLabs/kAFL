@@ -462,7 +462,7 @@ by the logging facility.</p>
 <h2><code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">debug</span></code><a class="headerlink" href="#kafl-debug" title="Link to this heading">#</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">debug</span></code> subcommand provides various utilities for debugging your fuzzing campaign.</p>
 <p>By using this subcommand, you can replay payloads to better understand the control flow leading to a crash, verify the stability and determinism of a payload, and even debug the guest state live while replaying the payload.</p>
-<p>In this section, we’ll explore two key <a class="reference internal" href="../../../reference/fuzzer_configuration.html#action"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">actions</span></code></span></a> provided by the kafl debug subcommand:</p>
+<p>In this section, we’ll explore two key <a class="reference internal" href="../../../reference/fuzzer_configuration.html#action"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">actions</span></code></span></a> provided by <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">debug</span></code>:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">single</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gdb</span></code></p></li>
@@ -473,8 +473,7 @@ by the logging facility.</p>
 <p>The payload should be specified throught the <a class="reference internal" href="../../../reference/fuzzer_configuration.html#input"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">--input</span></code></span></a> parameter.</p>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
-<p>We should always specify <a class="reference internal" href="../../../reference/fuzzer_configuration.html#resume"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">--resume</span></code></span></a> when using either <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">cov</span></code> or <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">debug</span></code>, since it will replay from the original snapshot taken by the first call on <a class="reference internal" href="../../../reference/hypercall_api.html#next-payload"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">NEXT_PAYLAOD</span></code></span></a>, and will make our execution deterministic.</p>
-<p>That’s one of the key benefits of snapshot fuzzers !</p>
+<p>When replaying a payload from an previous kAFL run at $KAFL_WORKDIR, it is recommended to use <a class="reference internal" href="../../../reference/fuzzer_configuration.html#resume"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">--resume</span></code></span></a> so that the tool will use the exact same snapshot and page cache as in the fuzzing run. This improves our odds at reproducing the crash. If the workdir does not exist anymore or the snapshot is not found, running kafl single without <code class="docutils literal notranslate"><span class="pre">--resume</span></code> will simply boot a new VM with the given configuration and execute the agent a single time with the given input.</p>
 </div>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>mtarral@b49691bd4b34:~/kafl/kafl/examples/linux-user/dvkm$<span class="w"> </span>kafl<span class="w"> </span>debug<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--resume<span class="w"> </span><span class="se">\</span>
@@ -629,7 +628,7 @@ And kAFL confirmed that it received a <code class="docutils literal notranslate"
 <section id="action-gdb">
 <h3>Action <code class="docutils literal notranslate"><span class="pre">gdb</span></code><a class="headerlink" href="#action-gdb" title="Link to this heading">#</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">gdb</span></code> action is particularly valuable for deep-diving into the issues discovered during fuzzing.</p>
-<p>When using this action, QEMU is started in <code class="docutils literal notranslate"><span class="pre">gdbserver</span></code> mode, which allows it to act as a server for the GDB debugger. This means you can interact with the target application in real-time as the payload is being executed.</p>
+<p>This action working similar to <code class="docutils literal notranslate"><span class="pre">single</span></code>, but QEMU is started in <code class="docutils literal notranslate"><span class="pre">gdbserver</span></code> mode, allowing it to act as a server for the GDB debugger. This means you can interact with the target application in real-time as the payload is being executed.</p>
 <p>The use of GDB provides fine-grained control over the execution of the program and allows you to inspect the program’s state, variables, and call stack, offering a clear view into what led to a particular crash or unexpected behavior.</p>
 <p>Upon executing this command, QEMU will pause its execution and wait for a GDB client to connect. Once connected, you can use all the GDB commands to step through code, set breakpoints, and inspect memory and variables, thus enabling a thorough analysis of the crash scenario.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>mtarral@b49691bd4b34:~/kafl/kafl/examples/linux-user/dvkm$<span class="w"> </span>kafl<span class="w"> </span>debug<span class="w"> </span><span class="se">\</span>
@@ -797,21 +796,19 @@ Dump<span class="w"> </span>of<span class="w"> </span>assembler<span class="w"> 
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>We need to use GDB hardware breakpoints, as software breakpoints in QEMU’s embedded GDB server seems unrealiable.</p>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>To reach the <code class="docutils literal notranslate"><span class="pre">dvkm_ioctl</span></code> hardware breakpoint, we had to send a <code class="docutils literal notranslate"><span class="pre">CTRL-C</span></code> to the GDB client.
 The execution was hanging somewhere, for reasons that are not clear at the time of this writing.</p>
 </div>
-</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Also remember that in order to load the symbols reliably, at the same location, we had to disable the Kernel <code class="docutils literal notranslate"><span class="pre">ASLR</span></code>.</p>
+<p>Additionaly, in order to load the symbols reliably, at the same location, Kernel <code class="docutils literal notranslate"><span class="pre">ASLR</span></code> (<em>Address Space Layout Randomization</em>) had to be disabled.</p>
 <p>Have a look at the <code class="docutils literal notranslate"><span class="pre">kafl.yaml</span></code> <code class="docutils literal notranslate"><span class="pre">qemu_append</span></code> line, where <a class="reference external" href="https://www.kernel.org/doc/html/v4.14/admin-guide/kernel-parameters.html"><code class="docutils literal notranslate"><span class="pre">nokaslr</span></code></a> option is set.</p>
 </div>
-<div class="docutils">
 <p>Hopefully by now, you should have a better understanding of the kAFL workdir’s corpus directory, the captured logs and how to interpret them, as well as having the capacity to replay payloads as you will !</p>
 <p>The next section will focus on improving the fuzzing campaign and finding more crashes by compiling our target under <code class="docutils literal notranslate"><span class="pre">KASAN</span></code>, stay tuned !</p>
-</div>
 </section>
 </section>
 </section>

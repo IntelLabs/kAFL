@@ -2,7 +2,7 @@
 
 ## Objectives
 
-The aim is to fuzz the [DVKM (Damned Vulnerable Kernel Module)](https://github.com/hardik05/Damn_Vulnerable_Kernel_Module), an example kernel module developed by[Hardik Shah](https://github.com/hardik05).
+The aim is to fuzz the [DVKM (Damned Vulnerable Kernel Module)](https://github.com/hardik05/Damn_Vulnerable_Kernel_Module), an example kernel module developed by [Hardik Shah](https://github.com/hardik05).
 
 Designed for fuzzing training, DVKM contains deliberately vulnerable code that exposes to a range of security vulnerabilities, including:
 - integer overflow / underflow
