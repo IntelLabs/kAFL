@@ -1,0 +1,533 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="4 - Fuzzing campaign" href="fuzzing.html" /><link rel="prev" title="2 - kAFL workflow" href="workflow.html" />
+
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
+        <title>3 - Building the agent - kAFL</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">kAFL</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">kAFL</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../concepts.html">Concepts</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">Linux Target</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Linux Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="index.html">DVKM</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of DVKM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="target.html">1 - Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workflow.html">2 - kAFL workflow</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">3 - Building the agent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fuzzing.html">4 - Fuzzing campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="results.html">5 - Exploring campaign results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="improvements.html">6 - Improvements: KASAN</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/target.html">Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/windows_template.html">Windows VM Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/target_setup.html">Provision the guest VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/campaign.html">Fuzzing Campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/crash.html">Crash Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/target.html">Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/windows_template.html">Windows VM Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/target_setup.html">Provision the guest VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/campaign.html">Fuzzing Campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/improvements.html">Improvments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to/github_actions.html">Github Actions CI/CD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/fuzzer_configuration.html">Fuzzer Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/deployment.html">Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/hypercall_api.html">kAFL/Nyx Hypercall API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/workdir_layout.html">kAFL Workdir</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/user_interface.html">kAFL User Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Context</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../context/research_papers.html">Research Papers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/documentation.html">Building the documentation</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/tutorials/linux/dvkm/agent.md" title="Edit this page">
+    <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
+      <line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />
+    </svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="building-the-agent">
+<h1>3 - Building the agent<a class="headerlink" href="#building-the-agent" title="Link to this heading">#</a></h1>
+<p>This section guides you through the process of implementing a kAFL agent, which includes both the harness and the specifics tailored for our Linux target.</p>
+<section id="agent-protocol">
+<h2>Agent protocol<a class="headerlink" href="#agent-protocol" title="Link to this heading">#</a></h2>
+<p>The implementation of a kAFL agent can be broadly categorized into two main components:</p>
+<ol class="arabic simple">
+<li><p>Initialization</p></li>
+<li><p>Harness</p></li>
+</ol>
+<section id="initialization">
+<h3>Initialization<a class="headerlink" href="#initialization" title="Link to this heading">#</a></h3>
+<p>The initialization phase of the agent is responsible for:</p>
+<ul class="simple">
+<li><p>Configuring the agent settings to optimize fuzzing behavior.</p></li>
+<li><p>Mapping the payload buffer, which is shared among the Fuzzer, QEMU, and the VM.</p></li>
+<li><p>Setting Intel PT filters to enhance coverage precision and execution speed.</p></li>
+<li><p>Registering crash handlers to notify the fuzzer of target crashes and defining crash criteria.</p></li>
+<li><p>Specifying IP ranges to inform the fuzzer about Intel PT ranges, crucial for obtaining accurate coverage.</p></li>
+</ul>
+<div class="mermaid">
+            graph TD
+    subgraph Initialization Protocol
+        handshake[&quot;1. kAFL handshake&quot;] --&gt; hostconfig[&quot;2. Query host config&quot;] --&gt; guestconfig[&quot;3. Set guest agent config&quot;]
+        guestconfig --&gt; allocate[&quot;4. Allocate payload buffer&quot;] --&gt; mmap[&quot;5. Map payload buffer&quot;] --&gt; crash[&quot;6. Submit crash handlers&quot;]
+        crash --&gt; ranges[&quot;7. Submit Intel PT ranges&quot;] -.-&gt; cr3[&quot;8. Submit CR3&quot;]
+    end
+        </div><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This protocol serves as a reference and is not strictly mandated.</p>
+<p>However, Certain hypercalls must be executed in sequence.</p>
+<p>Example: <a class="reference internal" href="../../../reference/hypercall_api.html#get-host-config"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">GET_HOST_CONFIG</span></code></span></a> before <a class="reference internal" href="../../../reference/hypercall_api.html#set-agent-config"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">SET_AGENT_CONFIG</span></code></span></a></p>
+</div>
+<p>The corresponding hypercalls to use:</p>
+<ol class="arabic simple">
+<li><p>Handshake: <a class="reference internal" href="../../../reference/hypercall_api.html#acquire-release"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">ACQUIRE</span></code> and <code class="docutils literal notranslate"><span class="pre">RELEASE</span></code></span></a></p></li>
+<li><p>Query host config: <a class="reference internal" href="../../../reference/hypercall_api.html#get-host-config"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">GET_HOST_CONFIG</span></code></span></a></p></li>
+<li><p>Set agent config: <a class="reference internal" href="../../../reference/hypercall_api.html#set-agent-config"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">SET_AGENT_CONFIG</span></code></span></a></p></li>
+<li><p>Map payload buffer: <a class="reference internal" href="../../../reference/hypercall_api.html#get-payload"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">GET_PAYLOAD</span></code></span></a></p></li>
+<li><p>Submit crash handlers: <a class="reference internal" href="../../../reference/hypercall_api.html#submit-panic-submit-kasan"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">SUBMIT_PANIC</span></code> and <code class="docutils literal notranslate"><span class="pre">SUBMIT_KASAN</span></code></span></a></p></li>
+<li><p>Submit Intel PT filters: <a class="reference internal" href="../../../reference/hypercall_api.html#range-submit"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">RANGE_SUBMIT</span></code></span></a></p></li>
+<li><p>Submit CR3 (optional): <a class="reference internal" href="../../../reference/hypercall_api.html#submit-cr3"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">SUBMIT_CR3</span></code></span></a></p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For step 4 (Allocate payload buffer), there is no hypercall involved.</p>
+<p>But please note that the payload buffer should be page-aligned.</p>
+</div>
+</section>
+<section id="harness">
+<h3>Harness<a class="headerlink" href="#harness" title="Link to this heading">#</a></h3>
+<p>After the agent initialization is complete, the harness logic comes into play.</p>
+<p>The harness performs the following sequence of operations:</p>
+<ol class="arabic simple">
+<li><p>Write the next payload in the buffer: <a class="reference internal" href="../../../reference/hypercall_api.html#next-payload"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">NEXT_PAYLOAD</span></code></span></a></p></li>
+<li><p>Start Intel PT coverage: <a class="reference internal" href="../../../reference/hypercall_api.html#acquire-release"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">ACQUIRE</span></code></span></a></p></li>
+<li><p>Call target function</p></li>
+<li><p>End Intel PT coverage, restore the guest snapshot: <a class="reference internal" href="../../../reference/hypercall_api.html#acquire-release"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">RELEASE</span></code></span></a></p></li>
+</ol>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// 🔁 restore the snapshot and write next payload into the buffer</span>
+<span class="c1">//		(take a snapshot on first call)</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_NEXT_PAYLOAD</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="c1">// 🟢 start coverage feedback collection</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="c1">// ⚡ call fuzz target with the buffer</span>
+<span class="n">target_entry</span><span class="p">(</span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">);</span>
+<span class="c1">// ⚪ stop coverage feedback collection</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="dvkm-target">
+<h2>DVKM target<a class="headerlink" href="#dvkm-target" title="Link to this heading">#</a></h2>
+<section id="kernel-crash">
+<h3>Kernel crash<a class="headerlink" href="#kernel-crash" title="Link to this heading">#</a></h3>
+<p>To handle kernel crashes with the kAFL agent for DVKM targets, we need to locate the Linux kernel crash routine and insert a PANIC hypercall at the relevant point.</p>
+<p>Checkout the <svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-git-branch" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M11.75 2.5a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a2.25 2.25 0 113 2.122V6A2.5 2.5 0 0110 8.5H6a1 1 0 00-1 1v1.128a2.251 2.251 0 11-1.5 0V5.372a2.25 2.25 0 111.5 0v1.836A2.492 2.492 0 016 7h4a1 1 0 001-1v-.628A2.25 2.25 0 019.5 3.25zM4.25 12a.75.75 0 100 1.5.75.75 0 000-1.5zM3.5 3.25a.75.75 0 111.5 0 .75.75 0 01-1.5 0z"></path></svg><a class="reference external" href="https://github.com/IntelLabs/kafl.linux/tree/agent_tutorial"><code class="docutils literal notranslate"><span class="pre">agent_tutorial</span></code></a> branch of the <a class="reference external" href="https://github.com/IntelLabs/kafl.linux"><code class="docutils literal notranslate"><span class="pre">kafl.linux</span></code></a> repository.</p>
+<p>It consists of 4 commits:</p>
+<div class="mermaid">
+            %%{init: { 'logLevel': 'debug', 'theme': 'base', 'gitGraph': {'showBranches': true, 'showCommitLabel':true,'mainBranchName': 'agent_tutorial'}} }%%
+gitGraph
+    commit id: &quot;arch/x86/include: add nyx_api.h&quot;
+    commit id: &quot;printk: replace _printk impl by kAFL hprintf&quot;
+    commit id: &quot;panic: insert kAFL PANIC hypercall in oops_exit&quot;
+    commit id: &quot;kasan: insert kAFL KASAN hypercall in kasan_report&quot;
+        </div><ol class="arabic simple">
+<li><p>Adds the <code class="docutils literal notranslate"><span class="pre">nyx_api.h</span></code> hypercall header to the Linux sources.</p></li>
+<li><p>Replaces the kernel’s printk implementation by our own own implementation based on HPRINTF hypercall.</p></li>
+<li><p>Inserts a PANIC hypercall in the <code class="docutils literal notranslate"><span class="pre">oops_exit</span></code> function of the kernel, invoked during the crash handling sequence.</p></li>
+<li><p>Inserts a KASAN hypercall in the <code class="docutils literal notranslate"><span class="pre">kasan_report</span></code> function of the kernel. Further discussion on enabling KASAN will appear in the tutorial’s <a class="reference internal" href="improvements.html"><span class="std std-doc">improvements</span></a> section.</p></li>
+</ol>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">Altered <code class="docutils literal notranslate"><span class="pre">oops_exit</span></code> handler</span><a class="headerlink" href="#id3" title="Link to this code">#</a></div>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="cm">/*</span>
+<span class="linenos"> 2</span><span class="cm"> * Called when the architecture exits its oops handler, after printing</span>
+<span class="linenos"> 3</span><span class="cm"> * everything.</span>
+<span class="linenos"> 4</span><span class="cm"> */</span>
+<span class="linenos"> 5</span><span class="kt">void</span><span class="w"> </span><span class="nf">oops_exit</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="linenos"> 6</span><span class="p">{</span>
+<span class="linenos"> 7</span><span class="w">	</span><span class="n">do_oops_enter_exit</span><span class="p">();</span>
+<span class="linenos"> 8</span><span class="w">	</span><span class="n">print_oops_end_marker</span><span class="p">();</span>
+<span class="linenos"> 9</span><span class="w">	</span><span class="n">kmsg_dump</span><span class="p">(</span><span class="n">KMSG_DUMP_OOPS</span><span class="p">);</span>
+<span class="linenos">10</span>
+<span class="hll"><span class="linenos">11</span><span class="w">	</span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_PANIC</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+</span><span class="linenos">12</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="id1">
+<h3>Initialization<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<p>The kAFL agent’s remaining code resides in userland, within <a class="reference external" href="https://github.com/Wenzel/Damn_Vulnerable_Kernel_Module/blob/kafl/test_dvkm.c"><code class="docutils literal notranslate"><span class="pre">test_dvkm.c</span></code></a></p>
+<p>Keys points:</p>
+<p>The payload buffer is page-aligned using <a class="reference external" href="https://linux.die.net/man/3/aligned_alloc"><code class="docutils literal notranslate"><span class="pre">aligned_alloc</span></code></a>.</p>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text">Payload buffer paged-aligned allocation</span><a class="headerlink" href="#id4" title="Link to this code">#</a></div>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_payload</span><span class="o">*</span><span class="w"> </span><span class="n">payload_buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">aligned_alloc</span><span class="p">((</span><span class="kt">size_t</span><span class="p">)</span><span class="n">sysconf</span><span class="p">(</span><span class="n">_SC_PAGESIZE</span><span class="p">),</span><span class="w"> </span><span class="n">host_config</span><span class="p">.</span><span class="n">payload_buffer_size</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<p>We ensure that the payload is in resident memory with <a class="reference external" href="https://man7.org/linux/man-pages/man2/mlock.2.html"><code class="docutils literal notranslate"><span class="pre">mlock()</span></code></a></p>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">Locking payload buffer in resident memory</span><a class="headerlink" href="#id5" title="Link to this code">#</a></div>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">mlock</span><span class="p">(</span><span class="n">payload_buffer</span><span class="p">,</span><span class="w"> </span><span class="n">host_config</span><span class="p">.</span><span class="n">payload_buffer_size</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<p>The IP ranges are identified by parsing <code class="docutils literal notranslate"><span class="pre">/proc/modules</span></code>, for the <code class="docutils literal notranslate"><span class="pre">dvkm</span></code> module</p>
+<div class="literal-block-wrapper docutils container" id="id6">
+<div class="code-block-caption"><span class="caption-text">Detecting IP ranges for dvkm module</span><a class="headerlink" href="#id6" title="Link to this code">#</a></div>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">detectranges</span><span class="p">(</span><span class="s">&quot;/proc/modules&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;dvkm&quot;</span><span class="p">);</span>
+<span class="p">...</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">detectranges</span><span class="p">(</span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">mapfile</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">pattern</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// dvkm 24576 0 - Live 0xffffffffc0201000 (O)</span>
+<span class="w">    </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sscanf</span><span class="p">(</span><span class="n">line</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;%s %lu %d - %s %lx&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">module_name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">module_size</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">instances_loaded</span><span class="p">,</span><span class="w"> </span><span class="n">load_state</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">kernel_offset</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="id2">
+<h3>Harness<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<p>The harness is constructed around the <code class="docutils literal notranslate"><span class="pre">ioctl()</span></code> function call:</p>
+<div class="literal-block-wrapper docutils container" id="id7">
+<div class="code-block-caption"><span class="caption-text">DVKM Harness</span><a class="headerlink" href="#id7" title="Link to this code">#</a></div>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_NEXT_PAYLOAD</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="c1">// prepare ioctl code and io_buffer struct range[0-0xC]</span>
+<span class="n">ioctl_code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mh">0xD</span><span class="p">;</span>
+<span class="n">ioctl_num</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IOCTL</span><span class="p">(</span><span class="n">ioctl_code</span><span class="p">);</span>
+<span class="c1">// write width, height and datasize</span>
+<span class="kt">size_t</span><span class="w"> </span><span class="n">write_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">dvkm_obj</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">io_buffer</span><span class="p">.</span><span class="n">data</span><span class="p">);</span>
+<span class="n">memcpy</span><span class="p">((</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">io_buffer</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">payload_buffer</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">write_size</span><span class="p">);</span>
+<span class="c1">// assign rest of payload_buffer to io_buffer.data</span>
+<span class="n">io_buffer</span><span class="p">.</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">[</span><span class="n">write_size</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
+<span class="c1">// struct is now ready</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="n">ioctl</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="n">ioctl_num</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">io_buffer</span><span class="p">);</span>
+<span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<ul class="simple">
+<li><p>the <code class="docutils literal notranslate"><span class="pre">ioctl_code</span></code> is generated from the first payload byte, and modulo <code class="docutils literal notranslate"><span class="pre">0xD</span></code> ensures a valid IOCTL.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">write_size</span></code> is calculated to only write the relevant fields (<code class="docutils literal notranslate"><span class="pre">width</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code> and <code class="docutils literal notranslate"><span class="pre">datasize</span></code>) of the payload buffer.</p></li>
+<li><p>the remaining payload buffer fills the data pointer field.</p></li>
+</ul>
+<p>For the <code class="docutils literal notranslate"><span class="pre">dvkm.c</span></code> module, we’ve limited the <code class="docutils literal notranslate"><span class="pre">INFO()</span></code> printk format strings to prevent output congestion during fuzzing:</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">Use_after_free_IOCTL_Handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">dvkm_obj</span><span class="w"> </span><span class="o">*</span><span class="n">io</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">INFO</span><span class="p">(</span><span class="s">&quot;[+] data: %.50s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">kernel_data_buffer</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Congratulations! You now have a comprehensive understanding of the kAFL agent tailored for the DVKM target.</p>
+<p>Proceed to the next section to commence your fuzzing campaign.</p>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="fuzzing.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">4 - Fuzzing campaign</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="workflow.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">2 - kAFL workflow</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, Steffen Schulz - Mathieu Tarral
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/IntelLabs/kAFL" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">3 - Building the agent</a><ul>
+<li><a class="reference internal" href="#agent-protocol">Agent protocol</a><ul>
+<li><a class="reference internal" href="#initialization">Initialization</a></li>
+<li><a class="reference internal" href="#harness">Harness</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dvkm-target">DVKM target</a><ul>
+<li><a class="reference internal" href="#kernel-crash">Kernel crash</a></li>
+<li><a class="reference internal" href="#id1">Initialization</a></li>
+<li><a class="reference internal" href="#id2">Harness</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=5b3c63aa"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
+    </body>
+</html>

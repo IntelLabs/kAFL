@@ -1,0 +1,586 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="3 - Building the agent" href="agent.html" /><link rel="prev" title="1 - Target analysis" href="target.html" />
+
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
+        <title>2 - kAFL workflow - kAFL</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">kAFL</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">kAFL</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../concepts.html">Concepts</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">Linux Target</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Linux Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="index.html">DVKM</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of DVKM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="target.html">1 - Target analysis</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">2 - kAFL workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html">3 - Building the agent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fuzzing.html">4 - Fuzzing campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="results.html">5 - Exploring campaign results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="improvements.html">6 - Improvements: KASAN</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/target.html">Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/windows_template.html">Windows VM Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/target_setup.html">Provision the guest VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/campaign.html">Fuzzing Campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/crash.html">Crash Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/target.html">Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/windows_template.html">Windows VM Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/target_setup.html">Provision the guest VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/campaign.html">Fuzzing Campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/improvements.html">Improvments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to/github_actions.html">Github Actions CI/CD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/fuzzer_configuration.html">Fuzzer Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/deployment.html">Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/hypercall_api.html">kAFL/Nyx Hypercall API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/workdir_layout.html">kAFL Workdir</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/user_interface.html">kAFL User Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Context</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../context/research_papers.html">Research Papers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/documentation.html">Building the documentation</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/tutorials/linux/dvkm/workflow.md" title="Edit this page">
+    <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
+      <line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />
+    </svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="kafl-workflow">
+<h1>2 - kAFL workflow<a class="headerlink" href="#kafl-workflow" title="Link to this heading">#</a></h1>
+<p>This section focuses on setting up a development workflow for virtualizing our target with QEMU/KVM and interfacing it with kAFL.</p>
+<p>A streamlined workflow enables rapid iterations while adjusting the harness and obtaining feedback from the fuzzing campaign.</p>
+<p>Concepts introduced:</p>
+<ul class="simple">
+<li><p>kAFL QEMU inputs parameter:</p>
+<ul>
+<li><p><a class="reference internal" href="../../../reference/fuzzer_configuration.html#qemu-image"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">qemu_image</span></code></span></a></p></li>
+<li><p><a class="reference internal" href="../../../reference/fuzzer_configuration.html#qemu-kernel"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">qemu_kernel</span></code></span></a>, <a class="reference internal" href="../../../reference/fuzzer_configuration.html#qemu-append"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">qemu_append</span></code></span></a> <a class="reference internal" href="../../../reference/fuzzer_configuration.html#qemu-initrd"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">qemu_initrd</span></code></span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference external" href="https://github.com/IntelLabs/kafl.targets/tree/master/linux-user">linux-user</a> agent.sh workflow: for a simple yet effective setup targeting Linux userspace and drivers.</p></li>
+<li><p>kAFL <a class="reference internal" href="../../../reference/fuzzer_configuration.html#sharedir"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">sharedir</span></code></span></a> parameter: enables efficient file-based guest-host communication on top of kAFL hypercalls.</p></li>
+</ul>
+<section id="virtualizing-our-target">
+<h2>Virtualizing our target<a class="headerlink" href="#virtualizing-our-target" title="Link to this heading">#</a></h2>
+<section id="qemu-image">
+<h3>QEMU Image<a class="headerlink" href="#qemu-image" title="Link to this heading">#</a></h3>
+<p>Traditional QEMU/KVM virtualization would necessitate creating a complete, bootable QEMU image.</p>
+<p>Although feasible, this approach presents several practical challenges:</p>
+<ul class="simple">
+<li><ol class="arabic simple">
+<li><p>Download and install a fresh Ubuntu image, or equivalent</p></li>
+</ol>
+</li>
+<li><ol class="arabic simple" start="2">
+<li><p>Download our kafl target into the VM</p></li>
+</ol>
+</li>
+<li><ol class="arabic simple" start="3">
+<li><p>Compile it, and configure it to load during the boot sequence.</p></li>
+</ol>
+</li>
+<li><ol class="arabic simple" start="4">
+<li><p>Export the image and use it as kAFL <a class="reference internal" href="../../../reference/fuzzer_configuration.html#qemu-image"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">qemu_image</span></code></span></a> parameter</p></li>
+</ol>
+</li>
+</ul>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">Example using <code class="docutils literal notranslate"><span class="pre">qemu_image</span></code> (<code class="docutils literal notranslate"><span class="pre">--image</span></code> commandline) kAFL parameter</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>venv<span class="o">)</span><span class="w"> </span>$<span class="w"> </span>kafl<span class="w"> </span>fuzz<span class="w"> </span>--image<span class="w"> </span>/path/to/ubuntu-target.qcow2
+</pre></div>
+</div>
+</div>
+<ul class="simple">
+<li><ol class="arabic simple" start="5">
+<li><p>Repeat steps <code class="docutils literal notranslate"><span class="pre">3-4</span></code> on each iteration of the harness or target update</p></li>
+</ol>
+</li>
+</ul>
+<div class="mermaid">
+            flowchart TD
+    subgraph &quot;QEMU image workflow&quot;
+        install(&quot;1. Setup Ubuntu VM image&quot;) --&gt; transfer(&quot;2. Download or update our kAFL target&quot;)--&gt; compile(&quot;3. Compile it&quot;) --&gt; insert(&quot;4. Insert into the boot sequence&quot;)
+        insert -.- export[/&quot;5. Export the image for QEMU/KVM
+                            (if necessary)&quot;/]
+        export -.- fuzz[&quot;6. Fuzz with kAFL&quot;]
+        fuzz --&gt; update_need{&quot;7. Target update ?
+                            (code or harness)&quot;}
+        update_need --&gt;|Yes| transfer
+        update_need --&gt;|No| Run[&quot;8. Run the full fuzzing campaign&quot;]
+    end
+        </div><p>Updating the target in this workflow is cumbersome and may require the VM to be booted or its image restored from a snapshot.</p>
+<p>Additionally, you must set up a communication channel with the VM. Several options are available for this, including:</p>
+<ul class="simple">
+<li><p>Simple SSH server</p></li>
+<li><p><a class="reference external" href="https://wiki.qemu.org/Documentation/9psetup">Plan 9 VirtFS</a></p></li>
+<li><p><a class="reference external" href="https://wiki.qemu.org/Features/GuestAgent">QEMU Guest Agent</a></p></li>
+<li><p><a class="reference external" href="https://ubuntu.com/tutorials/install-and-configure-samba#1-overview">SMB</a>/<a class="reference external" href="https://ubuntu.com/server/docs/service-nfs">NFS</a></p></li>
+<li><p><a class="reference external" href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html">Ansible playbook</a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you want to have a look at this kind of workflow, the <a class="reference internal" href="../../windows/driver/index.html"><span class="std std-doc">Windows driver</span></a> target is a good example.</p>
+<p>It combines <a class="reference external" href="https://www.packer.io/">Packer</a>, <a class="reference external" href="https://www.vagrantup.com/">Vagrant</a>, and <a class="reference external" href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html">Ansible</a> with <a class="reference external" href="https://learn.microsoft.com/en-us/windows/win32/winrm/portal">WinRM</a> channel to provide a convenient setup.</p>
+</div>
+</section>
+<section id="direct-kernel-boot-and-initrd">
+<h3>Direct Kernel Boot and initrd<a class="headerlink" href="#direct-kernel-boot-and-initrd" title="Link to this heading">#</a></h3>
+<p>For targets that are kernel-based, such as ours, a more efficient approach is to use QEMU’s <a class="reference external" href="https://qemu-project.gitlab.io/qemu/system/linuxboot.html">Direct Linux Boot</a> feature in tandem with a custom initrd.</p>
+<p>This configuration forms a lightweight execution environment that can bypass the need for a full OS image.</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">Example using <code class="docutils literal notranslate"><span class="pre">qemu_kernel</span></code> (<code class="docutils literal notranslate"><span class="pre">--kernel</span></code>) and <code class="docutils literal notranslate"><span class="pre">qemu_initrd</span></code> (<code class="docutils literal notranslate"><span class="pre">--initrd</span></code>) kAFL parameters</span><a class="headerlink" href="#id2" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>venv<span class="o">)</span><span class="w"> </span>$<span class="w"> </span>kafl<span class="w"> </span>fuzz<span class="w"> </span>--kernel<span class="w"> </span>/path/to/linux/arch/x86/boot/bzImage<span class="w"> </span>--initrd<span class="w"> </span>/path/to/initrd.cpio.gz
+</pre></div>
+</div>
+</div>
+<p>Below, we outline how to construct an efficient development workflow leveraging this approach.</p>
+</section>
+</section>
+<section id="initrd-and-agent-sh-workflow">
+<h2>Initrd and <code class="docutils literal notranslate"><span class="pre">agent.sh</span></code> workflow<a class="headerlink" href="#initrd-and-agent-sh-workflow" title="Link to this heading">#</a></h2>
+<p>The approach outlined here relies on crafting a custom initrd that boots into a minimal BusyBox root filesystem.</p>
+<p>We’ll utilize kAFL’s <a class="reference internal" href="../../../reference/fuzzer_configuration.html#sharedir"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">sharedir</span></code></span></a> feature as an expedient communication channel between the host and guest.</p>
+<p>This solution is implemented in the <a class="reference external" href="https://github.com/IntelLabs/kafl.targets/blob/master/linux-user/scripts/gen_initrd.sh"><code class="docutils literal notranslate"><span class="pre">🗈</span> <span class="pre">scripts/gen_initrd.sh</span></code></a>.</p>
+<section id="gen-initrd-sh">
+<h3><code class="docutils literal notranslate"><span class="pre">gen_initrd.sh</span></code><a class="headerlink" href="#gen-initrd-sh" title="Link to this heading">#</a></h3>
+<div class="mermaid">
+            flowchart TD
+    subgraph &quot;gen_initrd.sh&quot;
+      rootfs[&quot;Create BusyBox rootfs&quot;] --&gt; copy_t
+      subgraph Inject template files
+        copy_t[&quot;Install template files into rootfs&quot;] --&gt; copy_vmcall[&quot;Install vmcall into /fuzz&quot;] --&gt; copy_dep[&quot;Install required shared libraries&quot;]
+      end
+      copy_dep --&gt; bless[&quot;Chain loader.sh into init scripts&quot;]
+      bless --&gt; gen[&quot;Generate final initrd.cpio.gz image&quot;]
+
+      click inject &quot;https://github.com/IntelLabs/kafl.targets/tree/master/linux-user/initrd_template&quot;
+      click bless &quot;https://github.com/IntelLabs/kafl.targets/blob/master/linux-user/scripts/gen_initrd.sh#L32&quot;
+    end
+        </div></section>
+<section id="sharedir">
+<h3><code class="docutils literal notranslate"><span class="pre">sharedir</span></code><a class="headerlink" href="#sharedir" title="Link to this heading">#</a></h3>
+<p>kAFL’s sharedir feature enables a host file system directory to be exposed to the guest through its hypercall API.</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">Exposing the target directory</span><a class="headerlink" href="#id3" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>ls<span class="w"> </span>-l
+📂<span class="w"> </span>target
+<span class="o">(</span>venv<span class="o">)</span><span class="w"> </span>$<span class="w"> </span>kafl<span class="w"> </span>fuzz<span class="w"> </span>--sharedir<span class="w"> </span>target
+</pre></div>
+</div>
+</div>
+<p>The following hypercalls are interacting with the sharedir:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../../../reference/hypercall_api.html#req-stream-data"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">REQ_STREAM_DATA</span></code></span></a>: fetch a file from host -&gt; guest</p></li>
+<li><p><a class="reference internal" href="../../../reference/hypercall_api.html#req-stream-data-bulk"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">REQ_STREAM_DATA_BULK</span></code></span></a>: fetch files from host -&gt; guest (better performance)</p></li>
+<li><p><a class="reference internal" href="../../../reference/hypercall_api.html#dump-file"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">DUMP_FILE</span></code></span></a>: pushes a file from guest -&gt; host</p></li>
+</ul>
+</section>
+<section id="vmcall">
+<h3><code class="docutils literal notranslate"><span class="pre">vmcall</span></code><a class="headerlink" href="#vmcall" title="Link to this heading">#</a></h3>
+<p>The <a class="reference external" href="https://github.com/IntelLabs/kafl.targets/tree/master/linux-user/vmcall"><code class="docutils literal notranslate"><span class="pre">📂</span> <span class="pre">vmcall</span></code></a> binary is a utility that implements most of the hypercall interface, serving as a convenient tool within the guest environment.</p>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text">Sending kAFL hprintf string</span><a class="headerlink" href="#id4" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Hello from vmcall&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>vmcall<span class="w"> </span>hcat
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">Downloading file.txt from host sharedir into /fuzz</span><a class="headerlink" href="#id5" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>vmcall<span class="w"> </span>hget<span class="w"> </span>-x<span class="w"> </span>-o<span class="w"> </span>/fuzz<span class="w"> </span>file.txt
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id6">
+<div class="code-block-caption"><span class="caption-text">Sending guest /proc/modules to the host</span><a class="headerlink" href="#id6" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>vmcall<span class="w"> </span>hpush<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;modules&quot;</span><span class="w"> </span>/proc/modules
+</pre></div>
+</div>
+</div>
+</section>
+<section id="agent-sh">
+<h3><code class="docutils literal notranslate"><span class="pre">agent.sh</span></code><a class="headerlink" href="#agent-sh" title="Link to this heading">#</a></h3>
+<p>To streamline the development workflow and eliminate the need to recompile the initrd for every target update, <code class="docutils literal notranslate"><span class="pre">loader.sh</span></code> downloads an <code class="docutils literal notranslate"><span class="pre">agent.sh</span></code> script from the exposed <code class="docutils literal notranslate"><span class="pre">sharedir</span></code>, using <code class="docutils literal notranslate"><span class="pre">vmcall</span></code>.</p>
+<div class="mermaid">
+            flowchart TD
+    subgraph &quot;loader.sh&quot;
+      download[&quot;Download agent.sh with vmcall&quot;] --&gt; exec[&quot;Execute agent.sh&quot;] --&gt; log[&quot;Send agent.sh log output&quot;]
+    end
+        </div><p>The agent.sh script’s role is multifaceted. It downloads the <code class="docutils literal notranslate"><span class="pre">dvkm.ko</span></code> kernel module, loads it, and then initiates the fuzzing process.</p>
+<div class="mermaid">
+            flowchart TD
+    subgraph &quot;agent.sh&quot;
+      download_mod[&quot;Download dvkm.ko&quot;] --&gt; insert[&quot;Insert dvkm.ko&quot;] --&gt; download_test[&quot;Download fuzz_dvkm&quot;]
+      download_test --&gt; fuzz[&quot;Start fuzzing
+            (run fuzz_dvkm)&quot;]
+    end
+        </div></section>
+<section id="summary">
+<h3>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h3>
+<div class="mermaid">
+            flowchart TD
+    subgraph Initrd
+      exec_load[&quot;Execute loader.sh&quot;] --&gt; dl_agent
+
+      subgraph `loader.sh`
+        dl_agent[&quot;Download agent.sh&quot;] --&gt; exec_agent[&quot;Execute agent.sh&quot;] --&gt; dl_mod
+        subgraph `agent.sh`
+          dl_mod[&quot;Download dvkm.ko&quot;] --&gt; insert[&quot;Insert dvkm.ko&quot;] --&gt; dl_fuzz[&quot;Download fuzz_dvkm&quot;] --&gt; fuzz[&quot;Start fuzzing&quot;]
+        end
+      end
+    end
+        </div><p>With this workflow, we have a flexible setup, ideal to gather feedback, build our harness and make quick iterations !</p>
+</section>
+</section>
+<section id="dvkm-workflow-setup">
+<h2>DVKM workflow setup<a class="headerlink" href="#dvkm-workflow-setup" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">📂</span> <span class="pre">linux-user/dvkm</span></code> directory structure is organized as follows:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>ls<span class="w"> </span>-l
+📂<span class="w"> </span>Damn_Vulnerable_Kernel_Module
+🗒️<span class="w"> </span>kafl.yaml
+🗒️<span class="w"> </span>Makefile
+📂<span class="w"> </span>sharedir
+
+$<span class="w"> </span>ls<span class="w"> </span>-l<span class="w"> </span>sharedir
+🗒️<span class="w"> </span>agent.sh
+➡️<span class="w"> </span>dvkm.ko<span class="w"> </span>-&gt;<span class="w"> </span>../Damn_Vulnerable_Kernel_Module/dvkm.ko
+➡️<span class="w"> </span>fuzz_dvkm<span class="w"> </span>-&gt;<span class="w"> </span>../Damn_Vulnerable_Kernel_Module/test_dvkm
+
+$<span class="w"> </span>ls<span class="w"> </span>-l<span class="w"> </span>Damn_Vulnerable_Kernel_Module/
+🗒️<span class="w"> </span>dvkm.c
+🗒️<span class="w"> </span>LICENSE
+🗒️<span class="w"> </span>Makefile
+🗒️<span class="w"> </span>Module.symvers
+🗒️<span class="w"> </span>README.md
+🗒️<span class="w"> </span>test_dvkm.c
+</pre></div>
+</div>
+<p>To set up the required dependencies, navigate to the kAFL directory and execute <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">deploy</span></code>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>kAFL
+<span class="o">(</span>venv<span class="o">)</span><span class="w"> </span>$<span class="w"> </span>make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </span>--tags<span class="w"> </span>examples,examples-dvkm
+</pre></div>
+</div>
+<p>Now, switch to the <code class="docutils literal notranslate"><span class="pre">📂</span> <span class="pre">linux-user/dvkm</span></code> directory to compile the target and its dependencies:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>kafl/examples/linux-user/dvkm
+make
+</pre></div>
+</div>
+<p>You have successfully compiled:</p>
+<ul class="simple">
+<li><p>the custom initrd</p></li>
+<li><p>the Linux kernel with kAFL modifications</p></li>
+<li><p>the dvkm module</p></li>
+<li><p>the kafl-agent implemented in <code class="docutils literal notranslate"><span class="pre">test_dvkm.c</span></code></p></li>
+</ul>
+<p>In the next part, we will focus on how to implement a kAFL harness, and look at the implementation details of DVKM !</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="agent.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">3 - Building the agent</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="target.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">1 - Target analysis</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, Steffen Schulz - Mathieu Tarral
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/IntelLabs/kAFL" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">2 - kAFL workflow</a><ul>
+<li><a class="reference internal" href="#virtualizing-our-target">Virtualizing our target</a><ul>
+<li><a class="reference internal" href="#qemu-image">QEMU Image</a></li>
+<li><a class="reference internal" href="#direct-kernel-boot-and-initrd">Direct Kernel Boot and initrd</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#initrd-and-agent-sh-workflow">Initrd and <code class="docutils literal notranslate"><span class="pre">agent.sh</span></code> workflow</a><ul>
+<li><a class="reference internal" href="#gen-initrd-sh"><code class="docutils literal notranslate"><span class="pre">gen_initrd.sh</span></code></a></li>
+<li><a class="reference internal" href="#sharedir"><code class="docutils literal notranslate"><span class="pre">sharedir</span></code></a></li>
+<li><a class="reference internal" href="#vmcall"><code class="docutils literal notranslate"><span class="pre">vmcall</span></code></a></li>
+<li><a class="reference internal" href="#agent-sh"><code class="docutils literal notranslate"><span class="pre">agent.sh</span></code></a></li>
+<li><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dvkm-workflow-setup">DVKM workflow setup</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=5b3c63aa"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
+    </body>
+</html>

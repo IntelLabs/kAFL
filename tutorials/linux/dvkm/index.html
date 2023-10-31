@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="Github Actions CI/CD" href="../../../how_to/github_actions.html" /><link rel="prev" title="Fuzzing Campaign" href="campaign.html" />
+<link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="1 - Target analysis" href="target.html" /><link rel="prev" title="Linux Target" href="../index.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
-        <title>Improvments - kAFL</title>
+        <title>DVKM - kAFL</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
@@ -136,7 +136,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -161,34 +161,34 @@
 <li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../concepts.html">Concepts</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../linux/index.html">Linux Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Linux Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../linux/dvkm/index.html">DVKM</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of DVKM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../linux/dvkm/target.html">1 - Target analysis</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../linux/dvkm/workflow.html">2 - kAFL workflow</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../linux/dvkm/agent.html">3 - Building the agent</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../linux/dvkm/fuzzing.html">4 - Fuzzing campaign</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../linux/dvkm/results.html">5 - Exploring campaign results</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../linux/dvkm/improvements.html">6 - Improvements: KASAN</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">Linux Target</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Linux Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children current-page"><a class="current reference internal" href="#">DVKM</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of DVKM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="target.html">1 - Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workflow.html">2 - kAFL workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html">3 - Building the agent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fuzzing.html">4 - Fuzzing campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="results.html">5 - Exploring campaign results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="improvements.html">6 - Improvements: KASAN</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../linux/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fuzzing_linux_kernel.html">Linux Kernel target</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">Windows Target</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2 has-children"><a class="reference internal" href="../driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../driver/target.html">Target analysis</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../windows_template.html">Windows VM Template</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../driver/target_setup.html">Provision the guest VM</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../driver/campaign.html">Fuzzing Campaign</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../driver/crash.html">Crash Analysis</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/target.html">Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/windows_template.html">Windows VM Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/target_setup.html">Provision the guest VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/campaign.html">Fuzzing Campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/crash.html">Crash Analysis</a></li>
 </ul>
 </li>
-<li class="toctree-l2 current has-children"><a class="reference internal" href="index.html">Userspace</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="target.html">Target analysis</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../windows_template.html">Windows VM Template</a></li>
-<li class="toctree-l3"><a class="reference internal" href="target_setup.html">Provision the guest VM</a></li>
-<li class="toctree-l3"><a class="reference internal" href="campaign.html">Fuzzing Campaign</a></li>
-<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">Improvments</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/target.html">Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/windows_template.html">Windows VM Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/target_setup.html">Provision the guest VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/campaign.html">Fuzzing Campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/improvements.html">Improvments</a></li>
 </ul>
 </li>
 </ul>
@@ -233,7 +233,7 @@
         </a>
         <div class="content-icon-container">
           <div class="edit-this-page">
-  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/tutorials/windows/userspace/improvements.md" title="Edit this page">
+  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/tutorials/linux/dvkm/index.md" title="Edit this page">
     <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
@@ -249,27 +249,55 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main">
-          <section id="improvments">
-<h1>Improvments<a class="headerlink" href="#improvments" title="Link to this heading">#</a></h1>
-<section id="user-fast-acquire">
-<h2><code class="docutils literal notranslate"><span class="pre">USER_FAST_ACQUIRE</span></code><a class="headerlink" href="#user-fast-acquire" title="Link to this heading">#</a></h2>
-<p>It’s possible to enhance the fuzzing speed by leveraging a specific hypercall in kAFL’s API: <a class="reference internal" href="../../../reference/hypercall_api.html#user-fast-acquire"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">USER_FAST_ACQUIRE</span></code></span></a>.</p>
-<p>Rewriting the harness with this hypercall:</p>
-<div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-text">Updated selffuzz.c harness with USER_FAST_ACQUIRE</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_USER_FAST_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
-<span class="linenos">2</span><span class="n">fuzzme</span><span class="p">(</span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">);</span>
-<span class="linenos">3</span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
-</pre></div>
+          <section id="dvkm">
+<h1>DVKM<a class="headerlink" href="#dvkm" title="Link to this heading">#</a></h1>
+<p>This tutorial will walk you through the process of using kAFL to fuzz a Linux kernel module.</p>
+<p>Specifically, we will focus on the <a class="reference external" href="https://github.com/hardik05/Damn_Vulnerable_Kernel_Module">DVKM (Damned Vulnerable Kernel Module)</a> as our target for fuzzing.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">DVKM tutorial sections</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="target.html">1 - Target analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="target.html#objectives">Objectives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="target.html#source-code-overview">Source code overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="target.html#integer-overflow">Integer Overflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="workflow.html">2 - kAFL workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workflow.html#virtualizing-our-target">Virtualizing our target</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflow.html#initrd-and-agent-sh-workflow">Initrd and <code class="docutils literal notranslate"><span class="pre">agent.sh</span></code> workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflow.html#dvkm-workflow-setup">DVKM workflow setup</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="agent.html">3 - Building the agent</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="agent.html#agent-protocol">Agent protocol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agent.html#dvkm-target">DVKM target</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fuzzing.html">4 - Fuzzing campaign</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fuzzing.html#running-kafl-fuzz">Running <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">fuzz</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fuzzing.html#follow-the-progress-with-kafl-gui">Follow the progress with <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">gui</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="results.html">5 - Exploring campaign results</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="results.html#exploring-the-corpus">Exploring the corpus</a></li>
+<li class="toctree-l2"><a class="reference internal" href="results.html#crash-logs">Crash logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="results.html#kafl-debug"><code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">debug</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="improvements.html">6 - Improvements: KASAN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="improvements.html#compiling-with-kasan">Compiling with KASAN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvements.html#running-an-enhanced-campaign">Running an enhanced campaign</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvements.html#viewing-a-kasan-report">Viewing a KASAN report</a></li>
+</ul>
+</li>
+</ul>
 </div>
-</div>
-</section>
 </section>
 
         </article>
@@ -277,23 +305,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../../../how_to/github_actions.html">
+          <a class="next-page" href="target.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Github Actions CI/CD</div>
+                <div class="title">1 - Target analysis</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="campaign.html">
+          <a class="prev-page" href="../index.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Fuzzing Campaign</div>
+                <div class="title">Linux Target</div>
                 
               </div>
             </a>
@@ -322,27 +350,8 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">Improvments</a><ul>
-<li><a class="reference internal" href="#user-fast-acquire"><code class="docutils literal notranslate"><span class="pre">USER_FAST_ACQUIRE</span></code></a></li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>

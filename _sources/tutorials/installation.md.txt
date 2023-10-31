@@ -201,5 +201,5 @@ The complete documentation regarding kAFL's installation is available at [refere
 
 Now you are ready to configure one of our pre-baked kAFL targets, and start the fuzzer !
 
-- ➡️ Continue by [fuzzing the Linux Kernel](./fuzzing_linux_kernel.md)
+- ➡️ Continue by [fuzzing on Linux](./linux/index.md)
 - ➡️ Continue by [fuzzing Windows programs](./windows/index.md)

@@ -1,17 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="kAFL/Nyx Hypercall API" href="hypercall_api.html" /><link rel="prev" title="Fuzzer Configuration" href="fuzzer_configuration.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>Deployment - kAFL</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
     
     
 
@@ -161,9 +161,21 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/concepts.html">Concepts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/linux/index.html">Linux Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Linux Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/linux/dvkm/index.html">DVKM</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of DVKM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/target.html">1 - Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/workflow.html">2 - kAFL workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/agent.html">3 - Building the agent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/fuzzing.html">4 - Fuzzing campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/results.html">5 - Exploring campaign results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/improvements.html">6 - Improvements: KASAN</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/linux/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/driver/target.html">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/driver/target_setup.html">Provision the guest VM</a></li>
@@ -171,7 +183,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/driver/crash.html">Crash Analysis</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/userspace/target.html">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/userspace/target_setup.html">Provision the guest VM</a></li>
@@ -244,7 +256,7 @@
         </div>
         <article role="main">
           <section id="deployment">
-<h1>Deployment<a class="headerlink" href="#deployment" title="Permalink to this heading">#</a></h1>
+<h1>Deployment<a class="headerlink" href="#deployment" title="Link to this heading">#</a></h1>
 <p>kAFL’s deployment system (<em>or installation</em>) is built around <a class="reference external" href="https://www.ansible.com/">Ansible</a>, an IT automation framework
 useful for deploying Cloud services and provisioning virtual machines.</p>
 <div class="admonition note">
@@ -252,7 +264,7 @@ useful for deploying Cloud services and provisioning virtual machines.</p>
 <p>As a user, you are only expected to update the Ansible <a class="reference external" href="https://github.com/IntelLabs/kAFL/blob/master/deploy/inventory">🗋 <code class="docutils literal notranslate"><span class="pre">deploy/inventory</span></code></a> if you want to perform a remote deployment. See Ansible’s <a class="reference external" href="https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html">inventory documentation</a>.</p>
 </div>
 <section id="system-modifications">
-<h2>System modifications<a class="headerlink" href="#system-modifications" title="Permalink to this heading">#</a></h2>
+<h2>System modifications<a class="headerlink" href="#system-modifications" title="Link to this heading">#</a></h2>
 <p>This is the list system level modifications made by the Ansible playbook when installing <em>kAFL</em>:</p>
 <ul class="simple">
 <li><p>checking for KVM’s compatibility with kAFL. If necessary, setup a new kernel:</p>
@@ -281,7 +293,7 @@ Docker image</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="makefile-targets">
-<h2>Makefile targets<a class="headerlink" href="#makefile-targets" title="Permalink to this heading">#</a></h2>
+<h2>Makefile targets<a class="headerlink" href="#makefile-targets" title="Link to this heading">#</a></h2>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -340,7 +352,7 @@ make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </s
 </div>
 </section>
 <section id="ansible-tags">
-<h2>Ansible tags<a class="headerlink" href="#ansible-tags" title="Permalink to this heading">#</a></h2>
+<h2>Ansible tags<a class="headerlink" href="#ansible-tags" title="Link to this heading">#</a></h2>
 <p>A set of <a class="reference external" href="https://docs.ansible.com/ansible/latest/user_guide/playbooks_tags.html"><em>Ansible</em> tags</a> are available to have fine grained control on the playbook’s execution.</p>
 <p>They can be toggled or skipped with the <a class="reference external" href="https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html#cmdoption-ansible-playbook-2"><code class="docutils literal notranslate"><span class="pre">--tags</span></code></a> and <a class="reference external" href="https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html#cmdoption-ansible-playbook-skip-tags"><code class="docutils literal notranslate"><span class="pre">--skip-tags</span></code></a> <em>Ansible</em> command line parameters, and directly added from the makefile target via <code class="docutils literal notranslate"><span class="pre">EXTRA_ARGS</span></code> feature (described previously).</p>
 <div class="table-wrapper colwidths-auto docutils container">
@@ -405,12 +417,12 @@ make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </s
 </div>
 </section>
 <section id="ansible-galaxy-and-composability">
-<h2>Ansible Galaxy and composability<a class="headerlink" href="#ansible-galaxy-and-composability" title="Permalink to this heading">#</a></h2>
+<h2>Ansible Galaxy and composability<a class="headerlink" href="#ansible-galaxy-and-composability" title="Link to this heading">#</a></h2>
 <p>One of the reasons to rewrite kAFL’s deployment from scratching for the <a class="reference external" href="https://github.com/IntelLabs/kAFL/releases/tag/v0.5"><code class="docutils literal notranslate"><span class="pre">v0.5</span></code></a> release was to achieve a better composability.</p>
 <p>In fact, other projects at Intel are based on kAFL, like the <a class="reference external" href="https://github.com/intel/ccc-linux-guest-hardening">ccc-linux-guest-hardening</a> repo. And we expect the community to develop their own tooling and use cases based on kAFL.</p>
 <p>We wanted to make it as easy as possible to reuse the current kAFL deployment and cherry-pick the desired components. With this goal in mind, we leveraged a powerful feature of <em>Ansible</em>: <a class="reference external" href="https://galaxy.ansible.com/">Ansible Galaxy</a> to breakdown kAFL’s setup into modular <a class="reference external" href="https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html">roles</a>, and distribute them into a reusable <a class="reference external" href="https://docs.ansible.com/ansible/devel/dev_guide/developing_collections.html#developing-collections">collection</a>.</p>
 <section id="intellabs-kafl-ansible-collection">
-<h3>intellabs.kafl Ansible collection<a class="headerlink" href="#intellabs-kafl-ansible-collection" title="Permalink to this heading">#</a></h3>
+<h3>intellabs.kafl Ansible collection<a class="headerlink" href="#intellabs-kafl-ansible-collection" title="Link to this heading">#</a></h3>
 <p>The <a class="reference external" href="https://github.com/IntelLabs/kAFL/tree/master/deploy/intellabs/kafl"><code class="docutils literal notranslate"><span class="pre">intellabs.kafl</span></code></a> collection is available in the <a class="reference external" href="https://github.com/IntelLabs/kAFL/tree/master/deploy">📁<code class="docutils literal notranslate"><span class="pre">deploy</span></code></a> directory.</p>
 <p>It regroups all the essential components required to setup kAFL (kernel package, QEMU, libxdc, capstone, fuzzer frontend …).</p>
 <p>The roles are depending on each other, in such a way that including the <code class="docutils literal notranslate"><span class="pre">fuzzer</span></code> role will pull out the others:</p>
@@ -427,7 +439,7 @@ make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </s
     qemu --&gt; libxdc
         </div></section>
 <section id="reusing-the-collection">
-<h3>Reusing the collection<a class="headerlink" href="#reusing-the-collection" title="Permalink to this heading">#</a></h3>
+<h3>Reusing the collection<a class="headerlink" href="#reusing-the-collection" title="Link to this heading">#</a></h3>
 <p><a class="reference external" href="https://github.com/IntelLabs/kAFL">kAFL</a> and <a class="reference external" href="https://github.com/intel/ccc-linux-guest-hardening">ccc-linux-guest-hardening</a> are sharing the same deployment for kAFL.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -536,13 +548,13 @@ make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </s
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/scripts/furo.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+</div><script src="../_static/documentation_options.js?v=5b3c63aa"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({startOnLoad:true});</script>
     </body>

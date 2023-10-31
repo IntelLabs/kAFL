@@ -1,17 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Linux Kernel target" href="fuzzing_linux_kernel.html" /><link rel="prev" title="Installation" href="installation.html" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Linux Target" href="linux/index.html" /><link rel="prev" title="Installation" href="installation.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>Concepts - kAFL</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
     
     
 
@@ -161,9 +161,21 @@
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Concepts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fuzzing_linux_kernel.html">Linux Kernel target</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="linux/index.html">Linux Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Linux Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="linux/dvkm/index.html">DVKM</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of DVKM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="linux/dvkm/target.html">1 - Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="linux/dvkm/workflow.html">2 - kAFL workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="linux/dvkm/agent.html">3 - Building the agent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="linux/dvkm/fuzzing.html">4 - Fuzzing campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="linux/dvkm/results.html">5 - Exploring campaign results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="linux/dvkm/improvements.html">6 - Improvements: KASAN</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="linux/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="windows/driver/target.html">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="windows/windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="windows/driver/target_setup.html">Provision the guest VM</a></li>
@@ -171,7 +183,7 @@
 <li class="toctree-l3"><a class="reference internal" href="windows/driver/crash.html">Crash Analysis</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="windows/userspace/target.html">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="windows/windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="windows/userspace/target_setup.html">Provision the guest VM</a></li>
@@ -244,11 +256,11 @@
         </div>
         <article role="main">
           <section id="concepts">
-<h1>Concepts<a class="headerlink" href="#concepts" title="Permalink to this heading">#</a></h1>
+<h1>Concepts<a class="headerlink" href="#concepts" title="Link to this heading">#</a></h1>
 <p>Before we dive into a specific target, we need to introduce the concept of a <em>kAFL Agent</em> that will used at the next step of the tutorial</p>
 <p>We assume you are already familiar with fuzzing vocabulary (<a class="reference external" href="https://github.com/google/fuzzing/blob/master/docs/glossary.md">Google’s fuzzing glossary</a> can be helpful here).</p>
 <section id="kafl-agent">
-<h2>kAFL Agent<a class="headerlink" href="#kafl-agent" title="Permalink to this heading">#</a></h2>
+<h2>kAFL Agent<a class="headerlink" href="#kafl-agent" title="Link to this heading">#</a></h2>
 <p>The term <em>kAFL Agent</em> simply refers to the implementation of a fuzzing harness in the guest.</p>
 <p>The <em>Agent</em> is responsible for both instrumenting and overseeing a specific portion of the SUT (<em>System Under Test</em>) through a set of <a class="reference internal" href="../reference/hypercall_api.html"><span class="std std-doc">hypercalls</span></a>.</p>
 <p>Considering that these hypercalls constitues a communication channel with the external virtual machine environment, the term <em>agent</em> has been employed, akin to a guest agent.</p>
@@ -260,7 +272,7 @@
     end
     QEMU &lt;-- Hypercalls --&gt; Agent
         </div><div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-text">Example of a simplified kAFL Agent fuzzing a target function called <code class="docutils literal notranslate"><span class="pre">target()</span></code></span><a class="headerlink" href="#id1" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example of a simplified kAFL Agent fuzzing a target function called <code class="docutils literal notranslate"><span class="pre">target()</span></code></span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// 🤝 kAFL handshake </span>
 <span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
@@ -278,10 +290,10 @@
 </div>
 </section>
 <section id="pick-a-target">
-<h2>Pick a Target !<a class="headerlink" href="#pick-a-target" title="Permalink to this heading">#</a></h2>
+<h2>Pick a Target !<a class="headerlink" href="#pick-a-target" title="Link to this heading">#</a></h2>
 <p>Now you are ready to configure one of our pre-baked kAFL targets, and start the fuzzer !</p>
 <ul class="simple">
-<li><p>➡️ Continue by <a class="reference internal" href="fuzzing_linux_kernel.html"><span class="std std-doc">fuzzing the Linux Kernel</span></a></p></li>
+<li><p>➡️ Continue by <a class="reference internal" href="linux/index.html"><span class="std std-doc">fuzzing Linux targets</span></a></p></li>
 <li><p>➡️ Continue by <a class="reference internal" href="windows/index.html"><span class="std std-doc">fuzzing Windows programs</span></a></p></li>
 </ul>
 </section>
@@ -292,12 +304,12 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="fuzzing_linux_kernel.html">
+          <a class="next-page" href="linux/index.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Linux Kernel target</div>
+                <div class="title">Linux Target</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -363,13 +375,13 @@
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/scripts/furo.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+</div><script src="../_static/documentation_options.js?v=5b3c63aa"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({startOnLoad:true});</script>
     </body>

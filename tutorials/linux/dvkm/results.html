@@ -1,0 +1,908 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="6 - Improvements: KASAN" href="improvements.html" /><link rel="prev" title="4 - Fuzzing campaign" href="fuzzing.html" />
+
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
+        <title>5 - Exploring campaign results - kAFL</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">kAFL</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">kAFL</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../concepts.html">Concepts</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">Linux Target</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Linux Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="index.html">DVKM</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of DVKM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="target.html">1 - Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workflow.html">2 - kAFL workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html">3 - Building the agent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fuzzing.html">4 - Fuzzing campaign</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">5 - Exploring campaign results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="improvements.html">6 - Improvements: KASAN</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/target.html">Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/windows_template.html">Windows VM Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/target_setup.html">Provision the guest VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/campaign.html">Fuzzing Campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/driver/crash.html">Crash Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/target.html">Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/windows_template.html">Windows VM Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/target_setup.html">Provision the guest VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/campaign.html">Fuzzing Campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../windows/userspace/improvements.html">Improvments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to/github_actions.html">Github Actions CI/CD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/fuzzer_configuration.html">Fuzzer Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/deployment.html">Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/hypercall_api.html">kAFL/Nyx Hypercall API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/workdir_layout.html">kAFL Workdir</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/user_interface.html">kAFL User Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Context</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../context/research_papers.html">Research Papers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/documentation.html">Building the documentation</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/IntelLabs/kAFL/edit/docs/docs/source/tutorials/linux/dvkm/results.md" title="Edit this page">
+    <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
+      <line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />
+    </svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="exploring-campaign-results">
+<h1>5 - Exploring campaign results<a class="headerlink" href="#exploring-campaign-results" title="Link to this heading">#</a></h1>
+<p>Upon completing a brief fuzzing campaign, you should have observed several crashes. This section will guide you through the analysis of these crashes.</p>
+<section id="exploring-the-corpus">
+<h2>Exploring the corpus<a class="headerlink" href="#exploring-the-corpus" title="Link to this heading">#</a></h2>
+<p>First, navigate to the directory where kAFL stores crash reports, located within <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR</span></code> at <code class="docutils literal notranslate"><span class="pre">📂</span> <span class="pre">corpus/crash</span></code>.</p>
+<p>This directory will contain payload files, each named with a unique identifier, such as <code class="docutils literal notranslate"><span class="pre">payload_00030</span></code>.</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">Displaying payload crash files from the corpus</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>$<span class="w"> </span><span class="nb">pushd</span><span class="w"> </span><span class="nv">$KAFL_WORKDIR</span>
+<span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>mtarral@b49691bd4b34:/dev/shm/kafl_mtarral$<span class="w"> </span>ls<span class="w"> </span>-l<span class="w"> </span>corpus/crash/
+total<span class="w"> </span><span class="m">16</span>
+-rw-r--r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w"> </span><span class="m">12</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>payload_00030
+-rw-r--r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w"> </span><span class="m">12</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>payload_00031
+-rw-r--r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w"> </span><span class="m">12</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>payload_00033
+-rw-r--r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w">  </span><span class="m">7</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:22<span class="w"> </span>payload_00060
+</pre></div>
+</div>
+</div>
+<p>To gain further insights into these payloads, let’s examine their hexdump representation.</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">Hexdump representation</span><a class="headerlink" href="#id2" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>mtarral@b49691bd4b34:/dev/shm/kafl_mtarral$<span class="w"> </span>find<span class="w"> </span>corpus/crash/<span class="w"> </span>-type<span class="w"> </span>f<span class="w"> </span>-exec<span class="w"> </span>hexdump<span class="w"> </span>-C<span class="w"> </span><span class="o">{}</span><span class="w"> </span><span class="se">\;</span>
+<span class="m">00000000</span><span class="w">  </span>ff<span class="w"> </span>ff<span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span>6f<span class="w"> </span>b8<span class="w"> </span><span class="m">00</span><span class="w">                              </span><span class="p">|</span>....o..<span class="p">|</span>
+<span class="m">00000007</span>
+<span class="m">00000000</span><span class="w">  </span><span class="m">85</span><span class="w"> </span>a4<span class="w"> </span><span class="m">13</span><span class="w"> </span>9f<span class="w"> </span><span class="m">63</span><span class="w"> </span>c1<span class="w"> </span>a8<span class="w"> </span>b2<span class="w">  </span>ff<span class="w"> </span>0a<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="m">00</span><span class="w">              </span><span class="p">|</span>....c.......<span class="p">|</span>
+0000000c
+<span class="m">00000000</span><span class="w">  </span><span class="m">76</span><span class="w"> </span>5b<span class="w"> </span><span class="m">13</span><span class="w"> </span>9f<span class="w"> </span><span class="m">63</span><span class="w"> </span>c1<span class="w"> </span>a8<span class="w"> </span>b2<span class="w">  </span>ff<span class="w"> </span>0a<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="m">00</span><span class="w">              </span><span class="p">|</span>v<span class="o">[</span>..c.......<span class="p">|</span>
+0000000c
+<span class="m">00000000</span><span class="w">  </span>1a<span class="w"> </span>5b<span class="w"> </span><span class="m">13</span><span class="w"> </span>9f<span class="w"> </span><span class="m">63</span><span class="w"> </span>c1<span class="w"> </span>a8<span class="w"> </span>b2<span class="w">  </span>ff<span class="w"> </span>0a<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="m">00</span><span class="w">              </span><span class="p">|</span>.<span class="o">[</span>..c.......<span class="p">|</span>
+0000000c
+</pre></div>
+</div>
+</div>
+<p>In the context of our test harness, the first byte usually represents the ioctl code.</p>
+<p>Therefore, if the first byte varies across the payloads, it suggests that these payloads are triggering unique handler paths.</p>
+</section>
+<section id="crash-logs">
+<h2>Crash logs<a class="headerlink" href="#crash-logs" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">--log-crashes</span></code> option, combined with the redirection of printk messages to the hprintf hypercall, gives us detailed log files for each crash. These logs are stored in the <code class="docutils literal notranslate"><span class="pre">📂</span> <span class="pre">logs</span></code> directory.</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">Displaying payload crash files from the corpus</span><a class="headerlink" href="#id3" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>mtarral@b49691bd4b34:/dev/shm/kafl_mtarral$<span class="w"> </span>ls<span class="w"> </span>-l<span class="w"> </span>logs
+total<span class="w"> </span><span class="m">100</span>
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w"> </span><span class="m">5143</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>crash_3f7f7a.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w"> </span><span class="m">1714</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:22<span class="w"> </span>crash_881bd2.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w"> </span><span class="m">5139</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>crash_908bfe.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w"> </span><span class="m">2609</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>crash_fcdaa4.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w">   </span><span class="m">73</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_05da3a.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w">  </span><span class="m">120</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:22<span class="w"> </span>timeo_153a4e.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w">   </span><span class="m">68</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_1cfa76.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w">   </span><span class="m">63</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_2059ab.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w"> </span><span class="m">5124</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_3f7f7a.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w">   </span><span class="m">75</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_5ad762.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w"> </span><span class="m">2650</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_5d47b8.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w">  </span><span class="m">124</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_72bc3d.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w"> </span><span class="m">2668</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_72cc5a.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w"> </span><span class="m">2690</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_7c2cf3.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w">   </span><span class="m">72</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_828a72.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w"> </span><span class="m">4294</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_908bfe.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w">   </span><span class="m">74</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_9d4034.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w">   </span><span class="m">66</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_acefee.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w">   </span><span class="m">68</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_e87026.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w">  </span><span class="m">117</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:22<span class="w"> </span>timeo_f94aee.log
+-rw-rw-r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>mtarral<span class="w"> </span>mtarral<span class="w"> </span><span class="m">4022</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">16</span>:21<span class="w"> </span>timeo_fcdaa4.log
+</pre></div>
+</div>
+</div>
+<p>We can identify our 4 crashes log files, as well as timeout logs.</p>
+<p>Let’s open the first one, <code class="docutils literal notranslate"><span class="pre">crash_3f7f7a.log</span></code>:</p>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text">crash_3f7f7a.log</span><a class="headerlink" href="#id4" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="m">6</span>****Triggering<span class="w"> </span>Integer<span class="w"> </span>Underflow****
+6dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>datasize:<span class="w"> </span><span class="m">1444607</span>
+6dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>width:<span class="w"> </span>-1626121354
+6dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>Height:<span class="w"> </span>-1297563293
+6dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>datasize:<span class="w"> </span><span class="m">1444607</span>
+6dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>data:<span class="w"> </span>ääääääääääääääää:¥7~î?à~3:<span class="sb">`</span>Bá6
+6dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>calculated<span class="w"> </span>size:<span class="w"> </span><span class="m">776200999</span>
+------------<span class="o">[</span><span class="w"> </span>cut<span class="w"> </span>here<span class="w"> </span><span class="o">]</span>------------
+4WARNING:<span class="w"> </span>CPU:<span class="w"> </span><span class="m">0</span><span class="w"> </span>PID:<span class="w"> </span><span class="m">75</span><span class="w"> </span>at<span class="w"> </span>mm/page_alloc.c:4453<span class="w"> </span>__alloc_pages+0x1b2/0x2f0
+Modules<span class="w"> </span>linked<span class="w"> </span><span class="k">in</span>:c<span class="w"> </span>dvkm<span class="o">(</span>O<span class="o">)</span>c
+CPU:<span class="w"> </span><span class="m">0</span><span class="w"> </span>PID:<span class="w"> </span><span class="m">75</span><span class="w"> </span>Comm:<span class="w"> </span>fuzz_dvkm<span class="w"> </span>Tainted:<span class="w"> </span>G<span class="w">           </span>O<span class="w">       </span><span class="m">6</span>.5.0-00004-g6521682f674d<span class="w"> </span><span class="c1">#6</span>
+Hardware<span class="w"> </span>name:<span class="w"> </span>QEMU<span class="w"> </span>Standard<span class="w"> </span>PC<span class="w"> </span><span class="o">(</span>i440FX<span class="w"> </span>+<span class="w"> </span>PIIX,<span class="w"> </span><span class="m">1996</span><span class="o">)</span>,<span class="w"> </span>BIOS<span class="w"> </span>rel-1.12.0-59-gc9ba5276e321-prebuilt.qemu.org<span class="w"> </span><span class="m">04</span>/01/2014
+RIP:<span class="w"> </span><span class="m">0010</span>:__alloc_pages+0x1b2/0x2f0
+Code:<span class="w"> </span><span class="m">49</span><span class="w"> </span><span class="m">89</span><span class="w"> </span>c6<span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">85</span><span class="w"> </span>c0<span class="w"> </span>0f<span class="w"> </span><span class="m">84</span><span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="m">01</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">66</span><span class="w"> </span><span class="m">90</span><span class="w"> </span>eb<span class="w"> </span>1f<span class="w"> </span><span class="m">41</span><span class="w"> </span><span class="m">83</span><span class="w"> </span><span class="nb">fc</span><span class="w"> </span>0a<span class="w"> </span>0f<span class="w"> </span><span class="m">86</span><span class="w"> </span>c7<span class="w"> </span>fe<span class="w"> </span>ff<span class="w"> </span>ff<span class="w"> </span><span class="m">80</span><span class="w"> </span>3d<span class="w"> </span>f4<span class="w"> </span><span class="m">33</span><span class="w"> </span>a3<span class="w"> </span><span class="m">01</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">75</span><span class="w"> </span><span class="m">09</span><span class="w"> </span>c6<span class="w"> </span><span class="m">05</span><span class="w"> </span>eb<span class="w"> </span><span class="m">33</span><span class="w"> </span>a3<span class="w"> </span><span class="m">01</span><span class="w"> </span><span class="m">01</span><span class="w"> </span>&lt;0f&gt;<span class="w"> </span>0b<span class="w"> </span><span class="m">45</span><span class="w"> </span><span class="m">31</span><span class="w"> </span>f6<span class="w"> </span><span class="m">48</span><span class="w"> </span>8b<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">28</span><span class="w"> </span><span class="m">65</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>2b<span class="w"> </span><span class="m">04</span><span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">28</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span>0f<span class="w"> </span><span class="m">85</span><span class="w"> </span><span class="m">20</span>
+RSP:<span class="w"> </span><span class="m">0018</span>:ffffc900001cbe08<span class="w"> </span>EFLAGS:<span class="w"> </span>00010246c
+RAX:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>RBX:<span class="w"> </span>0000000000040cc0<span class="w"> </span>RCX:<span class="w"> </span><span class="m">0000000000000000</span>
+RDX:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>RSI:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>RDI:<span class="w"> </span>0000000000040cc0
+RBP:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>R08:<span class="w"> </span><span class="m">0000000000000027</span><span class="w"> </span>R09:<span class="w"> </span><span class="m">0000000000000000</span>
+R10:<span class="w"> </span><span class="m">0000000000000008</span><span class="w"> </span>R11:<span class="w"> </span>203a657a69732064<span class="w"> </span>R12:<span class="w"> </span><span class="m">0000000000000012</span>
+R13:<span class="w"> </span><span class="m">0000000000000012</span><span class="w"> </span>R14:<span class="w"> </span>ffffffffc0000522<span class="w"> </span>R15:<span class="w"> </span><span class="m">0000000000000000</span>
+FS:<span class="w">  </span>00007fe4272b4740<span class="o">(</span><span class="m">0000</span><span class="o">)</span><span class="w"> </span>GS:ffff88800f600000<span class="o">(</span><span class="m">0000</span><span class="o">)</span><span class="w"> </span>knlGS:0000000000000000
+CS:<span class="w">  </span><span class="m">0010</span><span class="w"> </span>DS:<span class="w"> </span><span class="m">0000</span><span class="w"> </span>ES:<span class="w"> </span><span class="m">0000</span><span class="w"> </span>CR0:<span class="w"> </span><span class="m">0000000080050033</span>
+CR2:<span class="w"> </span>00007fe4273f0000<span class="w"> </span>CR3:<span class="w"> </span>0000000004cdc006<span class="w"> </span>CR4:<span class="w"> </span>00000000001706f0
+Call<span class="w"> </span>Trace:
+<span class="w"> </span>&lt;TASK&gt;
+<span class="w"> </span>?<span class="w"> </span>__warn+0x7f/0x130
+<span class="w"> </span>?<span class="w"> </span>__alloc_pages+0x1b2/0x2f0
+<span class="w"> </span>?<span class="w"> </span>report_bug+0x199/0x1b0
+<span class="w"> </span>?<span class="w"> </span>handle_bug+0x3c/0x70
+<span class="w"> </span>?<span class="w"> </span>exc_invalid_op+0x18/0x70
+<span class="w"> </span>?<span class="w"> </span>asm_exc_invalid_op+0x1a/0x20
+<span class="w"> </span>?<span class="w"> </span>Integer_Underflow_IOCTL_Handler.part.0+0x112/0x170<span class="w"> </span><span class="o">[</span>dvkm<span class="o">]</span>
+<span class="w"> </span>?<span class="w"> </span>__alloc_pages+0x1b2/0x2f0
+<span class="w"> </span>?<span class="w"> </span>vsnprintf+0x3aa/0x560
+<span class="w"> </span>?<span class="w"> </span>Integer_Underflow_IOCTL_Handler.part.0+0x112/0x170<span class="w"> </span><span class="o">[</span>dvkm<span class="o">]</span>
+<span class="w"> </span>__kmalloc_large_node+0x79/0x150
+<span class="w"> </span>__kmalloc+0xbb/0x130
+<span class="w"> </span>Integer_Underflow_IOCTL_Handler.part.0+0x112/0x170<span class="w"> </span><span class="o">[</span>dvkm<span class="o">]</span>
+<span class="w"> </span>dvkm_ioctl+0x130/0x230<span class="w"> </span><span class="o">[</span>dvkm<span class="o">]</span>
+<span class="w"> </span>proc_reg_unlocked_ioctl+0x52/0xa0
+<span class="w"> </span>__x64_sys_ioctl+0x89/0xc0
+<span class="w"> </span>do_syscall_64+0x3c/0x90
+<span class="w"> </span>entry_SYSCALL_64_after_hwframe+0x6e/0xd8
+RIP:<span class="w"> </span><span class="m">0033</span>:0x7fe4273d1b3f
+Code:<span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">31</span><span class="w"> </span>c0<span class="w"> </span><span class="m">48</span><span class="w"> </span>8d<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">60</span><span class="w"> </span>c7<span class="w"> </span><span class="m">04</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">08</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>8d<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">10</span><span class="w"> </span>b8<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span>0f<span class="w"> </span><span class="m">05</span><span class="w"> </span>&lt;<span class="m">41</span>&gt;<span class="w"> </span><span class="m">89</span><span class="w"> </span>c0<span class="w"> </span>3d<span class="w"> </span><span class="m">00</span><span class="w"> </span>f0<span class="w"> </span>ff<span class="w"> </span>ff<span class="w"> </span><span class="m">77</span><span class="w"> </span>1f<span class="w"> </span><span class="m">48</span><span class="w"> </span>8b<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">64</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>2b<span class="w"> </span><span class="m">04</span><span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">28</span><span class="w"> </span><span class="m">00</span>
+RSP:<span class="w"> </span>002b:00007ffd5dee4e10<span class="w"> </span>EFLAGS:<span class="w"> </span>00000246c<span class="w"> </span>ORIG_RAX:<span class="w"> </span><span class="m">0000000000000010</span>
+RAX:<span class="w"> </span>ffffffffffffffda<span class="w"> </span>RBX:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>RCX:<span class="w"> </span>00007fe4273d1b3f
+RDX:<span class="w"> </span>000055c56318b000<span class="w"> </span>RSI:<span class="w"> </span>00000000c0184401<span class="w"> </span>RDI:<span class="w"> </span><span class="m">0000000000000003</span>
+RBP:<span class="w"> </span>00007ffd5dee4ea0<span class="w"> </span>R08:<span class="w"> </span><span class="m">0000000000000010</span><span class="w"> </span>R09:<span class="w"> </span>00007ffd5dee3b80
+R10:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>R11:<span class="w"> </span><span class="m">0000000000000246</span><span class="w"> </span>R12:<span class="w"> </span>00007ffd5dee4fb8
+R13:<span class="w"> </span>000055c5631869e0<span class="w"> </span>R14:<span class="w"> </span>000055c563188d48<span class="w"> </span>R15:<span class="w"> </span>00007fe42751b040
+<span class="w"> </span>&lt;/TASK&gt;
+<span class="m">4</span>---<span class="o">[</span><span class="w"> </span>end<span class="w"> </span>trace<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span><span class="o">]</span>---
+1BUG:<span class="w"> </span>kernel<span class="w"> </span>NULL<span class="w"> </span>pointer<span class="w"> </span>dereference,<span class="w"> </span>address:<span class="w"> </span><span class="m">0000000000000000</span>
+<span class="m">1</span><span class="c1">#PF: supervisor write access in kernel mode</span>
+<span class="m">1</span><span class="c1">#PF: error_code(0x0002) - not-present page</span>
+6PGD<span class="w"> </span><span class="m">0</span><span class="w"> </span>cP4D<span class="w"> </span><span class="m">0</span><span class="w"> </span>c
+Oops:<span class="w"> </span><span class="m">0002</span><span class="w"> </span><span class="o">[</span><span class="c1">#1] PREEMPT SMP NOPTI</span>
+CPU:<span class="w"> </span><span class="m">0</span><span class="w"> </span>PID:<span class="w"> </span><span class="m">75</span><span class="w"> </span>Comm:<span class="w"> </span>fuzz_dvkm<span class="w"> </span>Tainted:<span class="w"> </span>G<span class="w">        </span>W<span class="w">  </span>O<span class="w">       </span><span class="m">6</span>.5.0-00004-g6521682f674d<span class="w"> </span><span class="c1">#6</span>
+Hardware<span class="w"> </span>name:<span class="w"> </span>QEMU<span class="w"> </span>Standard<span class="w"> </span>PC<span class="w"> </span><span class="o">(</span>i440FX<span class="w"> </span>+<span class="w"> </span>PIIX,<span class="w"> </span><span class="m">1996</span><span class="o">)</span>,<span class="w"> </span>BIOS<span class="w"> </span>rel-1.12.0-59-gc9ba5276e321-prebuilt.qemu.org<span class="w"> </span><span class="m">04</span>/01/2014
+RIP:<span class="w"> </span><span class="m">0010</span>:memcpy_orig+0x31/0x140
+Code:<span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">83</span><span class="w"> </span>fa<span class="w"> </span><span class="m">20</span><span class="w"> </span>0f<span class="w"> </span><span class="m">82</span><span class="w"> </span><span class="m">86</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">40</span><span class="w"> </span><span class="m">38</span><span class="w"> </span>fe<span class="w"> </span>7c<span class="w"> </span><span class="m">35</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">83</span><span class="w"> </span>ea<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">83</span><span class="w"> </span>ea<span class="w"> </span><span class="m">20</span><span class="w"> </span>4c<span class="w"> </span>8b<span class="w"> </span><span class="m">06</span><span class="w"> </span>4c<span class="w"> </span>8b<span class="w"> </span>4e<span class="w"> </span><span class="m">08</span><span class="w"> </span>4c<span class="w"> </span>8b<span class="w"> </span><span class="m">56</span><span class="w"> </span><span class="m">10</span><span class="w"> </span>4c<span class="w"> </span>8b<span class="w"> </span>5e<span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>8d<span class="w"> </span><span class="m">76</span><span class="w"> </span><span class="m">20</span><span class="w"> </span>&lt;4c&gt;<span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">07</span><span class="w"> </span>4c<span class="w"> </span><span class="m">89</span><span class="w"> </span>4f<span class="w"> </span><span class="m">08</span><span class="w"> </span>4c<span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">57</span><span class="w"> </span><span class="m">10</span><span class="w"> </span>4c<span class="w"> </span><span class="m">89</span><span class="w"> </span>5f<span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>8d<span class="w"> </span>7f<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">73</span><span class="w"> </span>d4<span class="w"> </span><span class="m">83</span>
+RSP:<span class="w"> </span><span class="m">0018</span>:ffffc900001cbec0<span class="w"> </span>EFLAGS:<span class="w"> </span>00010202c
+RAX:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>RBX:<span class="w"> </span>0000000051bc1cd9<span class="w"> </span>RCX:<span class="w"> </span><span class="m">0000000000000011</span>
+RDX:<span class="w"> </span>0000000000160abf<span class="w"> </span>RSI:<span class="w"> </span>ffff888004e00020<span class="w"> </span>RDI:<span class="w"> </span><span class="m">0000000000000000</span>
+RBP:<span class="w"> </span>ffff888004e00000<span class="w"> </span>R08:<span class="w"> </span>0fe40fe40fe40fe4<span class="w"> </span>R09:<span class="w"> </span>0fe40fe40fe40fe4
+R10:<span class="w"> </span>0fe40fe40fe40fe4<span class="w"> </span>R11:<span class="w"> </span>10e40fe40fe40fe4<span class="w"> </span>R12:<span class="w"> </span>000000002e43e327
+R13:<span class="w"> </span>000055c56318b000<span class="w"> </span>R14:<span class="w"> </span>ffff888004cf2500<span class="w"> </span>R15:<span class="w"> </span><span class="m">0000000000000000</span>
+FS:<span class="w">  </span>00007fe4272b4740<span class="o">(</span><span class="m">0000</span><span class="o">)</span><span class="w"> </span>GS:ffff88800f600000<span class="o">(</span><span class="m">0000</span><span class="o">)</span><span class="w"> </span>knlGS:0000000000000000
+CS:<span class="w">  </span><span class="m">0010</span><span class="w"> </span>DS:<span class="w"> </span><span class="m">0000</span><span class="w"> </span>ES:<span class="w"> </span><span class="m">0000</span><span class="w"> </span>CR0:<span class="w"> </span><span class="m">0000000080050033</span>
+CR2:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>CR3:<span class="w"> </span>0000000004cdc006<span class="w"> </span>CR4:<span class="w"> </span>00000000001706f0
+Call<span class="w"> </span>Trace:
+<span class="w"> </span>&lt;TASK&gt;
+<span class="w"> </span>?<span class="w"> </span>__die+0x1f/0x70
+<span class="w"> </span>?<span class="w"> </span>page_fault_oops+0x156/0x420
+<span class="w"> </span>?<span class="w"> </span>search_exception_tables+0x37/0x50
+<span class="w"> </span>?<span class="w"> </span>fixup_exception+0x21/0x310
+<span class="w"> </span>?<span class="w"> </span>exc_page_fault+0x69/0x150
+<span class="w"> </span>?<span class="w"> </span>asm_exc_page_fault+0x26/0x30
+<span class="w"> </span>?<span class="w"> </span>memcpy_orig+0x31/0x140
+<span class="w"> </span>Integer_Underflow_IOCTL_Handler.part.0+0x124/0x170<span class="w"> </span><span class="o">[</span>dvkm<span class="o">]</span>
+<span class="w"> </span>dvkm_ioctl+0x130/0x230<span class="w"> </span><span class="o">[</span>dvkm<span class="o">]</span>
+<span class="w"> </span>proc_reg_unlocked_ioctl+0x52/0xa0
+<span class="w"> </span>__x64_sys_ioctl+0x89/0xc0
+<span class="w"> </span>do_syscall_64+0x3c/0x90
+<span class="w"> </span>entry_SYSCALL_64_after_hwframe+0x6e/0xd8
+RIP:<span class="w"> </span><span class="m">0033</span>:0x7fe4273d1b3f
+Code:<span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">31</span><span class="w"> </span>c0<span class="w"> </span><span class="m">48</span><span class="w"> </span>8d<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">60</span><span class="w"> </span>c7<span class="w"> </span><span class="m">04</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">08</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>8d<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">10</span><span class="w"> </span>b8<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span>0f<span class="w"> </span><span class="m">05</span><span class="w"> </span>&lt;<span class="m">41</span>&gt;<span class="w"> </span><span class="m">89</span><span class="w"> </span>c0<span class="w"> </span>3d<span class="w"> </span><span class="m">00</span><span class="w"> </span>f0<span class="w"> </span>ff<span class="w"> </span>ff<span class="w"> </span><span class="m">77</span><span class="w"> </span>1f<span class="w"> </span><span class="m">48</span><span class="w"> </span>8b<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">64</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>2b<span class="w"> </span><span class="m">04</span><span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">28</span><span class="w"> </span><span class="m">00</span>
+RSP:<span class="w"> </span>002b:00007ffd5dee4e10<span class="w"> </span>EFLAGS:<span class="w"> </span>00000246c<span class="w"> </span>ORIG_RAX:<span class="w"> </span><span class="m">0000000000000010</span>
+RAX:<span class="w"> </span>ffffffffffffffda<span class="w"> </span>RBX:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>RCX:<span class="w"> </span>00007fe4273d1b3f
+RDX:<span class="w"> </span>000055c56318b000<span class="w"> </span>RSI:<span class="w"> </span>00000000c0184401<span class="w"> </span>RDI:<span class="w"> </span><span class="m">0000000000000003</span>
+RBP:<span class="w"> </span>00007ffd5dee4ea0<span class="w"> </span>R08:<span class="w"> </span><span class="m">0000000000000010</span><span class="w"> </span>R09:<span class="w"> </span>00007ffd5dee3b80
+R10:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>R11:<span class="w"> </span><span class="m">0000000000000246</span><span class="w"> </span>R12:<span class="w"> </span>00007ffd5dee4fb8
+R13:<span class="w"> </span>000055c5631869e0<span class="w"> </span>R14:<span class="w"> </span>000055c563188d48<span class="w"> </span>R15:<span class="w"> </span>00007fe42751b040
+<span class="w"> </span>&lt;/TASK&gt;
+Modules<span class="w"> </span>linked<span class="w"> </span><span class="k">in</span>:c<span class="w"> </span>dvkm<span class="o">(</span>O<span class="o">)</span>c
+CR2:<span class="w"> </span><span class="m">0000000000000000</span>
+<span class="m">4</span>---<span class="o">[</span><span class="w"> </span>end<span class="w"> </span>trace<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span><span class="o">]</span>---
+</pre></div>
+</div>
+</div>
+<p>We can identify that <code class="docutils literal notranslate"><span class="pre">RIP</span></code> is at <code class="docutils literal notranslate"><span class="pre">memcpy_orig()</span></code>, called from our DVKM module by <code class="docutils literal notranslate"> <span class="pre">Integer_Underflow_IOCTL_Handler.part.0+0x124/0x170</span> <span class="pre">[dvkm]</span></code>.</p>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">struct dvkm_obj content to trigger the integer underflow</span><a class="headerlink" href="#id5" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>datasize:<span class="w"> </span><span class="m">1444607</span>
+dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>width:<span class="w"> </span>-1626121354
+dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>Height:<span class="w"> </span>-1297563293
+dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>datasize:<span class="w"> </span><span class="m">1444607</span>
+dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>data:<span class="w"> </span>ääääääääääääääää:¥7~î?à~3:<span class="sb">`</span>Bá6
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The number that you can sometimes see at the beginning of a log message is simply the kernel logging level which hasn’t been translated into a proper string
+by the logging facility.</p>
+<div class="literal-block-wrapper docutils container" id="id6">
+<div class="code-block-caption"><span class="caption-text">include/linux/kern_levels.h</span><a class="headerlink" href="#id6" title="Link to this code">#</a></div>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cp">#define KERN_EMERG	KERN_SOH &quot;0&quot;	</span><span class="cm">/* system is unusable */</span>
+<span class="cp">#define KERN_ALERT	KERN_SOH &quot;1&quot;	</span><span class="cm">/* action must be taken immediately */</span>
+<span class="cp">#define KERN_CRIT	KERN_SOH &quot;2&quot;	</span><span class="cm">/* critical conditions */</span>
+<span class="cp">#define KERN_ERR	KERN_SOH &quot;3&quot;	</span><span class="cm">/* error conditions */</span>
+<span class="cp">#define KERN_WARNING	KERN_SOH &quot;4&quot;	</span><span class="cm">/* warning conditions */</span>
+<span class="cp">#define KERN_NOTICE	KERN_SOH &quot;5&quot;	</span><span class="cm">/* normal but significant condition */</span>
+<span class="cp">#define KERN_INFO	KERN_SOH &quot;6&quot;	</span><span class="cm">/* informational */</span>
+<span class="cp">#define KERN_DEBUG	KERN_SOH &quot;7&quot;	</span><span class="cm">/* debug-level messages */</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="kafl-debug">
+<h2><code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">debug</span></code><a class="headerlink" href="#kafl-debug" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">debug</span></code> subcommand provides various utilities for debugging your fuzzing campaign.</p>
+<p>By using this subcommand, you can replay payloads to better understand the control flow leading to a crash, verify the stability and determinism of a payload, and even debug the guest state live while replaying the payload.</p>
+<p>In this section, we’ll explore two key <a class="reference internal" href="../../../reference/fuzzer_configuration.html#action"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">actions</span></code></span></a> provided by the kafl debug subcommand:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">single</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gdb</span></code></p></li>
+</ul>
+<section id="action-single">
+<h3>Action <code class="docutils literal notranslate"><span class="pre">single</span></code><a class="headerlink" href="#action-single" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">single</span></code> action let’s you replay a single payload and observe its results:</p>
+<p>The payload should be specified throught the <a class="reference internal" href="../../../reference/fuzzer_configuration.html#input"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">--input</span></code></span></a> parameter.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>We should always specify <a class="reference internal" href="../../../reference/fuzzer_configuration.html#resume"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">--resume</span></code></span></a> when using either <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">cov</span></code> or <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">debug</span></code>, since it will replay from the original snapshot taken by the first call on <a class="reference internal" href="../../../reference/hypercall_api.html#next-payload"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">NEXT_PAYLAOD</span></code></span></a>, and will make our execution deterministic.</p>
+<p>That’s one of the key benefits of snapshot fuzzers !</p>
+</div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>mtarral@b49691bd4b34:~/kafl/kafl/examples/linux-user/dvkm$<span class="w"> </span>kafl<span class="w"> </span>debug<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--resume<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--action<span class="w"> </span>single<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--input<span class="w"> </span>/dev/shm/kafl_mtarral/corpus/crash/payload_00030
+
+<span class="w">    </span>__<span class="w">                        </span>__<span class="w">  </span>___<span class="w">    </span>________
+<span class="w">   </span>/<span class="w"> </span>/_____<span class="w">  </span>_________<span class="w">  </span>___<span class="w">  </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="w">   </span><span class="p">|</span><span class="w">  </span>/<span class="w"> </span>____/<span class="w"> </span>/
+<span class="w">  </span>/<span class="w"> </span>//_/<span class="w"> </span>_<span class="w"> </span><span class="se">\/</span><span class="w"> </span>___/<span class="w"> </span>__<span class="w"> </span><span class="se">\/</span><span class="w"> </span>_<span class="w"> </span><span class="se">\/</span><span class="w"> </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="p">|</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>/<span class="w"> </span>/_<span class="w">  </span>/<span class="w"> </span>/
+<span class="w"> </span>/<span class="w"> </span>,&lt;<span class="w"> </span>/<span class="w">  </span>__/<span class="w"> </span>/<span class="w">  </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="w">  </span>__/<span class="w"> </span>/<span class="w"> </span>/<span class="w"> </span>___<span class="w"> </span><span class="p">|</span>/<span class="w"> </span>__/<span class="w"> </span>/<span class="w"> </span>/___
+/_/<span class="p">|</span>_<span class="p">|</span><span class="se">\_</span>__/_/<span class="w">  </span>/_/<span class="w"> </span>/_/<span class="se">\_</span>__/_/<span class="w"> </span>/_/<span class="w">  </span><span class="p">|</span>_/_/<span class="w">   </span>/_____/
+<span class="o">===================================================</span>
+
+<span class="s">&lt;&lt; kAFL Debugger &gt;&gt;</span>
+
+<span class="s">No trace region configured! Intel PT disabled!</span>
+<span class="s">Execute payload /dev/shm/kafl_mtarral/corpus/crash/payload_00030..</span>
+<span class="s">Worker-1337 Launching virtual machine...</span>
+<span class="s">/home/mtarral/kafl/kafl/qemu/x86_64-softmmu/qemu-system-x86_64</span>
+<span class="s">        -enable-kvm</span>
+<span class="s">        -machine kAFL</span><span class="m">64</span>-v1
+<span class="w">        </span>-cpu<span class="w"> </span>kAFL64-Hypervisor-v1,+vmx
+<span class="w">        </span>-no-reboot
+<span class="w">        </span>-net<span class="w"> </span>none
+<span class="w">        </span>-display<span class="w"> </span>none
+<span class="w">        </span>-chardev<span class="w"> </span>socket,server,id<span class="o">=</span>nyx_socket,path<span class="o">=</span>/dev/shm/kafl_mtarral/interface_1337
+<span class="w">        </span>-device<span class="w"> </span>nyx,chardev<span class="o">=</span>nyx_socket,workdir<span class="o">=</span>/dev/shm/kafl_mtarral,worker_id<span class="o">=</span><span class="m">1337</span>,bitmap_size<span class="o">=</span><span class="m">65536</span>,input_buffer_size<span class="o">=</span><span class="m">131072</span>,sharedir<span class="o">=</span>/home/mtarral/kafl/kafl/examples/linux-user/dvkm/sharedir
+<span class="w">        </span>-device<span class="w"> </span>isa-serial,chardev<span class="o">=</span>kafl_serial
+<span class="w">        </span>-chardev<span class="w"> </span>file,id<span class="o">=</span>kafl_serial,mux<span class="o">=</span>on,path<span class="o">=</span>/dev/shm/kafl_mtarral/serial_1337.log
+<span class="w">        </span>-m<span class="w"> </span><span class="m">256</span>
+<span class="w">        </span>-kernel<span class="w"> </span>/home/mtarral/kafl/kafl/examples/linux-user/linux_kafl_agent/arch/x86/boot/bzImage
+<span class="w">        </span>-initrd<span class="w"> </span>/home/mtarral/kafl/kafl/examples/linux-user/scripts/kafl_initrd.cpio.gz
+<span class="w">        </span>-append<span class="w"> </span><span class="nv">root</span><span class="o">=</span>/dev/vda1<span class="w"> </span>rw<span class="w"> </span>nokaslr<span class="w"> </span><span class="nv">oops</span><span class="o">=</span>panic<span class="w"> </span>nopti<span class="w"> </span><span class="nv">mitigations</span><span class="o">=</span>off<span class="w"> </span><span class="nv">console</span><span class="o">=</span>ttyS0<span class="w"> </span><span class="nv">earlyprintk</span><span class="o">=</span>serial,ttyS0<span class="w"> </span>ignore_loglevel
+<span class="w">        </span>-fast_vm_reload<span class="w"> </span><span class="nv">path</span><span class="o">=</span>/dev/shm/kafl_mtarral/snapshot/,load<span class="o">=</span>on
+qemu-system-x86_64:<span class="w"> </span>warning:<span class="w"> </span>host<span class="w"> </span>doesn<span class="s1">&#39;t support requested feature: CPUID.07H:EBX.hle [bit 4]</span>
+<span class="s1">qemu-system-x86_64: warning: host doesn&#39;</span>t<span class="w"> </span>support<span class="w"> </span>requested<span class="w"> </span>feature:<span class="w"> </span>CPUID.07H:EBX.rtm<span class="w"> </span><span class="o">[</span>bit<span class="w"> </span><span class="m">11</span><span class="o">]</span>
+<span class="o">[</span>QEMU-NYX<span class="o">]</span><span class="w"> </span>Waiting<span class="w"> </span><span class="k">for</span><span class="w"> </span>snapshot<span class="w"> </span>to<span class="w"> </span>start<span class="w"> </span>fuzzing...
+<span class="m">6</span>****Triggering<span class="w"> </span>Integer<span class="w"> </span>Overflow****
+6dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>datasize:<span class="w"> </span><span class="m">1444607</span>
+6dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>width:<span class="w"> </span>-1626121446
+6dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>Height:<span class="w"> </span>-1297563293
+6dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>datasize:<span class="w"> </span><span class="m">1444607</span>
+6dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>data:<span class="w"> </span>««««««««««««««««««««««««««««««««««««««««««««««««««
+6dvkm:<span class="w"> </span><span class="o">[</span>+<span class="o">]</span><span class="w"> </span>calculated<span class="w"> </span>size:<span class="w"> </span><span class="m">1371282556</span>
+------------<span class="o">[</span><span class="w"> </span>cut<span class="w"> </span>here<span class="w"> </span><span class="o">]</span>------------
+4WARNING:<span class="w"> </span>CPU:<span class="w"> </span><span class="m">0</span><span class="w"> </span>PID:<span class="w"> </span><span class="m">75</span><span class="w"> </span>at<span class="w"> </span>mm/page_alloc.c:4453<span class="w"> </span>__alloc_pages+0x1b2/0x2f0
+c
+CPU:<span class="w"> </span><span class="m">0</span><span class="w"> </span>PID:<span class="w"> </span><span class="m">75</span><span class="w"> </span>Comm:<span class="w"> </span>fuzz_dvkm<span class="w"> </span>Tainted:<span class="w"> </span>G<span class="w">           </span>O<span class="w">       </span><span class="m">6</span>.5.0-00004-g6521682f674d<span class="w"> </span><span class="c1">#6</span>
+Hardware<span class="w"> </span>name:<span class="w"> </span>QEMU<span class="w"> </span>Standard<span class="w"> </span>PC<span class="w"> </span><span class="o">(</span>i440FX<span class="w"> </span>+<span class="w"> </span>PIIX,<span class="w"> </span><span class="m">1996</span><span class="o">)</span>,<span class="w"> </span>BIOS<span class="w"> </span>rel-1.12.0-59-gc9ba5276e321-prebuilt.qemu.org<span class="w"> </span><span class="m">04</span>/01/2014
+RIP:<span class="w"> </span><span class="m">0010</span>:__alloc_pages+0x1b2/0x2f0
+Code:<span class="w"> </span><span class="m">49</span><span class="w"> </span><span class="m">89</span><span class="w"> </span>c6<span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">85</span><span class="w"> </span>c0<span class="w"> </span>0f<span class="w"> </span><span class="m">84</span><span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="m">01</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">66</span><span class="w"> </span><span class="m">90</span><span class="w"> </span>eb<span class="w"> </span>1f<span class="w"> </span><span class="m">41</span><span class="w"> </span><span class="m">83</span><span class="w"> </span><span class="nb">fc</span><span class="w"> </span>0a<span class="w"> </span>0f<span class="w"> </span><span class="m">86</span><span class="w"> </span>c7<span class="w"> </span>fe<span class="w"> </span>ff<span class="w"> </span>ff<span class="w"> </span><span class="m">80</span><span class="w"> </span>3d<span class="w"> </span>f4<span class="w"> </span><span class="m">33</span><span class="w"> </span>a3<span class="w"> </span><span class="m">01</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">75</span><span class="w"> </span><span class="m">09</span><span class="w"> </span>c6<span class="w"> </span><span class="m">05</span><span class="w"> </span>eb<span class="w"> </span><span class="m">33</span><span class="w"> </span>a3<span class="w"> </span><span class="m">01</span><span class="w"> </span><span class="m">01</span><span class="w"> </span>&lt;0f&gt;<span class="w"> </span>0b<span class="w"> </span><span class="m">45</span><span class="w"> </span><span class="m">31</span><span class="w"> </span>f6<span class="w"> </span><span class="m">48</span><span class="w"> </span>8b<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">28</span><span class="w"> </span><span class="m">65</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>2b<span class="w"> </span><span class="m">04</span><span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">28</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span>0f<span class="w"> </span><span class="m">85</span><span class="w"> </span><span class="m">20</span>
+c
+RAX:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>RBX:<span class="w"> </span>0000000000040cc0<span class="w"> </span>RCX:<span class="w"> </span><span class="m">0000000000000000</span>
+RDX:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>RSI:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>RDI:<span class="w"> </span>0000000000040cc0
+RBP:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>R08:<span class="w"> </span><span class="m">0000000000000028</span><span class="w"> </span>R09:<span class="w"> </span><span class="m">0000000000000000</span>
+R10:<span class="w"> </span><span class="m">0000000000000009</span><span class="w"> </span>R11:<span class="w"> </span>203a657a69732064<span class="w"> </span>R12:<span class="w"> </span><span class="m">0000000000000013</span>
+R13:<span class="w"> </span><span class="m">0000000000000013</span><span class="w"> </span>R14:<span class="w"> </span>ffffffffc00003aa<span class="w"> </span>R15:<span class="w"> </span><span class="m">0000000000000000</span>
+FS:<span class="w">  </span>00007fe4272b4740<span class="o">(</span><span class="m">0000</span><span class="o">)</span><span class="w"> </span>GS:ffff88800f600000<span class="o">(</span><span class="m">0000</span><span class="o">)</span><span class="w"> </span>knlGS:0000000000000000
+CS:<span class="w">  </span><span class="m">0010</span><span class="w"> </span>DS:<span class="w"> </span><span class="m">0000</span><span class="w"> </span>ES:<span class="w"> </span><span class="m">0000</span><span class="w"> </span>CR0:<span class="w"> </span><span class="m">0000000080050033</span>
+CR2:<span class="w"> </span>00007fe4273f0000<span class="w"> </span>CR3:<span class="w"> </span>0000000004cdc006<span class="w"> </span>CR4:<span class="w"> </span>00000000001706f0
+Call<span class="w"> </span>Trace:
+<span class="w"> </span>&lt;TASK&gt;
+<span class="w"> </span>?<span class="w"> </span>__warn+0x7f/0x130
+<span class="w"> </span>?<span class="w"> </span>__alloc_pages+0x1b2/0x2f0
+<span class="w"> </span>?<span class="w"> </span>report_bug+0x199/0x1b0
+<span class="w"> </span>?<span class="w"> </span>handle_bug+0x3c/0x70
+<span class="w"> </span>?<span class="w"> </span>exc_invalid_op+0x18/0x70
+<span class="w"> </span>?<span class="w"> </span>asm_exc_invalid_op+0x1a/0x20
+<span class="w"> </span>?<span class="w"> </span>Integer_Overflow_IOCTL_Handler.part.0+0x10a/0x160<span class="w"> </span><span class="o">[</span>dvkm<span class="o">]</span>
+<span class="w"> </span>?<span class="w"> </span>__alloc_pages+0x1b2/0x2f0
+<span class="w"> </span>?<span class="w"> </span>vsnprintf+0x3aa/0x560
+<span class="w"> </span>?<span class="w"> </span>Integer_Overflow_IOCTL_Handler.part.0+0x10a/0x160<span class="w"> </span><span class="o">[</span>dvkm<span class="o">]</span>
+<span class="w"> </span>__kmalloc_large_node+0x79/0x150
+<span class="w"> </span>__kmalloc+0xbb/0x130
+<span class="w"> </span>Integer_Overflow_IOCTL_Handler.part.0+0x10a/0x160<span class="w"> </span><span class="o">[</span>dvkm<span class="o">]</span>
+<span class="w"> </span>dvkm_ioctl+0x16a/0x230<span class="w"> </span><span class="o">[</span>dvkm<span class="o">]</span>
+<span class="w"> </span>proc_reg_unlocked_ioctl+0x52/0xa0
+<span class="w"> </span>__x64_sys_ioctl+0x89/0xc0
+<span class="w"> </span>do_syscall_64+0x3c/0x90
+<span class="w"> </span>entry_SYSCALL_64_after_hwframe+0x6e/0xd8
+RIP:<span class="w"> </span><span class="m">0033</span>:0x7fe4273d1b3f
+Code:<span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">31</span><span class="w"> </span>c0<span class="w"> </span><span class="m">48</span><span class="w"> </span>8d<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">60</span><span class="w"> </span>c7<span class="w"> </span><span class="m">04</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">08</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>8d<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">10</span><span class="w"> </span>b8<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span>0f<span class="w"> </span><span class="m">05</span><span class="w"> </span>&lt;<span class="m">41</span>&gt;<span class="w"> </span><span class="m">89</span><span class="w"> </span>c0<span class="w"> </span>3d<span class="w"> </span><span class="m">00</span><span class="w"> </span>f0<span class="w"> </span>ff<span class="w"> </span>ff<span class="w"> </span><span class="m">77</span><span class="w"> </span>1f<span class="w"> </span><span class="m">48</span><span class="w"> </span>8b<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">64</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>2b<span class="w"> </span><span class="m">04</span><span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">28</span><span class="w"> </span><span class="m">00</span>
+c<span class="w"> </span>ORIG_RAX:<span class="w"> </span><span class="m">0000000000000010</span>
+RAX:<span class="w"> </span>ffffffffffffffda<span class="w"> </span>RBX:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>RCX:<span class="w"> </span>00007fe4273d1b3f
+RDX:<span class="w"> </span>000055c56318b000<span class="w"> </span>RSI:<span class="w"> </span>00000000c0184400<span class="w"> </span>RDI:<span class="w"> </span><span class="m">0000000000000003</span>
+RBP:<span class="w"> </span>00007ffd5dee4ea0<span class="w"> </span>R08:<span class="w"> </span><span class="m">0000000000000010</span><span class="w"> </span>R09:<span class="w"> </span>00007ffd5dee3b80
+R10:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>R11:<span class="w"> </span><span class="m">0000000000000246</span><span class="w"> </span>R12:<span class="w"> </span>00007ffd5dee4fb8
+R13:<span class="w"> </span>000055c5631869e0<span class="w"> </span>R14:<span class="w"> </span>000055c563188d48<span class="w"> </span>R15:<span class="w"> </span>00007fe42751b040
+<span class="w"> </span>&lt;/TASK&gt;
+<span class="m">4</span>---<span class="o">[</span><span class="w"> </span>end<span class="w"> </span>trace<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span><span class="o">]</span>---
+1BUG:<span class="w"> </span>kernel<span class="w"> </span>NULL<span class="w"> </span>pointer<span class="w"> </span>dereference,<span class="w"> </span>address:<span class="w"> </span><span class="m">0000000000000000</span>
+<span class="m">1</span><span class="c1">#PF: supervisor write access in kernel mode</span>
+<span class="m">1</span><span class="c1">#PF: error_code(0x0002) - not-present page</span>
+c
+Oops:<span class="w"> </span><span class="m">0002</span><span class="w"> </span><span class="o">[</span><span class="c1">#1] PREEMPT SMP NOPTI</span>
+CPU:<span class="w"> </span><span class="m">0</span><span class="w"> </span>PID:<span class="w"> </span><span class="m">75</span><span class="w"> </span>Comm:<span class="w"> </span>fuzz_dvkm<span class="w"> </span>Tainted:<span class="w"> </span>G<span class="w">        </span>W<span class="w">  </span>O<span class="w">       </span><span class="m">6</span>.5.0-00004-g6521682f674d<span class="w"> </span><span class="c1">#6</span>
+Hardware<span class="w"> </span>name:<span class="w"> </span>QEMU<span class="w"> </span>Standard<span class="w"> </span>PC<span class="w"> </span><span class="o">(</span>i440FX<span class="w"> </span>+<span class="w"> </span>PIIX,<span class="w"> </span><span class="m">1996</span><span class="o">)</span>,<span class="w"> </span>BIOS<span class="w"> </span>rel-1.12.0-59-gc9ba5276e321-prebuilt.qemu.org<span class="w"> </span><span class="m">04</span>/01/2014
+RIP:<span class="w"> </span><span class="m">0010</span>:memcpy_orig+0x31/0x140
+Code:<span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">83</span><span class="w"> </span>fa<span class="w"> </span><span class="m">20</span><span class="w"> </span>0f<span class="w"> </span><span class="m">82</span><span class="w"> </span><span class="m">86</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">40</span><span class="w"> </span><span class="m">38</span><span class="w"> </span>fe<span class="w"> </span>7c<span class="w"> </span><span class="m">35</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">83</span><span class="w"> </span>ea<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">83</span><span class="w"> </span>ea<span class="w"> </span><span class="m">20</span><span class="w"> </span>4c<span class="w"> </span>8b<span class="w"> </span><span class="m">06</span><span class="w"> </span>4c<span class="w"> </span>8b<span class="w"> </span>4e<span class="w"> </span><span class="m">08</span><span class="w"> </span>4c<span class="w"> </span>8b<span class="w"> </span><span class="m">56</span><span class="w"> </span><span class="m">10</span><span class="w"> </span>4c<span class="w"> </span>8b<span class="w"> </span>5e<span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>8d<span class="w"> </span><span class="m">76</span><span class="w"> </span><span class="m">20</span><span class="w"> </span>&lt;4c&gt;<span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">07</span><span class="w"> </span>4c<span class="w"> </span><span class="m">89</span><span class="w"> </span>4f<span class="w"> </span><span class="m">08</span><span class="w"> </span>4c<span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">57</span><span class="w"> </span><span class="m">10</span><span class="w"> </span>4c<span class="w"> </span><span class="m">89</span><span class="w"> </span>5f<span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>8d<span class="w"> </span>7f<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">73</span><span class="w"> </span>d4<span class="w"> </span><span class="m">83</span>
+c
+RAX:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>RBX:<span class="w"> </span>0000000051bc1c7c<span class="w"> </span>RCX:<span class="w"> </span><span class="m">0000000000000012</span>
+RDX:<span class="w"> </span>0000000000160abf<span class="w"> </span>RSI:<span class="w"> </span>ffff888004e00020<span class="w"> </span>RDI:<span class="w"> </span><span class="m">0000000000000000</span>
+RBP:<span class="w"> </span>ffff888004e00000<span class="w"> </span>R08:<span class="w"> </span>abababababababab<span class="w"> </span>R09:<span class="w"> </span>abababababababab
+R10:<span class="w"> </span>abababababababab<span class="w"> </span>R11:<span class="w"> </span>abababababababab<span class="w"> </span>R12:<span class="w"> </span>000000009f135b1a
+R13:<span class="w"> </span>000055c56318b000<span class="w"> </span>R14:<span class="w"> </span>ffff888004cf2500<span class="w"> </span>R15:<span class="w"> </span><span class="m">0000000000000000</span>
+FS:<span class="w">  </span>00007fe4272b4740<span class="o">(</span><span class="m">0000</span><span class="o">)</span><span class="w"> </span>GS:ffff88800f600000<span class="o">(</span><span class="m">0000</span><span class="o">)</span><span class="w"> </span>knlGS:0000000000000000
+CS:<span class="w">  </span><span class="m">0010</span><span class="w"> </span>DS:<span class="w"> </span><span class="m">0000</span><span class="w"> </span>ES:<span class="w"> </span><span class="m">0000</span><span class="w"> </span>CR0:<span class="w"> </span><span class="m">0000000080050033</span>
+CR2:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>CR3:<span class="w"> </span>0000000004cdc006<span class="w"> </span>CR4:<span class="w"> </span>00000000001706f0
+Call<span class="w"> </span>Trace:
+<span class="w"> </span>&lt;TASK&gt;
+<span class="w"> </span>?<span class="w"> </span>__die+0x1f/0x70
+<span class="w"> </span>?<span class="w"> </span>page_fault_oops+0x156/0x420
+<span class="w"> </span>?<span class="w"> </span>search_exception_tables+0x37/0x50
+<span class="w"> </span>?<span class="w"> </span>fixup_exception+0x21/0x310
+<span class="w"> </span>?<span class="w"> </span>exc_page_fault+0x69/0x150
+<span class="w"> </span>?<span class="w"> </span>asm_exc_page_fault+0x26/0x30
+<span class="w"> </span>?<span class="w"> </span>memcpy_orig+0x31/0x140
+<span class="w"> </span>Integer_Overflow_IOCTL_Handler.part.0+0x11c/0x160<span class="w"> </span><span class="o">[</span>dvkm<span class="o">]</span>
+<span class="w"> </span>dvkm_ioctl+0x16a/0x230<span class="w"> </span><span class="o">[</span>dvkm<span class="o">]</span>
+<span class="w"> </span>proc_reg_unlocked_ioctl+0x52/0xa0
+<span class="w"> </span>__x64_sys_ioctl+0x89/0xc0
+<span class="w"> </span>do_syscall_64+0x3c/0x90
+<span class="w"> </span>entry_SYSCALL_64_after_hwframe+0x6e/0xd8
+RIP:<span class="w"> </span><span class="m">0033</span>:0x7fe4273d1b3f
+Code:<span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">31</span><span class="w"> </span>c0<span class="w"> </span><span class="m">48</span><span class="w"> </span>8d<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">60</span><span class="w"> </span>c7<span class="w"> </span><span class="m">04</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">08</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>8d<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">10</span><span class="w"> </span>b8<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span><span class="m">00</span><span class="w"> </span>0f<span class="w"> </span><span class="m">05</span><span class="w"> </span>&lt;<span class="m">41</span>&gt;<span class="w"> </span><span class="m">89</span><span class="w"> </span>c0<span class="w"> </span>3d<span class="w"> </span><span class="m">00</span><span class="w"> </span>f0<span class="w"> </span>ff<span class="w"> </span>ff<span class="w"> </span><span class="m">77</span><span class="w"> </span>1f<span class="w"> </span><span class="m">48</span><span class="w"> </span>8b<span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">64</span><span class="w"> </span><span class="m">48</span><span class="w"> </span>2b<span class="w"> </span><span class="m">04</span><span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">28</span><span class="w"> </span><span class="m">00</span>
+c<span class="w"> </span>ORIG_RAX:<span class="w"> </span><span class="m">0000000000000010</span>
+RAX:<span class="w"> </span>ffffffffffffffda<span class="w"> </span>RBX:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>RCX:<span class="w"> </span>00007fe4273d1b3f
+RDX:<span class="w"> </span>000055c56318b000<span class="w"> </span>RSI:<span class="w"> </span>00000000c0184400<span class="w"> </span>RDI:<span class="w"> </span><span class="m">0000000000000003</span>
+RBP:<span class="w"> </span>00007ffd5dee4ea0<span class="w"> </span>R08:<span class="w"> </span><span class="m">0000000000000010</span><span class="w"> </span>R09:<span class="w"> </span>00007ffd5dee3b80
+R10:<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span>R11:<span class="w"> </span><span class="m">0000000000000246</span><span class="w"> </span>R12:<span class="w"> </span>00007ffd5dee4fb8
+R13:<span class="w"> </span>000055c5631869e0<span class="w"> </span>R14:<span class="w"> </span>000055c563188d48<span class="w"> </span>R15:<span class="w"> </span>00007fe42751b040
+<span class="w"> </span>&lt;/TASK&gt;
+c
+CR2:<span class="w"> </span><span class="m">0000000000000000</span>
+<span class="m">4</span>---<span class="o">[</span><span class="w"> </span>end<span class="w"> </span>trace<span class="w"> </span><span class="m">0000000000000000</span><span class="w"> </span><span class="o">]</span>---
+Exit<span class="w"> </span>reason:<span class="w"> </span>crash
+Feedback<span class="w"> </span>Hash:<span class="w"> </span>908bfe7fc5777d10
+Worker-1337<span class="w"> </span>Shutting<span class="w"> </span>down<span class="w"> </span>Qemu<span class="w"> </span>after<span class="w"> </span><span class="m">0</span><span class="w"> </span>execs..
+qemu-system-x86_64:<span class="w"> </span>terminating<span class="w"> </span>on<span class="w"> </span>signal<span class="w"> </span><span class="m">15</span><span class="w"> </span>from<span class="w"> </span>pid<span class="w"> </span><span class="m">1303499</span><span class="w"> </span><span class="o">(</span>/home/mtarral/kafl/kafl/.venv/bin/python3<span class="o">)</span>
+Done.<span class="w"> </span>Check<span class="w"> </span>logs<span class="w"> </span><span class="k">for</span><span class="w"> </span>details.
+</pre></div>
+</div>
+<p>We just replayed payload <code class="docutils literal notranslate"><span class="pre">30</span></code> and got the full log output directly on stdout !
+And kAFL confirmed that it received a <code class="docutils literal notranslate"><span class="pre">crash</span></code> event.</p>
+<p>We could modify our target, harness or tweak the fuzzer settings to see if this payload still triggers a crash.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It could be beneficial to keep this payload for future use.</p>
+<p>For example when the target code will be fixed, we could replay that payload and use <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">debug</span></code> as a regression test tool.</p>
+</div>
+</section>
+<section id="action-gdb">
+<h3>Action <code class="docutils literal notranslate"><span class="pre">gdb</span></code><a class="headerlink" href="#action-gdb" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">gdb</span></code> action is particularly valuable for deep-diving into the issues discovered during fuzzing.</p>
+<p>When using this action, QEMU is started in <code class="docutils literal notranslate"><span class="pre">gdbserver</span></code> mode, which allows it to act as a server for the GDB debugger. This means you can interact with the target application in real-time as the payload is being executed.</p>
+<p>The use of GDB provides fine-grained control over the execution of the program and allows you to inspect the program’s state, variables, and call stack, offering a clear view into what led to a particular crash or unexpected behavior.</p>
+<p>Upon executing this command, QEMU will pause its execution and wait for a GDB client to connect. Once connected, you can use all the GDB commands to step through code, set breakpoints, and inspect memory and variables, thus enabling a thorough analysis of the crash scenario.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>mtarral@b49691bd4b34:~/kafl/kafl/examples/linux-user/dvkm$<span class="w"> </span>kafl<span class="w"> </span>debug<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--resume<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--action<span class="w"> </span>gdb<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--input<span class="w"> </span>/dev/shm/kafl_mtarral/corpus/crash/payload_00030
+
+<span class="w">    </span>__<span class="w">                        </span>__<span class="w">  </span>___<span class="w">    </span>________
+<span class="w">   </span>/<span class="w"> </span>/_____<span class="w">  </span>_________<span class="w">  </span>___<span class="w">  </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="w">   </span><span class="p">|</span><span class="w">  </span>/<span class="w"> </span>____/<span class="w"> </span>/
+<span class="w">  </span>/<span class="w"> </span>//_/<span class="w"> </span>_<span class="w"> </span><span class="se">\/</span><span class="w"> </span>___/<span class="w"> </span>__<span class="w"> </span><span class="se">\/</span><span class="w"> </span>_<span class="w"> </span><span class="se">\/</span><span class="w"> </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="p">|</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>/<span class="w"> </span>/_<span class="w">  </span>/<span class="w"> </span>/
+<span class="w"> </span>/<span class="w"> </span>,&lt;<span class="w"> </span>/<span class="w">  </span>__/<span class="w"> </span>/<span class="w">  </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="w">  </span>__/<span class="w"> </span>/<span class="w"> </span>/<span class="w"> </span>___<span class="w"> </span><span class="p">|</span>/<span class="w"> </span>__/<span class="w"> </span>/<span class="w"> </span>/___
+/_/<span class="p">|</span>_<span class="p">|</span><span class="se">\_</span>__/_/<span class="w">  </span>/_/<span class="w"> </span>/_/<span class="se">\_</span>__/_/<span class="w"> </span>/_/<span class="w">  </span><span class="p">|</span>_/_/<span class="w">   </span>/_____/
+<span class="o">===================================================</span>
+
+<span class="s">&lt;&lt; kAFL Debugger &gt;&gt;</span>
+
+<span class="s">No trace region configured! Intel PT disabled!</span>
+<span class="s">Starting Qemu + GDB with payload /dev/shm/kafl_mtarral/corpus/crash/payload_00030</span>
+<span class="s">Connect with gdb to release guest from reset (localhost:1234)</span>
+<span class="s">Worker-1337 Launching virtual machine...</span>
+<span class="s">/home/mtarral/kafl/kafl/qemu/x86_64-softmmu/qemu-system-x86_64</span>
+<span class="s">        -enable-kvm</span>
+<span class="s">        -machine kAFL</span><span class="m">64</span>-v1
+<span class="w">        </span>-cpu<span class="w"> </span>kAFL64-Hypervisor-v1,+vmx
+<span class="w">        </span>-no-reboot
+<span class="w">        </span>-net<span class="w"> </span>none
+<span class="w">        </span>-display<span class="w"> </span>none
+<span class="w">        </span>-chardev<span class="w"> </span>socket,server,id<span class="o">=</span>nyx_socket,path<span class="o">=</span>/dev/shm/kafl_mtarral/interface_1337
+<span class="w">        </span>-device<span class="w"> </span>nyx,chardev<span class="o">=</span>nyx_socket,workdir<span class="o">=</span>/dev/shm/kafl_mtarral,worker_id<span class="o">=</span><span class="m">1337</span>,bitmap_size<span class="o">=</span><span class="m">65536</span>,input_buffer_size<span class="o">=</span><span class="m">131072</span>,sharedir<span class="o">=</span>/home/mtarral/kafl/kafl/examples/linux-user/dvkm/sharedir
+<span class="w">        </span>-device<span class="w"> </span>isa-serial,chardev<span class="o">=</span>kafl_serial
+<span class="w">        </span>-chardev<span class="w"> </span>file,id<span class="o">=</span>kafl_serial,mux<span class="o">=</span>on,path<span class="o">=</span>/dev/shm/kafl_mtarral/serial_1337.log
+<span class="w">        </span>-m<span class="w"> </span><span class="m">256</span>
+<span class="w">        </span>-s
+<span class="w">        </span>-S
+<span class="w">        </span>-kernel<span class="w"> </span>/home/mtarral/kafl/kafl/examples/linux-user/linux_kafl_agent/arch/x86/boot/bzImage
+<span class="w">        </span>-initrd<span class="w"> </span>/home/mtarral/kafl/kafl/examples/linux-user/scripts/kafl_initrd.cpio.gz
+<span class="w">        </span>-append<span class="w"> </span><span class="nv">root</span><span class="o">=</span>/dev/vda1<span class="w"> </span>rw<span class="w"> </span>nokaslr<span class="w"> </span><span class="nv">oops</span><span class="o">=</span>panic<span class="w"> </span>nopti<span class="w"> </span><span class="nv">mitigations</span><span class="o">=</span>off<span class="w"> </span><span class="nv">console</span><span class="o">=</span>ttyS0<span class="w"> </span><span class="nv">earlyprintk</span><span class="o">=</span>serial,ttyS0<span class="w"> </span>ignore_loglevel
+<span class="w">        </span>-fast_vm_reload<span class="w"> </span><span class="nv">path</span><span class="o">=</span>/dev/shm/kafl_mtarral/snapshot/,load<span class="o">=</span>on
+qemu-system-x86_64:<span class="w"> </span>warning:<span class="w"> </span>host<span class="w"> </span>doesn<span class="s1">&#39;t support requested feature: CPUID.07H:EBX.hle [bit 4]</span>
+<span class="s1">qemu-system-x86_64: warning: host doesn&#39;</span>t<span class="w"> </span>support<span class="w"> </span>requested<span class="w"> </span>feature:<span class="w"> </span>CPUID.07H:EBX.rtm<span class="w"> </span><span class="o">[</span>bit<span class="w"> </span><span class="m">11</span><span class="o">]</span>
+<span class="o">[</span>QEMU-NYX<span class="o">]</span><span class="w"> </span>Waiting<span class="w"> </span><span class="k">for</span><span class="w"> </span>snapshot<span class="w"> </span>to<span class="w"> </span>start<span class="w"> </span>fuzzing...
+</pre></div>
+</div>
+<p>Now we need to connect to the local GDB server and release the execution.</p>
+<p>But before we do that, we need to make sure we can load the debug symbols for both the Linux kernel and our DVKM module.</p>
+<p>If you look at the Makefile, you can observe that it preconfigures the kernel:</p>
+<div class="literal-block-wrapper docutils container" id="id7">
+<div class="code-block-caption"><span class="caption-text">Makefile rule to build the kernel bzImage</span><a class="headerlink" href="#id7" title="Link to this code">#</a></div>
+<div class="highlight-Makefile notranslate"><div class="highlight"><pre><span></span><span class="nf">$(LINUX_AGENT_BZIMAGE)</span><span class="o">:</span>
+<span class="w">	</span><span class="k">$(</span>MAKE<span class="k">)</span><span class="w"> </span>-C<span class="w"> </span><span class="k">$(</span>LINUX_AGENT_DIR<span class="k">)</span><span class="w"> </span>x86_64_defconfig
+<span class="w">	</span><span class="nb">cd</span><span class="w"> </span><span class="k">$(</span>LINUX_AGENT_DIR<span class="k">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>./scripts/config<span class="w"> </span>--disable<span class="w"> </span>MODULE_SIG
+<span class="w">	</span><span class="nb">cd</span><span class="w"> </span><span class="k">$(</span>LINUX_AGENT_DIR<span class="k">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>./scripts/config<span class="w"> </span>--enable<span class="w"> </span>DEBUG_INFO_DWARF5
+<span class="w">	</span><span class="nb">cd</span><span class="w"> </span><span class="k">$(</span>LINUX_AGENT_DIR<span class="k">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>./scripts/config<span class="w"> </span>--enable<span class="w"> </span>GDB_SCRIPTS
+</pre></div>
+</div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="https://cateee.net/lkddb/web-lkddb/DEBUG_INFO_DWARF5.html"><code class="docutils literal notranslate"><span class="pre">DEBUG_INFO_DWARF5</span></code></a>: generates and includes DWARF5 debug info in the kernel image.</p></li>
+<li><p><a class="reference external" href="https://cateee.net/lkddb/web-lkddb/GDB_SCRIPTS.html"><code class="docutils literal notranslate"><span class="pre">GDB_SCRIPTS</span></code></a>: creates links to helper GDB scripts when loading <code class="docutils literal notranslate"><span class="pre">vmlinux</span></code> to provide additional functions useful to analyze a running Linux instance.</p></li>
+</ul>
+<p>Let’s create a new shell, move into <code class="docutils literal notranslate"><span class="pre">📂</span> <span class="pre">linux_kafl_agent</span></code></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span><span class="nv">$EXAMPLES_ROOT</span>/linux-user/linux_kafl_agent
+</pre></div>
+</div>
+<p>And invoke GDB to load the symbols and connect the to remote target:</p>
+<div class="literal-block-wrapper docutils container" id="id8">
+<div class="code-block-caption"><span class="caption-text">GDB client command line</span><a class="headerlink" href="#id8" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>gdb<span class="w"> </span>-q<span class="w"> </span>vmlinux<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-ex<span class="w"> </span><span class="s1">&#39;target remote :1234&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-ex<span class="w"> </span><span class="s1">&#39;lx-symbols ../dvkm/Damn_Vulnerable_Kernel_Module&#39;</span>
+Reading<span class="w"> </span>symbols<span class="w"> </span>from<span class="w"> </span>vmlinux...
+Remote<span class="w"> </span>debugging<span class="w"> </span>using<span class="w"> </span>:1234
+0x000055561177f34d<span class="w"> </span><span class="k">in</span><span class="w"> </span>??<span class="w"> </span><span class="o">()</span>
+loading<span class="w"> </span>vmlinux
+scanning<span class="w"> </span><span class="k">for</span><span class="w"> </span>modules<span class="w"> </span><span class="k">in</span><span class="w"> </span>/home/mtarral/kafl/kafl/examples/linux-user/dvkm/Damn_Vulnerable_Kernel_Module
+scanning<span class="w"> </span><span class="k">for</span><span class="w"> </span>modules<span class="w"> </span><span class="k">in</span><span class="w"> </span>/home/mtarral/kafl/kafl/examples/linux-user/linux_kafl_agent
+loading<span class="w"> </span>@0xffffffffc0000000:<span class="w"> </span>/home/mtarral/kafl/kafl/examples/linux-user/dvkm/Damn_Vulnerable_Kernel_Module/dvkm.ko
+<span class="o">(</span>gdb<span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<p>From there, you are now in a debugging session with an active target. You can place your breakpoints, and have access to all kernel symbols, as well as dvkm once.</p>
+<p>Let’s try to put a breakpoint on <code class="docutils literal notranslate"><span class="pre">dvkm_ioctl</span></code> and <code class="docutils literal notranslate"><span class="pre">oops_enter</span></code>, and continue the execution:</p>
+<div class="literal-block-wrapper docutils container" id="id9">
+<div class="code-block-caption"><span class="caption-text">Adding breakpoints</span><a class="headerlink" href="#id9" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>gdb<span class="o">)</span><span class="w"> </span>hbreak<span class="w"> </span>dvkm_ioctl
+Hardware<span class="w"> </span>assisted<span class="w"> </span>breakpoint<span class="w"> </span><span class="m">1</span><span class="w"> </span>at<span class="w"> </span>0xffffffffc0000c30:<span class="w"> </span>file<span class="w"> </span>/home/mtarral/kafl/kafl/examples/linux-user/dvkm/Damn_Vulnerable_Kernel_Module/dvkm.c,<span class="w"> </span>line<span class="w"> </span><span class="m">410</span>.
+<span class="o">(</span>gdb<span class="o">)</span><span class="w"> </span>hbreak<span class="w"> </span>oops_enter
+Hardware<span class="w"> </span>assisted<span class="w"> </span>breakpoint<span class="w"> </span><span class="m">2</span><span class="w"> </span>at<span class="w"> </span>0xffffffff8114c660:<span class="w"> </span>file<span class="w"> </span>kernel/panic.c,<span class="w"> </span>line<span class="w"> </span><span class="m">623</span>.
+<span class="o">(</span>gdb<span class="o">)</span><span class="w"> </span>c
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id10">
+<div class="code-block-caption"><span class="caption-text">Debugging dvkm_ioctl</span><a class="headerlink" href="#id10" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>gdb<span class="o">)</span><span class="w"> </span>l
+<span class="m">405</span><span class="w">             </span><span class="k">return</span><span class="w"> </span><span class="m">0</span><span class="p">;</span>
+<span class="m">406</span><span class="w">     </span><span class="o">}</span>
+<span class="m">407</span>
+<span class="m">408</span><span class="w">     </span>//IOCTL<span class="w"> </span>handler,<span class="w"> </span>this<span class="w"> </span>calls<span class="w"> </span>various<span class="w"> </span>vulnerable<span class="w"> </span>functions.
+<span class="m">409</span><span class="w">     </span>noinline<span class="w"> </span>long<span class="w"> </span>dvkm_ioctl<span class="o">(</span>struct<span class="w"> </span>file<span class="w"> </span>*f,<span class="w"> </span>unsigned<span class="w"> </span>int<span class="w"> </span>cmd,<span class="w"> </span>unsigned<span class="w"> </span>long<span class="w"> </span>arg<span class="o">)</span>
+<span class="m">410</span><span class="w">     </span><span class="o">{</span>
+<span class="m">411</span><span class="w">             </span>int<span class="w"> </span><span class="nv">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-EINVAL<span class="p">;</span>
+<span class="m">412</span><span class="w">             </span>void<span class="w"> </span>__user<span class="w"> </span>*arg_user<span class="p">;</span>
+<span class="m">413</span>
+<span class="m">414</span><span class="w">             </span><span class="k">if</span><span class="w"> </span><span class="o">(</span><span class="nv">arg</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="o">)</span><span class="w"> </span><span class="o">{</span>
+<span class="o">(</span>gdb<span class="o">)</span><span class="w"> </span>disas
+Dump<span class="w"> </span>of<span class="w"> </span>assembler<span class="w"> </span>code<span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="k">function</span><span class="w"> </span>dvkm_ioctl:
+<span class="o">=</span>&gt;<span class="w"> </span>0xffffffffc0000c30<span class="w"> </span>&lt;+0&gt;:<span class="w">     </span>endbr64
+<span class="w">   </span>0xffffffffc0000c34<span class="w"> </span>&lt;+4&gt;:<span class="w">     </span><span class="nb">test</span><span class="w">   </span>%rdx,%rdx
+<span class="w">   </span>0xffffffffc0000c37<span class="w"> </span>&lt;+7&gt;:<span class="w">     </span>je<span class="w">     </span>0xffffffffc0000d65<span class="w"> </span>&lt;dvkm_ioctl+309&gt;
+<span class="w">   </span>0xffffffffc0000c3d<span class="w"> </span>&lt;+13&gt;:<span class="w">    </span>push<span class="w">   </span>%rbp
+<span class="w">   </span>0xffffffffc0000c3e<span class="w"> </span>&lt;+14&gt;:<span class="w">    </span>mov<span class="w">    </span>%rdx,%rbp
+<span class="w">   </span>0xffffffffc0000c41<span class="w"> </span>&lt;+17&gt;:<span class="w">    </span>cmp<span class="w">    </span><span class="nv">$0</span>xc0184406,%esi
+<span class="w">   </span>0xffffffffc0000c47<span class="w"> </span>&lt;+23&gt;:<span class="w">    </span>je<span class="w">     </span>0xffffffffc0000dff<span class="w"> </span>&lt;dvkm_ioctl+463&gt;
+<span class="w">   </span>0xffffffffc0000c4d<span class="w"> </span>&lt;+29&gt;:<span class="w">    </span>ja<span class="w">     </span>0xffffffffc0000c91<span class="w"> </span>&lt;dvkm_ioctl+97&gt;
+<span class="w">   </span>0xffffffffc0000c4f<span class="w"> </span>&lt;+31&gt;:<span class="w">    </span>cmp<span class="w">    </span><span class="nv">$0</span>xc0184402,%esi
+<span class="w">   </span>0xffffffffc0000c55<span class="w"> </span>&lt;+37&gt;:<span class="w">    </span>je<span class="w">     </span>0xffffffffc0000e18<span class="w"> </span>&lt;dvkm_ioctl+488&gt;
+<span class="w">   </span>0xffffffffc0000c5b<span class="w"> </span>&lt;+43&gt;:<span class="w">    </span>jbe<span class="w">    </span>0xffffffffc0000d1e<span class="w"> </span>&lt;dvkm_ioctl+238&gt;
+<span class="w">   </span>0xffffffffc0000c61<span class="w"> </span>&lt;+49&gt;:<span class="w">    </span>cmp<span class="w">    </span><span class="nv">$0</span>xc0184403,%esi
+<span class="w">   </span>0xffffffffc0000c67<span class="w"> </span>&lt;+55&gt;:<span class="w">    </span>je<span class="w">     </span>0xffffffffc0000d9f<span class="w"> </span>&lt;dvkm_ioctl+367&gt;
+<span class="w">   </span>0xffffffffc0000c6d<span class="w"> </span>&lt;+61&gt;:<span class="w">    </span>cmp<span class="w">    </span><span class="nv">$0</span>xc0184405,%esi
+<span class="w">   </span>0xffffffffc0000c73<span class="w"> </span>&lt;+67&gt;:<span class="w">    </span>jne<span class="w">    </span>0xffffffffc0000c89<span class="w"> </span>&lt;dvkm_ioctl+89&gt;
+<span class="w">   </span>0xffffffffc0000c75<span class="w"> </span>&lt;+69&gt;:<span class="w">    </span>mov<span class="w">    </span><span class="nv">$0</span>xffffffffc00104a0,%rdi
+<span class="w">   </span>0xffffffffc0000c7c<span class="w"> </span>&lt;+76&gt;:<span class="w">    </span>call<span class="w">   </span>0xffffffff8127e7a0<span class="w"> </span>&lt;_printk&gt;
+<span class="w">   </span>0xffffffffc0000c81<span class="w"> </span>&lt;+81&gt;:<span class="w">    </span>mov<span class="w">    </span>%rbp,%rdi
+<span class="w">   </span>0xffffffffc0000c84<span class="w"> </span>&lt;+84&gt;:<span class="w">    </span>call<span class="w">   </span>0xffffffffc0000a20<span class="w"> </span>&lt;Stack_OOBR_IOCTL_Handler&gt;
+<span class="w">   </span>0xffffffffc0000c89<span class="w"> </span>&lt;+89&gt;:<span class="w">    </span>xor<span class="w">    </span>%eax,%eax
+<span class="w">   </span>0xffffffffc0000c8b<span class="w"> </span>&lt;+91&gt;:<span class="w">    </span>pop<span class="w">    </span>%rbp
+<span class="w">   </span>0xffffffffc0000c8c<span class="w"> </span>&lt;+92&gt;:<span class="w">    </span>ret
+</pre></div>
+</div>
+</div>
+<p>To continue playing with our breakpoints, let’s move to <code class="docutils literal notranslate"><span class="pre">oops_enter</span></code> (confirming that the current payload is triggering a crash), and dump the stack:</p>
+<div class="literal-block-wrapper docutils container" id="id11">
+<div class="code-block-caption"><span class="caption-text">Dumping the stack on oops_enter</span><a class="headerlink" href="#id11" title="Link to this code">#</a></div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Breakpoint<span class="w"> </span><span class="m">2</span>,<span class="w"> </span>oops_enter<span class="w"> </span><span class="o">()</span><span class="w"> </span>at<span class="w"> </span>kernel/panic.c:623
+<span class="m">623</span><span class="w">     </span><span class="o">{</span>
+<span class="o">(</span>gdb<span class="o">)</span><span class="w"> </span>c
+<span class="o">(</span>gdb<span class="o">)</span><span class="w"> </span>bt
+<span class="c1">#0  oops_enter () at kernel/panic.c:623</span>
+<span class="c1">#1  0xffffffff810812dc in oops_begin () at arch/x86/kernel/dumpstack.c:338</span>
+<span class="c1">#2  0xffffffff81081cfe in die_addr (str=str@entry=0xffff888007f27b2c &quot;general protection fault, probably for non-canonical address 0xe0000be0d732a202&quot;, regs=regs@entry=0xffff888007f27bb8, err=err@entry=0,</span>
+<span class="w">    </span><span class="nv">gp_addr</span><span class="o">=</span>-2305829948902694398<span class="o">)</span><span class="w"> </span>at<span class="w"> </span>arch/x86/kernel/dumpstack.c:454
+<span class="c1">#3  0xffffffff83c43378 in __exc_general_protection (error_code=0, regs=0xffff888007f27bb8) at arch/x86/kernel/traps.c:784</span>
+<span class="c1">#4  exc_general_protection (regs=0xffff888007f27bb8, error_code=0) at arch/x86/kernel/traps.c:729</span>
+<span class="c1">#5  0xffffffff83e01206 in asm_exc_general_protection () at ./arch/x86/include/asm/idtentry.h:564</span>
+<span class="c1">#6  0xffff888007f27e80 in ?? ()</span>
+<span class="c1">#7  0xffffffff86060000 in hprintf_buffer ()</span>
+<span class="c1">#8  0x1ffff11000fe4f90 in ?? ()</span>
+<span class="c1">#9  0xffffffff8605f044 in hprintf_buffer ()</span>
+<span class="c1">#10 0xffffffff8605f012 in hprintf_buffer ()</span>
+<span class="c1">#11 0x00007f06b9951016 in ?? ()</span>
+<span class="c1">#12 0x1ffffffff092a03d in ?? ()</span>
+<span class="c1">#13 0xffffffffc0010175 in ?? ()</span>
+<span class="c1">#14 0x203a61746164205d in ?? ()</span>
+<span class="c1">#15 0xdffffc0000000000 in ?? ()</span>
+<span class="c1">#16 0x00000fe0d732a202 in ?? ()</span>
+<span class="c1">#17 0x00320a00ffffff04 in ?? ()</span>
+<span class="c1">#18 0x0000000000000005 in fixed_percpu_data ()</span>
+<span class="c1">#19 0x0000000000000000 in ?? ()</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>We need to use GDB hardware breakpoints, as software breakpoints in QEMU’s embedded GDB server seems unrealiable.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To reach the <code class="docutils literal notranslate"><span class="pre">dvkm_ioctl</span></code> hardware breakpoint, we had to send a <code class="docutils literal notranslate"><span class="pre">CTRL-C</span></code> to the GDB client.
+The execution was hanging somewhere, for reasons that are not clear at the time of this writing.</p>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Also remember that in order to load the symbols reliably, at the same location, we had to disable the Kernel <code class="docutils literal notranslate"><span class="pre">ASLR</span></code>.</p>
+<p>Have a look at the <code class="docutils literal notranslate"><span class="pre">kafl.yaml</span></code> <code class="docutils literal notranslate"><span class="pre">qemu_append</span></code> line, where <a class="reference external" href="https://www.kernel.org/doc/html/v4.14/admin-guide/kernel-parameters.html"><code class="docutils literal notranslate"><span class="pre">nokaslr</span></code></a> option is set.</p>
+</div>
+<div class="docutils">
+<p>Hopefully by now, you should have a better understanding of the kAFL workdir’s corpus directory, the captured logs and how to interpret them, as well as having the capacity to replay payloads as you will !</p>
+<p>The next section will focus on improving the fuzzing campaign and finding more crashes by compiling our target under <code class="docutils literal notranslate"><span class="pre">KASAN</span></code>, stay tuned !</p>
+</div>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="improvements.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">6 - Improvements: KASAN</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="fuzzing.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">4 - Fuzzing campaign</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, Steffen Schulz - Mathieu Tarral
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/IntelLabs/kAFL" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">5 - Exploring campaign results</a><ul>
+<li><a class="reference internal" href="#exploring-the-corpus">Exploring the corpus</a></li>
+<li><a class="reference internal" href="#crash-logs">Crash logs</a></li>
+<li><a class="reference internal" href="#kafl-debug"><code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">debug</span></code></a><ul>
+<li><a class="reference internal" href="#action-single">Action <code class="docutils literal notranslate"><span class="pre">single</span></code></a></li>
+<li><a class="reference internal" href="#action-gdb">Action <code class="docutils literal notranslate"><span class="pre">gdb</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=5b3c63aa"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    </body>
+</html>

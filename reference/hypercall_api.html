@@ -1,17 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="kAFL Workdir" href="workdir_layout.html" /><link rel="prev" title="Deployment" href="deployment.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>kAFL/Nyx Hypercall API - kAFL</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
     
     
 
@@ -161,9 +161,21 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/concepts.html">Concepts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/linux/index.html">Linux Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Linux Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/linux/dvkm/index.html">DVKM</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of DVKM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/target.html">1 - Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/workflow.html">2 - kAFL workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/agent.html">3 - Building the agent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/fuzzing.html">4 - Fuzzing campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/results.html">5 - Exploring campaign results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/improvements.html">6 - Improvements: KASAN</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/linux/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/driver/target.html">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/driver/target_setup.html">Provision the guest VM</a></li>
@@ -171,7 +183,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/driver/crash.html">Crash Analysis</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/userspace/target.html">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/userspace/target_setup.html">Provision the guest VM</a></li>
@@ -244,7 +256,7 @@
         </div>
         <article role="main">
           <section id="kafl-nyx-hypercall-api">
-<h1>kAFL/Nyx Hypercall API<a class="headerlink" href="#kafl-nyx-hypercall-api" title="Permalink to this heading">#</a></h1>
+<h1>kAFL/Nyx Hypercall API<a class="headerlink" href="#kafl-nyx-hypercall-api" title="Link to this heading">#</a></h1>
 <p>For fuzzing in kAFL/Nyx, the guest VM issues special hypercalls to bootstrap and
 coordinate the execution of the fuzzing harness with the fuzzer frontend.</p>
 <p>This approach offers a minimal low-level interface that can be used to take
@@ -252,16 +264,16 @@ control and start injecting inputs at any point in VM guest execution.</p>
 <p>The hypercall API can be found in the <a class="reference external" href="https://github.com/IntelLabs/kafl.targets/blob/master/nyx_api.h">nyx_api.h</a> C header.</p>
 <p>The following hypercalls should be prefixed by <code class="docutils literal notranslate"><span class="pre">HYPERCALL_KAFL_</span></code>.</p>
 <section id="essential-hypercalls">
-<h2>Essential hypercalls<a class="headerlink" href="#essential-hypercalls" title="Permalink to this heading">#</a></h2>
+<h2>Essential hypercalls<a class="headerlink" href="#essential-hypercalls" title="Link to this heading">#</a></h2>
 <section id="acquire-release">
-<h3><code class="docutils literal notranslate"><span class="pre">ACQUIRE</span></code> / <code class="docutils literal notranslate"><span class="pre">RELEASE</span></code><a class="headerlink" href="#acquire-release" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">ACQUIRE</span></code> / <code class="docutils literal notranslate"><span class="pre">RELEASE</span></code><a class="headerlink" href="#acquire-release" title="Link to this heading">#</a></h3>
 <p>They are used to:</p>
 <ul class="simple">
 <li><p>enable / disable feedback collection</p></li>
 <li><p>perform the initial handshake with the host frontend</p></li>
 </ul>
 <div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id1" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// 🤝 kAFL handshake </span>
 <span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_RELEASE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
@@ -284,7 +296,7 @@ control and start injecting inputs at any point in VM guest execution.</p>
 </div>
 </section>
 <section id="get-payload">
-<h3><code class="docutils literal notranslate"><span class="pre">GET_PAYLOAD</span></code><a class="headerlink" href="#get-payload" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">GET_PAYLOAD</span></code><a class="headerlink" href="#get-payload" title="Link to this heading">#</a></h3>
 <p>This hypercall is not actually getting the payload but instead telling Qemu
 where to write the payload by providing it the payload’s guest address.</p>
 <p>Qemu will <code class="docutils literal notranslate"><span class="pre">mmap()</span></code> this buffer to make it shared with the fuzzer frontend.</p>
@@ -300,7 +312,7 @@ where to write the payload by providing it the payload’s guest address.</p>
 </input><label class="sd-tab-label" for="sd-tab-item-0">
 Linux</label><div class="sd-tab-content docutils">
 <div class="literal-block-wrapper docutils container" id="id2">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id2" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id2" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;unistd.h&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdlib.h&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sys/mman.h&gt;</span>
@@ -321,7 +333,7 @@ Linux</label><div class="sd-tab-content docutils">
 </input><label class="sd-tab-label" for="sd-tab-item-1">
 Windows</label><div class="sd-tab-content docutils">
 <div class="literal-block-wrapper docutils container" id="id3">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id3" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id3" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;windows.h&gt;</span>
 
 <span class="c1">// allocate page aligned 64KB buffer</span>
@@ -338,7 +350,7 @@ Windows</label><div class="sd-tab-content docutils">
 </div>
 </div>
 <div class="literal-block-wrapper docutils container" id="id4">
-<div class="code-block-caption"><span class="caption-text">kAFL_payload struct</span><a class="headerlink" href="#id4" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">kAFL_payload struct</span><a class="headerlink" href="#id4" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="kt">int32_t</span><span class="w"> </span><span class="n">size</span><span class="p">;</span>
 <span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">data</span><span class="p">[];</span>
@@ -348,7 +360,7 @@ Windows</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="next-payload">
-<h3><code class="docutils literal notranslate"><span class="pre">NEXT_PAYLOAD</span></code><a class="headerlink" href="#next-payload" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">NEXT_PAYLOAD</span></code><a class="headerlink" href="#next-payload" title="Link to this heading">#</a></h3>
 <p>Triggers the actual write of the next payload into the previously registered buffer.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -356,10 +368,10 @@ Windows</label><div class="sd-tab-content docutils">
 </div>
 <p>This hypercall can be used in 2 different configurations, depending on the target support for fuzzing without restoring the snapshot, and how the user wants his harness to be implemented.</p>
 <section id="fuzzing-with-snapshot-restore">
-<h4>Fuzzing with snapshot restore<a class="headerlink" href="#fuzzing-with-snapshot-restore" title="Permalink to this heading">#</a></h4>
+<h4>Fuzzing with snapshot restore<a class="headerlink" href="#fuzzing-with-snapshot-restore" title="Link to this heading">#</a></h4>
 <p>This is the most straightforward use case. No <code class="docutils literal notranslate"><span class="pre">while()</span></code> loop is required around the hypercall, since kAFL will take care of restoring the snapshot on each fuzzing iteration.</p>
 <div class="literal-block-wrapper docutils container" id="id5">
-<div class="code-block-caption"><span class="caption-text">Snapshot restore example</span><a class="headerlink" href="#id5" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Snapshot restore example</span><a class="headerlink" href="#id5" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// 🔁 write next payload into the buffer</span>
 <span class="c1">//    (take a snapshot on first call)</span>
 <span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_NEXT_PAYLOAD</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
@@ -374,12 +386,12 @@ Windows</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="fuzzing-without-snapshot-restore">
-<h4>Fuzzing without snapshot restore<a class="headerlink" href="#fuzzing-without-snapshot-restore" title="Permalink to this heading">#</a></h4>
+<h4>Fuzzing without snapshot restore<a class="headerlink" href="#fuzzing-without-snapshot-restore" title="Link to this heading">#</a></h4>
 <p>This is less common, but available nontheless to advanced users.</p>
 <p>If the target can be fuzzed without snapshot restore (ie. it “survives” a fuzzing iteration) and if the user wants to gain some extra performance, the <a class="reference internal" href="#set-agent-config"><code class="docutils literal notranslate"><span class="pre">agent_non_reload_mode</span></code></a> field can be set to disable snapshot mode.</p>
 <p>The target will only be restored in case of timeouts or crashes.</p>
 <div class="literal-block-wrapper docutils container" id="id6">
-<div class="code-block-caption"><span class="caption-text">Snapshot restore disabled example</span><a class="headerlink" href="#id6" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Snapshot restore disabled example</span><a class="headerlink" href="#id6" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">agent_config_t</span><span class="w"> </span><span class="n">agent_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="p">.</span><span class="n">agent_magic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NYX_AGENT_MAGIC</span><span class="p">,</span>
 <span class="w">    </span><span class="p">.</span><span class="n">agent_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NYX_AGENT_VERSION</span><span class="p">,</span>
@@ -416,10 +428,10 @@ Windows</label><div class="sd-tab-content docutils">
 </section>
 </section>
 <section id="get-host-config">
-<h3><code class="docutils literal notranslate"><span class="pre">GET_HOST_CONFIG</span></code><a class="headerlink" href="#get-host-config" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">GET_HOST_CONFIG</span></code><a class="headerlink" href="#get-host-config" title="Link to this heading">#</a></h3>
 <p>Used to query the host kAFL/QEMU configuration, for example to get the payload buffer size.</p>
 <div class="literal-block-wrapper docutils container" id="id7">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id7" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id7" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">host_config_t</span><span class="w"> </span><span class="n">host_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
 <span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_GET_HOST_CONFIG</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="o">&amp;</span><span class="n">host_config</span><span class="p">);</span>
 <span class="n">hprintf</span><span class="p">(</span><span class="s">&quot;[host_config] payload size = %dKB</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">host_config</span><span class="p">.</span><span class="n">payload_buffer_size</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="p">);</span>
@@ -427,7 +439,7 @@ Windows</label><div class="sd-tab-content docutils">
 </div>
 </div>
 <div class="literal-block-wrapper docutils container" id="id8">
-<div class="code-block-caption"><span class="caption-text">host_config_t struct</span><a class="headerlink" href="#id8" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">host_config_t struct</span><a class="headerlink" href="#id8" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="c1">// Safety check to be verified by the agent against his NYX_HOST_MAGIC value</span>
 <span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">host_magic</span><span class="p">;</span>
@@ -454,10 +466,10 @@ Windows</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="set-agent-config">
-<h3><code class="docutils literal notranslate"><span class="pre">SET_AGENT_CONFIG</span></code><a class="headerlink" href="#set-agent-config" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">SET_AGENT_CONFIG</span></code><a class="headerlink" href="#set-agent-config" title="Link to this heading">#</a></h3>
 <p>Tells QEMU about capabilities of the agent harness and set custom tracing options.</p>
 <div class="literal-block-wrapper docutils container" id="id9">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id9" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id9" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">agent_config_t</span><span class="w"> </span><span class="n">agent_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="p">.</span><span class="n">agent_magic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NYX_AGENT_MAGIC</span><span class="p">,</span>
 <span class="w">    </span><span class="p">.</span><span class="n">agent_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NYX_AGENT_VERSION</span><span class="p">,</span>
@@ -469,7 +481,7 @@ Windows</label><div class="sd-tab-content docutils">
 </div>
 </div>
 <div class="literal-block-wrapper docutils container" id="id10">
-<div class="code-block-caption"><span class="caption-text">agent_config_t struct</span><a class="headerlink" href="#id10" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">agent_config_t struct</span><a class="headerlink" href="#id10" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="c1">// TODO</span>
 <span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">agent_magic</span><span class="p">;</span>
@@ -505,12 +517,12 @@ Windows</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="panic-kasan">
-<h3><code class="docutils literal notranslate"><span class="pre">PANIC</span></code> / <code class="docutils literal notranslate"><span class="pre">KASAN</span></code><a class="headerlink" href="#panic-kasan" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">PANIC</span></code> / <code class="docutils literal notranslate"><span class="pre">KASAN</span></code><a class="headerlink" href="#panic-kasan" title="Link to this heading">#</a></h3>
 <p>They are used to raise a <strong>crash</strong> or other error event to the host.</p>
 <p>QEMU will stop guest execution, reload the snapshot and report the crash type
 to the frontend.</p>
 <div class="literal-block-wrapper docutils container" id="id11">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id11" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id11" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_PANIC</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="c1">// or</span>
 <span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_KASAN</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
@@ -519,12 +531,12 @@ to the frontend.</p>
 </div>
 </section>
 <section id="submit-panic-submit-kasan">
-<h3><code class="docutils literal notranslate"><span class="pre">SUBMIT_PANIC</span></code> / <code class="docutils literal notranslate"><span class="pre">SUBMIT_KASAN</span></code><a class="headerlink" href="#submit-panic-submit-kasan" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">SUBMIT_PANIC</span></code> / <code class="docutils literal notranslate"><span class="pre">SUBMIT_KASAN</span></code><a class="headerlink" href="#submit-panic-submit-kasan" title="Link to this heading">#</a></h3>
 <p>They tell QEMU the address of existing panic or sanitizer handler functions in the guest.
 QEMU will overwrite the code at this address to perform <code class="docutils literal notranslate"><span class="pre">PANIC</span></code> / <code class="docutils literal notranslate"><span class="pre">KASAN</span></code> hypercalls so
 that the events are detected and fuzz inputs can be logged on the host side.</p>
 <div class="literal-block-wrapper docutils container" id="id12">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id12" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id12" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">panic_kebugcheck</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">resolve_KeBugCheck</span><span class="p">(</span><span class="s">&quot;KeBugCheck&quot;</span><span class="p">);</span>
 <span class="n">panic_kebugcheck2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">resolve_KeBugCheck</span><span class="p">(</span><span class="s">&quot;KeBugCheckEx&quot;</span><span class="p">);</span>
 <span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_SUBMIT_PANIC</span><span class="p">,</span><span class="w"> </span><span class="n">panic_kebugcheck</span><span class="p">);</span>
@@ -540,7 +552,7 @@ and exception handlers with <a class="reference internal" href="#panic-kasan"><c
 <p>With this approach around 20-26 Bytes are overwritten, depending on whether the targets runs in protected or long mode.
 See <a class="reference external" href="https://github.com/IntelLabs/kafl.qemu/blob/61cb6cc5b45b5fc9ececf37737a1b88d787fb187/nyx/hypercall/hypercall.h#L42">nyx/hypercall/hypercall.h:Panic and KASAN notifier payloads</a></p>
 <div class="literal-block-wrapper docutils container" id="id13">
-<div class="code-block-caption"><span class="caption-text">Example - Panic Notifier Payload (x86-64)</span><a class="headerlink" href="#id13" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example - Panic Notifier Payload (x86-64)</span><a class="headerlink" href="#id13" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
 <span class="cm"> * Panic Notifier Payload (x86-64)</span>
 <span class="cm"> * fa                      cli</span>
@@ -560,13 +572,13 @@ See <a class="reference external" href="https://github.com/IntelLabs/kafl.qemu/b
 </section>
 </section>
 <section id="further-optional-hypercalls">
-<h2>Further optional hypercalls<a class="headerlink" href="#further-optional-hypercalls" title="Permalink to this heading">#</a></h2>
+<h2>Further optional hypercalls<a class="headerlink" href="#further-optional-hypercalls" title="Link to this heading">#</a></h2>
 <section id="printf">
-<h3><code class="docutils literal notranslate"><span class="pre">PRINTF</span></code><a class="headerlink" href="#printf" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">PRINTF</span></code><a class="headerlink" href="#printf" title="Link to this heading">#</a></h3>
 <p>Sends a pointer to a C string to the host, where it will be printed or logged.</p>
 <p>Very useful for general logging/debug, forwarding sanitizer reports and exception stack dumps.</p>
 <div class="literal-block-wrapper docutils container" id="id14">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id14" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id14" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_PRINTF</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;kAFL fuzzer initialized.&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -583,12 +595,12 @@ which provides variadic arguments and string formatting.</p>
 </div>
 </section>
 <section id="range-submit">
-<h3><code class="docutils literal notranslate"><span class="pre">RANGE_SUBMIT</span></code><a class="headerlink" href="#range-submit" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">RANGE_SUBMIT</span></code><a class="headerlink" href="#range-submit" title="Link to this heading">#</a></h3>
 <p>Used to configure the IP filter range for PT tracing.</p>
 <p>This is useful when code ranges are not known at startup time or simply easier to
 obtain as part of agent initialization.</p>
 <div class="literal-block-wrapper docutils container" id="id15">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id15" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id15" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">buffer</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
 <span class="n">buffer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0xfffff8010e0b0000</span><span class="w"> </span><span class="c1">// low range</span>
 <span class="n">buffer</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0xfffff8010e0b7000</span><span class="w"> </span><span class="c1">// high range</span>
@@ -603,11 +615,11 @@ obtain as part of agent initialization.</p>
 </div>
 </section>
 <section id="submit-cr3">
-<h3><code class="docutils literal notranslate"><span class="pre">SUBMIT_CR3</span></code><a class="headerlink" href="#submit-cr3" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">SUBMIT_CR3</span></code><a class="headerlink" href="#submit-cr3" title="Link to this heading">#</a></h3>
 <p>Tells QEMU to use the currently configured <code class="docutils literal notranslate"><span class="pre">CR3</span></code> value as a filter
 for PT tracing. Useful to limit trace to a specific task/context.</p>
 <div class="literal-block-wrapper docutils container" id="id16">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id16" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id16" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_SUBMIT_CR3</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -624,7 +636,7 @@ for PT tracing. Useful to limit trace to a specific task/context.</p>
 </div>
 </section>
 <section id="user-abort">
-<h3><code class="docutils literal notranslate"><span class="pre">USER_ABORT</span></code><a class="headerlink" href="#user-abort" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">USER_ABORT</span></code><a class="headerlink" href="#user-abort" title="Link to this heading">#</a></h3>
 <p>Signals a fatal error to QEMU.</p>
 <p>Mainly useful as a kind of <code class="docutils literal notranslate"><span class="pre">assert()</span></code> from harness perspective (since we auto-resume on regular crash/hang).</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_USER_ABORT</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Host payload size too large!&quot;</span><span class="p">);</span>
@@ -632,7 +644,7 @@ for PT tracing. Useful to limit trace to a specific task/context.</p>
 </div>
 </section>
 <section id="user-submit-mode">
-<h3><code class="docutils literal notranslate"><span class="pre">USER_SUBMIT_MODE</span></code><a class="headerlink" href="#user-submit-mode" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">USER_SUBMIT_MODE</span></code><a class="headerlink" href="#user-submit-mode" title="Link to this heading">#</a></h3>
 <p>Explicitly tells the host if the target is 32 or 64 bit code.</p>
 <p>Influences QEMU code rewrite and possibly libxdc decoder. Typically auto-detected.</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// submit 64 bits mode</span>
@@ -641,10 +653,10 @@ for PT tracing. Useful to limit trace to a specific task/context.</p>
 </div>
 </section>
 <section id="user-range-advise">
-<h3><code class="docutils literal notranslate"><span class="pre">USER_RANGE_ADVISE</span></code><a class="headerlink" href="#user-range-advise" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">USER_RANGE_ADVISE</span></code><a class="headerlink" href="#user-range-advise" title="Link to this heading">#</a></h3>
 <p>Advise the guest of the IP filters settings in the fuzzer configuration.</p>
 <div class="literal-block-wrapper docutils container" id="id17">
-<div class="code-block-caption"><span class="caption-text">kAFL_ranges struct</span><a class="headerlink" href="#id17" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">kAFL_ranges struct</span><a class="headerlink" href="#id17" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">ip</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
 <span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">size</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
@@ -654,7 +666,7 @@ for PT tracing. Useful to limit trace to a specific task/context.</p>
 </div>
 </div>
 <div class="literal-block-wrapper docutils container" id="id18">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id18" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id18" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;inttypes.h&gt;</span>
 <span class="cp">#define INTEL_PT_MAX_RANGES 4</span>
 
@@ -676,18 +688,18 @@ for PT tracing. Useful to limit trace to a specific task/context.</p>
 </div>
 </section>
 <section id="req-stream-data">
-<h3><code class="docutils literal notranslate"><span class="pre">REQ_STREAM_DATA</span></code><a class="headerlink" href="#req-stream-data" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">REQ_STREAM_DATA</span></code><a class="headerlink" href="#req-stream-data" title="Link to this heading">#</a></h3>
 <p>Fetches a named binary buffer from the host. QEMU fetches
 the data from correspondingly named files in the <code class="docutils literal notranslate"><span class="pre">sharedir</span></code> folder.</p>
 <p>Assuming a file exists</p>
 <div class="literal-block-wrapper docutils container" id="id19">
-<div class="code-block-caption"><span class="caption-text">Host sharedir content</span><a class="headerlink" href="#id19" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Host sharedir content</span><a class="headerlink" href="#id19" title="Link to this code">#</a></div>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Hello kAFL !&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>sharedir/example.txt
 </pre></div>
 </div>
 </div>
 <div class="literal-block-wrapper docutils container" id="id20">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id20" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id20" title="Link to this code">#</a></div>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">#define SHAREDIR_FILENAME &quot;example.txt&quot;</span>
 
 uint8_t<span class="w"> </span>buffer<span class="o">[</span>0x1000<span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">{</span><span class="m">0</span><span class="o">}</span><span class="p">;</span>
@@ -699,11 +711,11 @@ printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>,<span cla
 </div>
 </section>
 <section id="dump-file">
-<h3><code class="docutils literal notranslate"><span class="pre">DUMP_FILE</span></code><a class="headerlink" href="#dump-file" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">DUMP_FILE</span></code><a class="headerlink" href="#dump-file" title="Link to this heading">#</a></h3>
 <p>Can be used to send binary buffers that will be stored as files in <code class="docutils literal notranslate"><span class="pre">$WORK_DIR/dump/</span></code>.</p>
 <p>Supply <code class="docutils literal notranslate"><span class="pre">NULL</span></code> or a valid <code class="docutils literal notranslate"><span class="pre">mkstemp()</span></code> template as filename to let QEMU create a unique filename for you.</p>
 <div class="literal-block-wrapper docutils container" id="id21">
-<div class="code-block-caption"><span class="caption-text">kafl_dump_file_t struct</span><a class="headerlink" href="#id21" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">kafl_dump_file_t struct</span><a class="headerlink" href="#id21" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">file_name_str_ptr</span><span class="p">;</span><span class="w"> </span><span class="c1">// desired filename</span>
 <span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">data_ptr</span><span class="p">;</span><span class="w"> </span><span class="c1">// buffer to be dumped</span>
@@ -714,7 +726,7 @@ printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>,<span cla
 </div>
 </div>
 <div class="literal-block-wrapper docutils container" id="id22">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id22" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id22" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">FILE</span><span class="o">*</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fopen</span><span class="p">(</span><span class="s">&quot;/proc/kallsyms&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;rb&quot;</span><span class="p">);</span>
 <span class="kt">char</span><span class="w"> </span><span class="n">buffer</span><span class="p">[</span><span class="mi">4096</span><span class="p">];</span>
 <span class="n">fread</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">4095</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">);</span>
@@ -731,12 +743,12 @@ printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>,<span cla
 </div>
 </section>
 <section id="user-fast-acquire">
-<h3><code class="docutils literal notranslate"><span class="pre">USER_FAST_ACQUIRE</span></code><a class="headerlink" href="#user-fast-acquire" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">USER_FAST_ACQUIRE</span></code><a class="headerlink" href="#user-fast-acquire" title="Link to this heading">#</a></h3>
 <p>A combination of <code class="docutils literal notranslate"><span class="pre">NEXT_PAYLOAD</span></code>, <code class="docutils literal notranslate"><span class="pre">SUBMIT_CR3</span></code> and <code class="docutils literal notranslate"><span class="pre">ACQUIRE</span></code>.</p>
 <p>Mainly exists to save you a VM exit.</p>
 <p>Only tested for usermode fuzzing.</p>
 <div class="literal-block-wrapper docutils container" id="id23">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id23" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id23" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_USER_FAST_ACQUIRE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="c1">// ⚡ call fuzz target with the buffer</span>
 <span class="n">target_entry</span><span class="p">(</span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">payload_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">);</span>
@@ -751,12 +763,12 @@ printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>,<span cla
 </div>
 </section>
 <section id="lock">
-<h3><code class="docutils literal notranslate"><span class="pre">LOCK</span></code><a class="headerlink" href="#lock" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">LOCK</span></code><a class="headerlink" href="#lock" title="Link to this heading">#</a></h3>
 <p>Generates a VM pre-snapshot for the fuzzer and subsequently terminates QEMU, if QEMU is configured correctly.</p>
 <p>This is useful when the target program needs to be brought into a complex state before the fuzzing can begin.</p>
 <p>Also useful to skip long boot times and restore the VM when the target is about to be executed.</p>
 <div class="literal-block-wrapper docutils container" id="id24">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id24" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id24" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// will take a snapshot and terminate QEMU</span>
 <span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_LOCK</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="c1">// fuzzer will restore the VM from here</span>
@@ -778,10 +790,10 @@ printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>,<span cla
 </div>
 </section>
 <section id="req-stream-data-bulk">
-<h3><code class="docutils literal notranslate"><span class="pre">REQ_STREAM_DATA_BULK</span></code><a class="headerlink" href="#req-stream-data-bulk" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">REQ_STREAM_DATA_BULK</span></code><a class="headerlink" href="#req-stream-data-bulk" title="Link to this heading">#</a></h3>
 <p>This hypercall serves basically the same purpose as REQ_STREAM_DATA, but can be used to achieve much better transfer speeds for larger files due to bulk operations instead of fetching only 4KB per executed hypercall.</p>
 <div class="literal-block-wrapper docutils container" id="id25">
-<div class="code-block-caption"><span class="caption-text">kafl_dump_file_t struct</span><a class="headerlink" href="#id25" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">kafl_dump_file_t struct</span><a class="headerlink" href="#id25" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="kt">char</span><span class="w"> </span><span class="n">file_name</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span><span class="w">  </span><span class="c1">// requested sharedir filename</span>
 <span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">num_addresses</span><span class="p">;</span><span class="w"> </span><span class="c1">// addresses array count. must be &lt;= 479</span>
@@ -796,10 +808,10 @@ printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>,<span cla
 </div>
 </section>
 <section id="persist-page-past-snapshot">
-<h3><code class="docutils literal notranslate"><span class="pre">PERSIST_PAGE_PAST_SNAPSHOT</span></code><a class="headerlink" href="#persist-page-past-snapshot" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">PERSIST_PAGE_PAST_SNAPSHOT</span></code><a class="headerlink" href="#persist-page-past-snapshot" title="Link to this heading">#</a></h3>
 <p>This hypercall excludes a single page frame from being reset by the snapshot restore mechanism.</p>
 <div class="literal-block-wrapper docutils container" id="id26">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id26" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id26" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">pfn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x8048000</span><span class="p">;</span>
 <span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_PERSIST_PAGE_PAST_SNAPSHOT</span><span class="p">,</span><span class="w"> </span><span class="n">pfn</span><span class="p">);</span>
 </pre></div>
@@ -812,36 +824,36 @@ printf<span class="o">(</span><span class="s2">&quot;%s\n&quot;</span>,<span cla
 </section>
 </section>
 <section id="utility-functions">
-<h2>Utility functions<a class="headerlink" href="#utility-functions" title="Permalink to this heading">#</a></h2>
+<h2>Utility functions<a class="headerlink" href="#utility-functions" title="Link to this heading">#</a></h2>
 <p>A set of additional utility functions have been built on top of kAFL hypercalls and made available in the <a class="reference external" href="https://github.com/IntelLabs/kafl.targets/blob/master/nyx_api.h"><code class="docutils literal notranslate"><span class="pre">nyx_api.h</span></code></a>
 for convenience.</p>
 <section id="habort">
-<h3><code class="docutils literal notranslate"><span class="pre">habort</span></code><a class="headerlink" href="#habort" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">habort</span></code><a class="headerlink" href="#habort" title="Link to this heading">#</a></h3>
 <div class="literal-block-wrapper docutils container" id="id27">
-<div class="code-block-caption"><span class="caption-text">Definition</span><a class="headerlink" href="#id27" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Definition</span><a class="headerlink" href="#id27" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">habort</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">msg</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
 <p>Convenience function to abort execution.</p>
 <div class="literal-block-wrapper docutils container" id="id28">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id28" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id28" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">habort</span><span class="p">(</span><span class="s">&quot;Host payload size too large!&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
 </section>
 <section id="hprintf">
-<h3><code class="docutils literal notranslate"><span class="pre">hprintf</span></code><a class="headerlink" href="#hprintf" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">hprintf</span></code><a class="headerlink" href="#hprintf" title="Link to this heading">#</a></h3>
 <div class="literal-block-wrapper docutils container" id="id29">
-<div class="code-block-caption"><span class="caption-text">Definition</span><a class="headerlink" href="#id29" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Definition</span><a class="headerlink" href="#id29" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">hprintf</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">format</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
 </pre></div>
 </div>
 </div>
 <p>This function is the equivalent of <a class="reference external" href="https://cplusplus.com/reference/cstdio/printf/"><code class="docutils literal notranslate"><span class="pre">printf</span></code></a>, accepting with variadic arguments, but using the <a class="reference internal" href="#printf"><code class="docutils literal notranslate"><span class="pre">KAFL_HYPERCALL_PRINTF</span></code></a> as printing backend.</p>
 <div class="literal-block-wrapper docutils container" id="id30">
-<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id30" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id30" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">hprintf</span><span class="p">(</span><span class="s">&quot;kAFL: Address of payload buffer %lp...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">payload_buffer</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -849,7 +861,7 @@ for convenience.</p>
 </section>
 </section>
 <section id="untested-and-not-fully-integrated">
-<h2>Untested and not fully integrated<a class="headerlink" href="#untested-and-not-fully-integrated" title="Permalink to this heading">#</a></h2>
+<h2>Untested and not fully integrated<a class="headerlink" href="#untested-and-not-fully-integrated" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">PANIC_EXTENDED</span></code> – a mix of PANIC and HPRINTF, raises a bug while also
 forwarding a pointer to a C string. Untested.</p></li>
@@ -861,7 +873,7 @@ from current position. Frontend and harness have to support this.</p></li>
 </ul>
 </section>
 <section id="deprecated">
-<h2>Deprecated<a class="headerlink" href="#deprecated" title="Permalink to this heading">#</a></h2>
+<h2>Deprecated<a class="headerlink" href="#deprecated" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">GET_PROGRAM</span></code> / <code class="docutils literal notranslate"><span class="pre">GET_ARGV</span></code>: was using to send a host target into the guest to be executed. Replaced by the more flexible kAFL <code class="docutils literal notranslate"><span class="pre">sharedir</span></code> feature.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">INFO</span></code>: was used to dump and push guest information to the host. Replaced by <a class="reference internal" href="#printf"><code class="docutils literal notranslate"><span class="pre">PRINTF</span></code></a>.</p></li>
@@ -981,12 +993,12 @@ from current position. Frontend and harness have to support this.</p></li>
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/scripts/furo.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+</div><script src="../_static/documentation_options.js?v=5b3c63aa"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     </body>
 </html>

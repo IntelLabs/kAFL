@@ -1,17 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="../../../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="Windows VM Template" href="../windows_template.html" /><link rel="prev" title="Driver" href="index.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>Target analysis - kAFL</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
     
     
 
@@ -161,9 +161,21 @@
 <li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../concepts.html">Concepts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../fuzzing_linux_kernel.html">Linux Kernel target</a></li>
-<li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">Windows Target</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2 current has-children"><a class="reference internal" href="index.html">Driver</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../linux/index.html">Linux Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Linux Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../linux/dvkm/index.html">DVKM</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of DVKM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../linux/dvkm/target.html">1 - Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../linux/dvkm/workflow.html">2 - kAFL workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../linux/dvkm/agent.html">3 - Building the agent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../linux/dvkm/fuzzing.html">4 - Fuzzing campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../linux/dvkm/results.html">5 - Exploring campaign results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../linux/dvkm/improvements.html">6 - Improvements: KASAN</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../linux/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">Windows Target</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="index.html">Driver</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l3 current current-page"><a class="current reference internal" href="#">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="target_setup.html">Provision the guest VM</a></li>
@@ -171,7 +183,7 @@
 <li class="toctree-l3"><a class="reference internal" href="crash.html">Crash Analysis</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../userspace/target.html">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../userspace/target_setup.html">Provision the guest VM</a></li>
@@ -244,15 +256,15 @@
         </div>
         <article role="main">
           <section id="target-analysis">
-<h1>Target analysis<a class="headerlink" href="#target-analysis" title="Permalink to this heading">#</a></h1>
+<h1>Target analysis<a class="headerlink" href="#target-analysis" title="Link to this heading">#</a></h1>
 <section id="objectives">
-<h2>Objectives<a class="headerlink" href="#objectives" title="Permalink to this heading">#</a></h2>
+<h2>Objectives<a class="headerlink" href="#objectives" title="Link to this heading">#</a></h2>
 <p>The objective of this tutorial is to fuzz a Windows driver, built for educational purposes.</p>
 <p>It doesn’t interact with any hardware device, nor makes any relevant side effect in the kernel.</p>
 <p>It simply receives and processes IOCTLs, by calling a handler function which contains vulnerabilities that we want to trigger.</p>
 </section>
 <section id="source-code">
-<h2>Source code<a class="headerlink" href="#source-code" title="Permalink to this heading">#</a></h2>
+<h2>Source code<a class="headerlink" href="#source-code" title="Link to this heading">#</a></h2>
 <p>The source code for this driver is located at the <a class="reference external" href="https://github.com/IntelLabs/kafl.targets/tree/master/windows_x86_64/src"><code class="docutils literal notranslate"><span class="pre">kafl.targets/windows_x86_64/src</span></code></a>.</p>
 <p>It is composed of:</p>
 <ul class="simple">
@@ -271,7 +283,7 @@
     end
         </div></section>
 <section id="vulnerability">
-<h2>Vulnerability<a class="headerlink" href="#vulnerability" title="Permalink to this heading">#</a></h2>
+<h2>Vulnerability<a class="headerlink" href="#vulnerability" title="Link to this heading">#</a></h2>
 <p>Two security flaws have been inserted into the driver code</p>
 <p>More specifically they are <a class="reference external" href="https://cwe.mitre.org/data/definitions/476.html#:~:text=A%20NULL%20pointer%20dereference%20occurs,causing%20a%20crash%20or%20exit.">NULL pointer dereference</a> vulnerabilities, triggered by the <code class="docutils literal notranslate"><span class="pre">crashMe()</span></code> function when a certain buffer is received.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">NTSTATUS</span><span class="w"> </span><span class="nf">crashMe</span><span class="p">(</span><span class="n">IN</span><span class="w"> </span><span class="n">PIO_STACK_LOCATION</span><span class="w"> </span><span class="n">IrpStack</span><span class="p">){</span>
@@ -342,7 +354,7 @@ which is the core of RedQueen’s implementation.</p>
 </div>
 </section>
 <section id="kafl-agent-implementation">
-<h2>kAFL agent implementation<a class="headerlink" href="#kafl-agent-implementation" title="Permalink to this heading">#</a></h2>
+<h2>kAFL agent implementation<a class="headerlink" href="#kafl-agent-implementation" title="Link to this heading">#</a></h2>
 <p>Let’s now have a deeper look at the kAFL agent implementation, to better understand what specific changes this target required.</p>
 <p>First , the kAFL agent is only implemented in the userland component <code class="docutils literal notranslate"><span class="pre">vuln_test.c</span></code>, for 2 reasons:</p>
 <ul class="simple">
@@ -350,7 +362,7 @@ which is the core of RedQueen’s implementation.</p>
 <li><p>at the time of this writing, kAFL hypercall implementation based on <code class="docutils literal notranslate"><span class="pre">vmcall</span></code> instruction doesn’t get along very well with Microsoft’s <code class="docutils literal notranslate"><span class="pre">MSVC</span></code> compiler</p></li>
 </ul>
 <section id="agent-initialization">
-<h3>Agent initialization<a class="headerlink" href="#agent-initialization" title="Permalink to this heading">#</a></h3>
+<h3>Agent initialization<a class="headerlink" href="#agent-initialization" title="Link to this heading">#</a></h3>
 <p>We can find in <code class="docutils literal notranslate"><span class="pre">init_agent_handshake()</span></code> the common agent initialization sequence:</p>
 <div class="mermaid">
             stateDiagram-v2
@@ -385,7 +397,7 @@ which is the core of RedQueen’s implementation.</p>
     host_config --&gt; agent_config
         </div></section>
 <section id="fuzzing-harness">
-<h3>Fuzzing harness<a class="headerlink" href="#fuzzing-harness" title="Permalink to this heading">#</a></h3>
+<h3>Fuzzing harness<a class="headerlink" href="#fuzzing-harness" title="Link to this heading">#</a></h3>
 <p>The fuzzing harness is implemented around <code class="docutils literal notranslate"><span class="pre">DeviceIoControl()</span></code></p>
 <p>Harness sequence diagram between kAFL fuzzer, userspace and driver:</p>
 <div class="mermaid">
@@ -412,7 +424,7 @@ which is the core of RedQueen’s implementation.</p>
         end
     end
         </div><div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-text">Harness implementation</span><a class="headerlink" href="#id1" title="Permalink to this code">#</a></div>
+<div class="code-block-caption"><span class="caption-text">Harness implementation</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// Snapshot here</span>
 <span class="c1">// request new payload (*blocking*)</span>
 <span class="n">kAFL_hypercall</span><span class="p">(</span><span class="n">HYPERCALL_KAFL_NEXT_PAYLOAD</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
@@ -439,9 +451,9 @@ which is the core of RedQueen’s implementation.</p>
 </div>
 </section>
 <section id="target-specific">
-<h3>Target specific<a class="headerlink" href="#target-specific" title="Permalink to this heading">#</a></h3>
+<h3>Target specific<a class="headerlink" href="#target-specific" title="Link to this heading">#</a></h3>
 <section id="panic-handlers">
-<h4>Panic handlers<a class="headerlink" href="#panic-handlers" title="Permalink to this heading">#</a></h4>
+<h4>Panic handlers<a class="headerlink" href="#panic-handlers" title="Link to this heading">#</a></h4>
 <p>If we want kAFL to be aware of a crash on Windows, we need to intercept and hook the crash handlers.</p>
 <p>The Windows functions we need are:</p>
 <ul class="simple">
@@ -462,7 +474,7 @@ which is the core of RedQueen’s implementation.</p>
 <p>Once this is done, the address is simply sent to kAFL via <a class="reference external" href="https://intellabs.github.io/kAFL/reference/hypercall_api.html#panic-kasan"><code class="docutils literal notranslate"><span class="pre">HYPERCALL_KAFL_SUBMIT_PANIC</span></code></a>.</p>
 </section>
 <section id="set-ip-ranges">
-<h4>Set IP ranges<a class="headerlink" href="#set-ip-ranges" title="Permalink to this heading">#</a></h4>
+<h4>Set IP ranges<a class="headerlink" href="#set-ip-ranges" title="Link to this heading">#</a></h4>
 <p>IP ranges are necessary to run the fuzzer in guided feedback mode.</p>
 <p>To retrieve the start and end IP range of our <code class="docutils literal notranslate"><span class="pre">kAFLvulnerabledriver.sys</span></code> loaded driver, we need to do the following:</p>
 <ol class="arabic simple">
@@ -473,7 +485,7 @@ which is the core of RedQueen’s implementation.</p>
 </ol>
 </section>
 <section id="non-reload-mode">
-<h4>Non reload mode<a class="headerlink" href="#non-reload-mode" title="Permalink to this heading">#</a></h4>
+<h4>Non reload mode<a class="headerlink" href="#non-reload-mode" title="Link to this heading">#</a></h4>
 <p>During the agent configuration, we configured the <a class="reference external" href="https://intellabs.github.io/kAFL/reference/hypercall_api.html#set-agent-config"><code class="docutils literal notranslate"><span class="pre">agent_non_reload_mode</span></code></a>.</p>
 <p>We prevent the host from reloading the guest snapshot on each new payload execution.</p>
 <p>Why are we doing this ? Snapshot fuzzers are well suited for complex targets with a lot of side effects.</p>
@@ -572,13 +584,13 @@ which is the core of RedQueen’s implementation.</p>
       
     </aside>
   </div>
-</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/sphinx_highlight.js"></script>
-    <script src="../../../_static/scripts/furo.js"></script>
-    <script src="../../../_static/clipboard.min.js"></script>
-    <script src="../../../_static/copybutton.js"></script>
-    <script src="../../../_static/design-tabs.js"></script>
+</div><script src="../../../_static/documentation_options.js?v=5b3c63aa"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
     <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({startOnLoad:true});</script>
     </body>

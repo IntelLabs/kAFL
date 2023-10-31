@@ -1,17 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Deployment" href="deployment.html" /><link rel="prev" title="Github Actions CI/CD" href="../how_to/github_actions.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>Fuzzer Configuration - kAFL</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
     
     
 
@@ -161,9 +161,21 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/concepts.html">Concepts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/linux/index.html">Linux Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Linux Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/linux/dvkm/index.html">DVKM</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of DVKM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/target.html">1 - Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/workflow.html">2 - kAFL workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/agent.html">3 - Building the agent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/fuzzing.html">4 - Fuzzing campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/results.html">5 - Exploring campaign results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/improvements.html">6 - Improvements: KASAN</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/linux/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/driver/target.html">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/driver/target_setup.html">Provision the guest VM</a></li>
@@ -171,7 +183,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/driver/crash.html">Crash Analysis</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/userspace/target.html">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/userspace/target_setup.html">Provision the guest VM</a></li>
@@ -244,12 +256,12 @@
         </div>
         <article role="main">
           <section id="fuzzer-configuration">
-<h1>Fuzzer Configuration<a class="headerlink" href="#fuzzer-configuration" title="Permalink to this heading">#</a></h1>
+<h1>Fuzzer Configuration<a class="headerlink" href="#fuzzer-configuration" title="Link to this heading">#</a></h1>
 <p>The kAFL fuzzer configuration can be changed via config files, environment variables and command line switches.</p>
 <p>The <a class="reference external" href="https://www.dynaconf.com/">Dynaconf</a> framework is used behind the scenes for configuration management, so
 everything that you learn from Dynaconf’s documentation should also be applicable for kAFL fuzzer.</p>
 <section id="configuration-sources-and-precedence">
-<h2>Configuration sources and precedence<a class="headerlink" href="#configuration-sources-and-precedence" title="Permalink to this heading">#</a></h2>
+<h2>Configuration sources and precedence<a class="headerlink" href="#configuration-sources-and-precedence" title="Link to this heading">#</a></h2>
 <p>All configuration files are using the <code class="docutils literal notranslate"><span class="pre">YAML</span></code> format.</p>
 <ol class="arabic simple">
 <li><p>kAFL fuzzer packaged default configuration file: <a class="reference external" href="https://github.com/IntelLabs/kafl.fuzzer/blob/master/kafl_fuzzer/common/config/default_settings.yaml"><code class="docutils literal notranslate"><span class="pre">kafl_fuzzer/common/config/default_settings.yaml</span></code></a></p></li>
@@ -263,7 +275,7 @@ everything that you learn from Dynaconf’s documentation should also be applica
 <p>Note: if <code class="docutils literal notranslate"><span class="pre">KAFL_CONFIG_FILE</span></code> is specified but points to a non-existing file, a validation error will be raised (to warn the user).</p>
 </section>
 <section id="overriding-settings-from-environment-variables">
-<h2>Overriding settings from environment variables<a class="headerlink" href="#overriding-settings-from-environment-variables" title="Permalink to this heading">#</a></h2>
+<h2>Overriding settings from environment variables<a class="headerlink" href="#overriding-settings-from-environment-variables" title="Link to this heading">#</a></h2>
 <p>You can override any setting key by exporting an environment variable prefixed by <code class="docutils literal notranslate"><span class="pre">KAFL_</span></code>.</p>
 <p>Example</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">KAFL_QEMU_MEMORY</span><span class="o">=</span><span class="m">1024</span>
@@ -272,7 +284,7 @@ everything that you learn from Dynaconf’s documentation should also be applica
 </div>
 </section>
 <section id="configuration-keys">
-<h2>Configuration keys<a class="headerlink" href="#configuration-keys" title="Permalink to this heading">#</a></h2>
+<h2>Configuration keys<a class="headerlink" href="#configuration-keys" title="Link to this heading">#</a></h2>
 <p>The following section lists all configuration keys avaialble in kAFL, and their corresponding command line switches, if any.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -284,7 +296,7 @@ everything that you learn from Dynaconf’s documentation should also be applica
 </div>
 </div>
 <section id="abort-exec">
-<h3><code class="docutils literal notranslate"><span class="pre">abort_exec</span></code><a class="headerlink" href="#abort-exec" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">abort_exec</span></code><a class="headerlink" href="#abort-exec" title="Link to this heading">#</a></h3>
 <p>Exit kAFL fuzzing a after <code class="docutils literal notranslate"><span class="pre">&lt;n&gt;</span></code> total executions.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -293,7 +305,7 @@ everything that you learn from Dynaconf’s documentation should also be applica
 </div>
 </section>
 <section id="abort-time">
-<h3><code class="docutils literal notranslate"><span class="pre">abort_time</span></code><a class="headerlink" href="#abort-time" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">abort_time</span></code><a class="headerlink" href="#abort-time" title="Link to this heading">#</a></h3>
 <p>Builtin timeout to stop kafl fuzzing after <code class="docutils literal notranslate"><span class="pre">&lt;n&gt;</span></code> seconds elapsed.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -302,7 +314,7 @@ everything that you learn from Dynaconf’s documentation should also be applica
 </div>
 </section>
 <section id="action">
-<h3><code class="docutils literal notranslate"><span class="pre">action</span></code><a class="headerlink" href="#action" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">action</span></code><a class="headerlink" href="#action" title="Link to this heading">#</a></h3>
 <p>kAFL debug action.</p>
 <p>Choices available:</p>
 <div class="table-wrapper colwidths-auto docutils container">
@@ -349,7 +361,7 @@ everything that you learn from Dynaconf’s documentation should also be applica
 </div>
 </section>
 <section id="afl-arith-max">
-<h3><code class="docutils literal notranslate"><span class="pre">afl_arith_max</span></code><a class="headerlink" href="#afl-arith-max" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">afl_arith_max</span></code><a class="headerlink" href="#afl-arith-max" title="Link to this heading">#</a></h3>
 <p>Maximum number of increment/decrement steps in AFL-style arithmetic mutation
 (only affects deterministic stage, not havoc).</p>
 <div class="admonition note">
@@ -359,7 +371,7 @@ everything that you learn from Dynaconf’s documentation should also be applica
 </div>
 </section>
 <section id="afl-dumb-mode">
-<h3><code class="docutils literal notranslate"><span class="pre">afl_dumb_mode</span></code><a class="headerlink" href="#afl-dumb-mode" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">afl_dumb_mode</span></code><a class="headerlink" href="#afl-dumb-mode" title="Link to this heading">#</a></h3>
 <p>Skip AFL-style deterministic stages (<code class="docutils literal notranslate"><span class="pre">bitflip</span></code>, <code class="docutils literal notranslate"><span class="pre">arithmetic</span></code>, <code class="docutils literal notranslate"><span class="pre">interesting</span></code> mutations).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -368,7 +380,7 @@ everything that you learn from Dynaconf’s documentation should also be applica
 </div>
 </section>
 <section id="afl-skip-zero">
-<h3><code class="docutils literal notranslate"><span class="pre">afl_skip_zero</span></code><a class="headerlink" href="#afl-skip-zero" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">afl_skip_zero</span></code><a class="headerlink" href="#afl-skip-zero" title="Link to this heading">#</a></h3>
 <p>Skip mutating zero-bytes in AFL-style deterministic stages.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -377,7 +389,7 @@ everything that you learn from Dynaconf’s documentation should also be applica
 </div>
 </section>
 <section id="bitmap-size">
-<h3><code class="docutils literal notranslate"><span class="pre">bitmap_size</span></code><a class="headerlink" href="#bitmap-size" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">bitmap_size</span></code><a class="headerlink" href="#bitmap-size" title="Link to this heading">#</a></h3>
 <p>Size of feedback bitmap (must be power of 2).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -386,7 +398,7 @@ everything that you learn from Dynaconf’s documentation should also be applica
 </div>
 </section>
 <section id="cpu-offset">
-<h3><code class="docutils literal notranslate"><span class="pre">cpu_offset</span></code><a class="headerlink" href="#cpu-offset" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">cpu_offset</span></code><a class="headerlink" href="#cpu-offset" title="Link to this heading">#</a></h3>
 <p>Modify automated CPU pinning to start at vCPU <code class="docutils literal notranslate"><span class="pre">n</span></code> and assign Qemu/Worker
 instances to the next <a class="reference internal" href="#processes"><code class="docutils literal notranslate"><span class="pre">-p</span></code></a> vCPUs.</p>
 <div class="admonition note">
@@ -396,7 +408,7 @@ instances to the next <a class="reference internal" href="#processes"><code clas
 </div>
 </section>
 <section id="debug">
-<h3><code class="docutils literal notranslate"><span class="pre">debug</span></code><a class="headerlink" href="#debug" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">debug</span></code><a class="headerlink" href="#debug" title="Link to this heading">#</a></h3>
 <p>Enable additional (expensive) debug messages during execution.</p>
 <ul class="simple">
 <li><p>switches logging to <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> level</p></li>
@@ -411,7 +423,7 @@ instances to the next <a class="reference internal" href="#processes"><code clas
 </div>
 </section>
 <section id="dict">
-<h3><code class="docutils literal notranslate"><span class="pre">dict</span></code><a class="headerlink" href="#dict" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">dict</span></code><a class="headerlink" href="#dict" title="Link to this heading">#</a></h3>
 <p>Use file <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;</span></code> as source of dictionary inputs in havoc stage.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -420,7 +432,7 @@ instances to the next <a class="reference internal" href="#processes"><code clas
 </div>
 </section>
 <section id="funky">
-<h3><code class="docutils literal notranslate"><span class="pre">funky</span></code><a class="headerlink" href="#funky" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">funky</span></code><a class="headerlink" href="#funky" title="Link to this heading">#</a></h3>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
 </input><label class="sd-tab-label" for="sd-tab-item-0">
@@ -444,7 +456,7 @@ kafl cov</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="gdbserver">
-<h3><code class="docutils literal notranslate"><span class="pre">gdbserver</span></code><a class="headerlink" href="#gdbserver" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">gdbserver</span></code><a class="headerlink" href="#gdbserver" title="Link to this heading">#</a></h3>
 <p>Starts QEMU GDB server (Extends QEMU command line with <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">-S</span></code>).</p>
 <p>From QEMU command line help:</p>
 <ul class="simple">
@@ -458,7 +470,7 @@ kafl cov</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="grimoire">
-<h3><code class="docutils literal notranslate"><span class="pre">grimoire</span></code><a class="headerlink" href="#grimoire" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">grimoire</span></code><a class="headerlink" href="#grimoire" title="Link to this heading">#</a></h3>
 <p>Enable the <a class="reference external" href="https://github.com/RUB-SysSec/grimoire">Grimoire</a> fuzzer stage.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -467,7 +479,7 @@ kafl cov</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="input">
-<h3><code class="docutils literal notranslate"><span class="pre">input</span></code><a class="headerlink" href="#input" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">input</span></code><a class="headerlink" href="#input" title="Link to this heading">#</a></h3>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
 </input><label class="sd-tab-label" for="sd-tab-item-2">
@@ -488,7 +500,7 @@ kafl debug</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="ip0-1-2-3">
-<h3><code class="docutils literal notranslate"><span class="pre">ip0-1-2-3</span></code><a class="headerlink" href="#ip0-1-2-3" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">ip0-1-2-3</span></code><a class="headerlink" href="#ip0-1-2-3" title="Link to this heading">#</a></h3>
 <p>Set the IP filter ranges (code ranges) to be used with Intel PT. The filter
 ranges may also be set by the agent using the (<code class="docutils literal notranslate"><span class="pre">RANGE_SUBMIT</span></code> hypercall)[hypercall_api.md].</p>
 <p>Not setting a IP filter region is currently not supported.</p>
@@ -499,7 +511,7 @@ ranges may also be set by the agent using the (<code class="docutils literal not
 </div>
 </section>
 <section id="iterations">
-<h3><code class="docutils literal notranslate"><span class="pre">iterations</span></code><a class="headerlink" href="#iterations" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">iterations</span></code><a class="headerlink" href="#iterations" title="Link to this heading">#</a></h3>
 <p>Execute the debugged payload <code class="docutils literal notranslate"><span class="pre">&lt;n&gt;</span></code> times.</p>
 <p>Used by <code class="docutils literal notranslate"><span class="pre">noise</span></code>, <code class="docutils literal notranslate"><span class="pre">trace</span></code> and <code class="docutils literal notranslate"><span class="pre">trace-qemu</span></code> debug <a class="reference internal" href="#action">actions</a> in case of
 non-deterministic execution.</p>
@@ -511,7 +523,7 @@ non-deterministic execution.</p>
 </div>
 </section>
 <section id="kickstart">
-<h3><code class="docutils literal notranslate"><span class="pre">kickstart</span></code><a class="headerlink" href="#kickstart" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">kickstart</span></code><a class="headerlink" href="#kickstart" title="Link to this heading">#</a></h3>
 <p>When no payloads in queue or more workers than available corpus payloads,
 let the worker kickstart fuzzing with random strings of length <code class="docutils literal notranslate"><span class="pre">n</span></code>.
 Useful to test a new harness that has no well defined seeds.</p>
@@ -523,7 +535,7 @@ Useful to test a new harness that has no well defined seeds.</p>
 </div>
 </section>
 <section id="log">
-<h3><code class="docutils literal notranslate"><span class="pre">log</span></code><a class="headerlink" href="#log" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">log</span></code><a class="headerlink" href="#log" title="Link to this heading">#</a></h3>
 <p>Add an additional file logging handler to <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/kafl_fuzzer.log</span></code>.
 Also redirects Qemu log output to <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/qemu_trace_NN.log</span></code>, if any.</p>
 <div class="admonition note">
@@ -533,7 +545,7 @@ Also redirects Qemu log output to <code class="docutils literal notranslate"><sp
 </div>
 </section>
 <section id="log-crashes">
-<h3><code class="docutils literal notranslate"><span class="pre">log_crashes</span></code><a class="headerlink" href="#log-crashes" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">log_crashes</span></code><a class="headerlink" href="#log-crashes" title="Link to this heading">#</a></h3>
 <p>Like <code class="docutils literal notranslate"><span class="pre">log_hprintf</span></code>, but copy the hprintf log to <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/logs/</span></code> for any
 new found <code class="docutils literal notranslate"><span class="pre">{crash,kasan,timeout}</span></code> type payload.  Also truncates the main hprintf
 log after every execution.</p>
@@ -547,7 +559,7 @@ hprintf logs.</p>
 </div>
 </section>
 <section id="log-hprintf">
-<h3><code class="docutils literal notranslate"><span class="pre">log_hprintf</span></code><a class="headerlink" href="#log-hprintf" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">log_hprintf</span></code><a class="headerlink" href="#log-hprintf" title="Link to this heading">#</a></h3>
 <p>Redirect guest <code class="docutils literal notranslate"><span class="pre">hprintf</span></code> output to <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/hprintf_NN.log</span></code> (see <a class="reference internal" href="hypercall_api.html"><span class="std std-doc">PRINTF hypercall</span></a>).</p>
 <p>Creates a linear log of Guest execution across snapshot/restore. Recommended for
 debugging guest/harness execution.</p>
@@ -558,7 +570,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="payload-size">
-<h3><code class="docutils literal notranslate"><span class="pre">payload_size</span></code><a class="headerlink" href="#payload-size" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">payload_size</span></code><a class="headerlink" href="#payload-size" title="Link to this heading">#</a></h3>
 <p>Maximum payload size in bytes. Must be multiple of page size (4096 bytes).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -567,7 +579,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="processes">
-<h3><code class="docutils literal notranslate"><span class="pre">processes</span></code><a class="headerlink" href="#processes" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">processes</span></code><a class="headerlink" href="#processes" title="Link to this heading">#</a></h3>
 <p>Number of processes to launch for parallelized fuzzing and coverage.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -576,7 +588,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="ptdump-path">
-<h3><code class="docutils literal notranslate"><span class="pre">ptdump_path</span></code><a class="headerlink" href="#ptdump-path" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">ptdump_path</span></code><a class="headerlink" href="#ptdump-path" title="Link to this heading">#</a></h3>
 <p>Path to ptdump executable.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -585,7 +597,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="purge">
-<h3><code class="docutils literal notranslate"><span class="pre">purge</span></code><a class="headerlink" href="#purge" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">purge</span></code><a class="headerlink" href="#purge" title="Link to this heading">#</a></h3>
 <p>Purge the <a class="reference internal" href="#work-dir">KAFL workdir</a> directory at startup.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -594,7 +606,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="qemu-append">
-<h3><code class="docutils literal notranslate"><span class="pre">qemu_append</span></code><a class="headerlink" href="#qemu-append" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">qemu_append</span></code><a class="headerlink" href="#qemu-append" title="Link to this heading">#</a></h3>
 <p>Kernel command line if <a class="reference internal" href="#qemu-kernel"><code class="docutils literal notranslate"><span class="pre">--kernel</span></code></a> is used.</p>
 <p>Corresponds to QEMU <code class="docutils literal notranslate"><span class="pre">-append</span> <span class="pre">&lt;cmdline&gt;</span></code> argument.</p>
 <div class="admonition note">
@@ -604,7 +616,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="qemu-base">
-<h3><code class="docutils literal notranslate"><span class="pre">qemu_base</span></code><a class="headerlink" href="#qemu-base" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">qemu_base</span></code><a class="headerlink" href="#qemu-base" title="Link to this heading">#</a></h3>
 <p>Baseline for QEMU command-line.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -613,7 +625,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="qemu-bios">
-<h3><code class="docutils literal notranslate"><span class="pre">qemu_bios</span></code><a class="headerlink" href="#qemu-bios" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">qemu_bios</span></code><a class="headerlink" href="#qemu-bios" title="Link to this heading">#</a></h3>
 <p>Set custom BIOS image to be used by QEMU.</p>
 <p>Corresponds to QEMU <code class="docutils literal notranslate"><span class="pre">-bios</span> <span class="pre">&lt;file&gt;</span></code> argument.</p>
 <div class="admonition note">
@@ -623,7 +635,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="qemu-extra">
-<h3><code class="docutils literal notranslate"><span class="pre">qemu_extra</span></code><a class="headerlink" href="#qemu-extra" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">qemu_extra</span></code><a class="headerlink" href="#qemu-extra" title="Link to this heading">#</a></h3>
 <p>Extra string appended to QEMU command line. Useful to override specific Qemu flags.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -632,7 +644,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="qemu-image">
-<h3><code class="docutils literal notranslate"><span class="pre">qemu_image</span></code><a class="headerlink" href="#qemu-image" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">qemu_image</span></code><a class="headerlink" href="#qemu-image" title="Link to this heading">#</a></h3>
 <p>Path to Qemu disk image.</p>
 <p>Corresponds to QEMU <code class="docutils literal notranslate"><span class="pre">-drive</span> <span class="pre">file=&lt;disk&gt;</span></code> argument.</p>
 <div class="admonition note">
@@ -642,7 +654,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="qemu-initrd">
-<h3><code class="docutils literal notranslate"><span class="pre">qemu_initrd</span></code><a class="headerlink" href="#qemu-initrd" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">qemu_initrd</span></code><a class="headerlink" href="#qemu-initrd" title="Link to this heading">#</a></h3>
 <p>Initial ram disk for QEMU.</p>
 <p>Corresponds to QEMU <code class="docutils literal notranslate"><span class="pre">-initrd</span> <span class="pre">&lt;file&gt;</span></code> argument.</p>
 <div class="admonition note">
@@ -652,7 +664,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="qemu-kernel">
-<h3><code class="docutils literal notranslate"><span class="pre">qemu_kernel</span></code><a class="headerlink" href="#qemu-kernel" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">qemu_kernel</span></code><a class="headerlink" href="#qemu-kernel" title="Link to this heading">#</a></h3>
 <p>bzImage to use as kernel image for QEMU.</p>
 <p>Corresponds to QEMU <code class="docutils literal notranslate"><span class="pre">-kernel</span> <span class="pre">&lt;image&gt;</span></code> argument.</p>
 <div class="admonition note">
@@ -662,7 +674,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="qemu-memory">
-<h3><code class="docutils literal notranslate"><span class="pre">qemu_memory</span></code><a class="headerlink" href="#qemu-memory" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">qemu_memory</span></code><a class="headerlink" href="#qemu-memory" title="Link to this heading">#</a></h3>
 <p>Amount of memory in <code class="docutils literal notranslate"><span class="pre">MB</span></code> for QEMU.</p>
 <p>Corresponds to QEMU <code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">&lt;size&gt;</span></code> argument.</p>
 <div class="admonition note">
@@ -672,7 +684,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="qemu-path">
-<h3><code class="docutils literal notranslate"><span class="pre">qemu_path</span></code><a class="headerlink" href="#qemu-path" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">qemu_path</span></code><a class="headerlink" href="#qemu-path" title="Link to this heading">#</a></h3>
 <p>Path to QEMU executable with Nyx patches.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -681,7 +693,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="qemu-serial">
-<h3><code class="docutils literal notranslate"><span class="pre">qemu_serial</span></code><a class="headerlink" href="#qemu-serial" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">qemu_serial</span></code><a class="headerlink" href="#qemu-serial" title="Link to this heading">#</a></h3>
 <p>Extend QEMU command line with the configuration value, and then append
 <code class="docutils literal notranslate"><span class="pre">-chardev</span> <span class="pre">file,id=kafl_serial,mux=on,path=$KAFL_WORKDIR/serial_&lt;qemu_pid&gt;.log</span></code>.</p>
 <div class="admonition note">
@@ -691,7 +703,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="qemu-snapshot">
-<h3><code class="docutils literal notranslate"><span class="pre">qemu_snapshot</span></code><a class="headerlink" href="#qemu-snapshot" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">qemu_snapshot</span></code><a class="headerlink" href="#qemu-snapshot" title="Link to this heading">#</a></h3>
 <p>Path to VM pre-snapshot directory. Use with manual <code class="docutils literal notranslate"><span class="pre">pre-snapshot</span></code> creation (<code class="docutils literal notranslate"><span class="pre">LOCK</span></code> hypercall)[hypercall_api.md]</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -700,7 +712,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="quiet">
-<h3><code class="docutils literal notranslate"><span class="pre">quiet</span></code><a class="headerlink" href="#quiet" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">quiet</span></code><a class="headerlink" href="#quiet" title="Link to this heading">#</a></h3>
 <p>Set Python <a class="reference external" href="https://docs.python.org/3/library/logging.html"><code class="docutils literal notranslate"><span class="pre">logging</span></code></a> level to <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging-levels"><code class="docutils literal notranslate"><span class="pre">WARNING</span></code></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -709,7 +721,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="radamsa-path">
-<h3><code class="docutils literal notranslate"><span class="pre">radamsa_path</span></code><a class="headerlink" href="#radamsa-path" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">radamsa_path</span></code><a class="headerlink" href="#radamsa-path" title="Link to this heading">#</a></h3>
 <p>Path to radamsa executable.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -718,7 +730,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="radamsa">
-<h3><code class="docutils literal notranslate"><span class="pre">radamsa</span></code><a class="headerlink" href="#radamsa" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">radamsa</span></code><a class="headerlink" href="#radamsa" title="Link to this heading">#</a></h3>
 <p>Enable radamsa mutation as part of <code class="docutils literal notranslate"><span class="pre">havoc</span></code> stage.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -727,7 +739,7 @@ debugging guest/harness execution.</p>
 </div>
 </section>
 <section id="redqueen-simple">
-<h3><code class="docutils literal notranslate"><span class="pre">redqueen_simple</span></code><a class="headerlink" href="#redqueen-simple" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">redqueen_simple</span></code><a class="headerlink" href="#redqueen-simple" title="Link to this heading">#</a></h3>
 <p>Modify redqueen to also process ‘simple’ inputs that would likely be found by
 subsequent deterministic/havoc mutations.</p>
 <div class="admonition note">
@@ -737,7 +749,7 @@ subsequent deterministic/havoc mutations.</p>
 </div>
 </section>
 <section id="redqueen-hammer">
-<h3><code class="docutils literal notranslate"><span class="pre">redqueen_hammer</span></code><a class="headerlink" href="#redqueen-hammer" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">redqueen_hammer</span></code><a class="headerlink" href="#redqueen-hammer" title="Link to this heading">#</a></h3>
 <p>Enable Redqueen jump table hammering.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -746,7 +758,7 @@ subsequent deterministic/havoc mutations.</p>
 </div>
 </section>
 <section id="redqueen-hashes">
-<h3><code class="docutils literal notranslate"><span class="pre">redqueen_hashes</span></code><a class="headerlink" href="#redqueen-hashes" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">redqueen_hashes</span></code><a class="headerlink" href="#redqueen-hashes" title="Link to this heading">#</a></h3>
 <p>Enable Redqueen checksum fixer (broken).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -755,7 +767,7 @@ subsequent deterministic/havoc mutations.</p>
 </div>
 </section>
 <section id="redqueen">
-<h3><code class="docutils literal notranslate"><span class="pre">redqueen</span></code><a class="headerlink" href="#redqueen" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">redqueen</span></code><a class="headerlink" href="#redqueen" title="Link to this heading">#</a></h3>
 <p>Enable Redqueen analysis + mutation stages.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -764,7 +776,7 @@ subsequent deterministic/havoc mutations.</p>
 </div>
 </section>
 <section id="reload">
-<h3><code class="docutils literal notranslate"><span class="pre">reload</span></code><a class="headerlink" href="#reload" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">reload</span></code><a class="headerlink" href="#reload" title="Link to this heading">#</a></h3>
 <p>Reload the snapshot only on non-regular executions or every <code class="docutils literal notranslate"><span class="pre">&lt;N&gt;</span></code> regular executions.
 Set to <code class="docutils literal notranslate"><span class="pre">0</span></code> for fully persistent mode execution.
 Set to ‘&gt;1’ for partial persistent mode execution.</p>
@@ -777,7 +789,7 @@ range of 10-100 tends to yield good performance/stability trade-off.</p>
 </div>
 </section>
 <section id="resume">
-<h3><code class="docutils literal notranslate"><span class="pre">resume</span></code><a class="headerlink" href="#resume" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">resume</span></code><a class="headerlink" href="#resume" title="Link to this heading">#</a></h3>
 <p>Tell kAFL to resume operation based on an existing workdir. This is currently
 limited to <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">cov</span></code> and <code class="docutils literal notranslate"><span class="pre">kafl</span> <span class="pre">debug</span></code>, where it will cause the Qemu instance to
 initialize based on existing Nyx <code class="docutils literal notranslate"><span class="pre">snapshot/</span></code> and <code class="docutils literal notranslate"><span class="pre">page_cache.*</span></code> files.</p>
@@ -789,7 +801,7 @@ initialize based on existing Nyx <code class="docutils literal notranslate"><spa
 </div>
 </section>
 <section id="seed-dir">
-<h3><code class="docutils literal notranslate"><span class="pre">seed_dir</span></code><a class="headerlink" href="#seed-dir" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">seed_dir</span></code><a class="headerlink" href="#seed-dir" title="Link to this heading">#</a></h3>
 <p>Specify a directory <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;</span></code> to use as seed directory. The directory is
 traversed recursively and files are copied to the kAFL
 <a class="reference internal" href="workdir_layout.html"><span class="std std-doc">workdir</span></a> as <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/imports/seed_xxx</span></code>,
@@ -801,7 +813,7 @@ where there are consumed upon fuzzer startup.</p>
 </div>
 </section>
 <section id="sharedir">
-<h3><code class="docutils literal notranslate"><span class="pre">sharedir</span></code><a class="headerlink" href="#sharedir" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">sharedir</span></code><a class="headerlink" href="#sharedir" title="Link to this heading">#</a></h3>
 <p>Path to the Qemu ‘sharedir’ directory. Files in this folder will be made
 available for the agent to download via (<code class="docutils literal notranslate"><span class="pre">REQ_STREAM_DATA</span></code> hypercall)[hypercall_api.md].</p>
 <p>Appends <code class="docutils literal notranslate"><span class="pre">,sharedir=&lt;value&gt;</span></code> to the <code class="docutils literal notranslate"><span class="pre">nyx</span></code> QEMU device.</p>
@@ -812,7 +824,7 @@ available for the agent to download via (<code class="docutils literal notransla
 </div>
 </section>
 <section id="timeout-check">
-<h3><code class="docutils literal notranslate"><span class="pre">timeout_check</span></code><a class="headerlink" href="#timeout-check" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">timeout_check</span></code><a class="headerlink" href="#timeout-check" title="Link to this heading">#</a></h3>
 <p>When using both <code class="docutils literal notranslate"><span class="pre">timeout_hard</span></code> and <code class="docutils literal notranslate"><span class="pre">timeout_soft</span></code>, check that a payload reported as
 ‘timeout’ also produces a timeout when executing with maximum timeout ‘timeout_hard’.</p>
 <div class="admonition note">
@@ -822,7 +834,7 @@ available for the agent to download via (<code class="docutils literal notransla
 </div>
 </section>
 <section id="timeout-hard">
-<h3><code class="docutils literal notranslate"><span class="pre">timeout_hard</span></code><a class="headerlink" href="#timeout-hard" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">timeout_hard</span></code><a class="headerlink" href="#timeout-hard" title="Link to this heading">#</a></h3>
 <p>Hard execution timeout (seconds)</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -831,7 +843,7 @@ available for the agent to download via (<code class="docutils literal notransla
 </div>
 </section>
 <section id="timeout-soft">
-<h3><code class="docutils literal notranslate"><span class="pre">timeout_soft</span></code><a class="headerlink" href="#timeout-soft" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">timeout_soft</span></code><a class="headerlink" href="#timeout-soft" title="Link to this heading">#</a></h3>
 <p>Soft execution timeout (seconds). Used as initial lower timeout for Qemu
 instances and then adapted based on seen performance, up to the maximum of
 <code class="docutils literal notranslate"><span class="pre">timeout_hard</span></code>.</p>
@@ -842,7 +854,7 @@ instances and then adapted based on seen performance, up to the maximum of
 </div>
 </section>
 <section id="trace-cb">
-<h3><code class="docutils literal notranslate"><span class="pre">trace_cb</span></code><a class="headerlink" href="#trace-cb" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">trace_cb</span></code><a class="headerlink" href="#trace-cb" title="Link to this heading">#</a></h3>
 <p>Run Qemu in ‘callback-trace’ mode, where PT traces are directly decoded using
 a libxdc callback function. This tends to significantly slow down execution and
 results in different coverage bitmaps. Deprecated.</p>
@@ -854,7 +866,7 @@ results in different coverage bitmaps. Deprecated.</p>
 </div>
 </section>
 <section id="trace">
-<h3><code class="docutils literal notranslate"><span class="pre">trace</span></code><a class="headerlink" href="#trace" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">trace</span></code><a class="headerlink" href="#trace" title="Link to this heading">#</a></h3>
 <p>Run Qemu in <code class="docutils literal notranslate"><span class="pre">dump-trace</span></code> mode, where binary PT traces are directly stored to
 the workdir by each Qemu process. For any new discovered payloads, kAFL stores
 the corresponding binary traces to <code class="docutils literal notranslate"><span class="pre">$KAFL_WORKDIR/traces/</span></code> for later decoding
@@ -869,10 +881,10 @@ works for non-deterministic targets.</p>
 </div>
 </section>
 <section id="verbose">
-<h3><code class="docutils literal notranslate"><span class="pre">verbose</span></code><a class="headerlink" href="#verbose" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">verbose</span></code><a class="headerlink" href="#verbose" title="Link to this heading">#</a></h3>
 <p>Enable verbose output by setting Python <a class="reference external" href="https://docs.python.org/3/library/logging.html"><code class="docutils literal notranslate"><span class="pre">logging</span></code></a> level to <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging-levels"><code class="docutils literal notranslate"><span class="pre">DEBUG</span></code></a>.</p>
 <p>This option is also useful to dump and debug kafl configuration at load-time.</p>
-<p>Example with <a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html"><span class="std std-doc">Fuzzing the Linux kernel</span></a> tutorial, if <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> switch were to be added to the command line:</p>
+<p>Example with <a class="reference internal" href="../tutorials/linux/fuzzing_linux_kernel.html"><span class="std std-doc">Fuzzing the Linux kernel</span></a> tutorial, if <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> switch were to be added to the command line:</p>
 <p>First kAFL will dump the list of loaded configuration files.
 Check the <a class="reference internal" href="#configuration-sources-and-precedence">load order</a></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Loaded</span> <span class="n">configuration</span> <span class="n">files</span><span class="p">:</span>
@@ -917,7 +929,7 @@ Check the <a class="reference internal" href="#configuration-sources-and-precede
 </div>
 </section>
 <section id="work-dir">
-<h3><code class="docutils literal notranslate"><span class="pre">work_dir</span></code><a class="headerlink" href="#work-dir" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">work_dir</span></code><a class="headerlink" href="#work-dir" title="Link to this heading">#</a></h3>
 <p>The workdir is used by kAFL to accumulate results and communicate with QEMU and other processes.
 It is the primary location for inspecting the status of a previous or still running kAFL session.</p>
 <p>Also, any post-processing steps such as triage or coverage analysis typically builds up on an existing workdir.</p>
@@ -1066,12 +1078,12 @@ It is the primary location for inspecting the status of a previous or still runn
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/scripts/furo.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+</div><script src="../_static/documentation_options.js?v=5b3c63aa"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     </body>
 </html>

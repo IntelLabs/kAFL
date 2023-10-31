@@ -671,7 +671,7 @@ Enable verbose output by setting Python [`logging`](https://docs.python.org/3/li
 
 This option is also useful to dump and debug kafl configuration at load-time.
 
-Example with [Fuzzing the Linux kernel](../tutorials/fuzzing_linux_kernel.md) tutorial, if `--verbose` switch were to be added to the command line:
+Example with [Fuzzing the Linux kernel](../tutorials/linux/fuzzing_linux_kernel.md) tutorial, if `--verbose` switch were to be added to the command line:
 
 First kAFL will dump the list of loaded configuration files.
 Check the [load order](#configuration-sources-and-precedence)

@@ -1,17 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Concepts" href="concepts.html" /><link rel="prev" title="Introduction" href="introduction.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>Installation - kAFL</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
     
     
 
@@ -161,9 +161,21 @@
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="concepts.html">Concepts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fuzzing_linux_kernel.html">Linux Kernel target</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="linux/index.html">Linux Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Linux Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="linux/dvkm/index.html">DVKM</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of DVKM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="linux/dvkm/target.html">1 - Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="linux/dvkm/workflow.html">2 - kAFL workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="linux/dvkm/agent.html">3 - Building the agent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="linux/dvkm/fuzzing.html">4 - Fuzzing campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="linux/dvkm/results.html">5 - Exploring campaign results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="linux/dvkm/improvements.html">6 - Improvements: KASAN</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="linux/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="windows/driver/target.html">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="windows/windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="windows/driver/target_setup.html">Provision the guest VM</a></li>
@@ -171,7 +183,7 @@
 <li class="toctree-l3"><a class="reference internal" href="windows/driver/crash.html">Crash Analysis</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="windows/userspace/target.html">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="windows/windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="windows/userspace/target_setup.html">Provision the guest VM</a></li>
@@ -244,13 +256,13 @@
         </div>
         <article role="main">
           <section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">#</a></h1>
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h1>
 <p>Before we dive into the installation process, let’s make sure that your local machine meets the necessary requirements
 to run the fuzzer.</p>
 <section id="requirements">
-<h2>1. Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading">#</a></h2>
+<h2>1. Requirements<a class="headerlink" href="#requirements" title="Link to this heading">#</a></h2>
 <section id="hardware">
-<h3>1.1 Hardware<a class="headerlink" href="#hardware" title="Permalink to this heading">#</a></h3>
+<h3>1.1 Hardware<a class="headerlink" href="#hardware" title="Link to this heading">#</a></h3>
 <p>Your processor must support Intel Processor Trace (<em>Intel PT</em>). This feature is available on Gen-6 (<a class="reference external" href="https://www.intel.com/content/www/us/en/developer/articles/technical/an-overview-of-the-6th-generation-intel-core-processor-code-named-skylake.html#:~:text=Introduction-,The%206th%20generation%20Intel%C2%AE%20Core%E2%84%A2%20processor%20(code%2Dnamed,Skylake)%20was%20launched%20in%202015."><em>Skylake</em></a>) or newer Intel processors.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -266,7 +278,7 @@ to run the fuzzer.</p>
 </div>
 </section>
 <section id="software">
-<h3>1.2 Software<a class="headerlink" href="#software" title="Permalink to this heading">#</a></h3>
+<h3>1.2 Software<a class="headerlink" href="#software" title="Link to this heading">#</a></h3>
 <p>kAFL userspace stack can be setup via 2 ways:</p>
 <ul class="simple">
 <li><p>Our <a class="reference internal" href="#deploying-kafl-make-deploy"><code class="docutils literal notranslate"><span class="pre">Ansible</span> <span class="pre">playbook</span></code></a> (<strong>recommended</strong>)</p></li>
@@ -317,7 +329,7 @@ Docker image</label><div class="sd-tab-content docutils">
 </section>
 </section>
 <section id="cloning-the-sources">
-<h2>2. Cloning the sources<a class="headerlink" href="#cloning-the-sources" title="Permalink to this heading">#</a></h2>
+<h2>2. Cloning the sources<a class="headerlink" href="#cloning-the-sources" title="Link to this heading">#</a></h2>
 <p>First clone the sources from the main kAFL repository on Github, and move into the directory</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/IntelLabs/kAFL
 <span class="nb">cd</span><span class="w"> </span>kAFL
@@ -325,7 +337,7 @@ Docker image</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="deploying-kafl-make-deploy">
-<h2>3. Deploying kAFL : <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">deploy</span></code><a class="headerlink" href="#deploying-kafl-make-deploy" title="Permalink to this heading">#</a></h2>
+<h2>3. Deploying kAFL : <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">deploy</span></code><a class="headerlink" href="#deploying-kafl-make-deploy" title="Link to this heading">#</a></h2>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
 </input><label class="sd-tab-label" for="sd-tab-item-2">
@@ -379,7 +391,7 @@ Docker image</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="setting-kafl-environment-make-env">
-<h2>4. Setting kAFL environment : <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">env</span></code><a class="headerlink" href="#setting-kafl-environment-make-env" title="Permalink to this heading">#</a></h2>
+<h2>4. Setting kAFL environment : <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">env</span></code><a class="headerlink" href="#setting-kafl-environment-make-env" title="Link to this heading">#</a></h2>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-4" name="sd-tab-set-2" type="radio">
 </input><label class="sd-tab-label" for="sd-tab-item-4">
@@ -399,7 +411,7 @@ You are good to go !</p>
 </div>
 </section>
 <section id="verify-the-installation">
-<h2>5. Verify the installation<a class="headerlink" href="#verify-the-installation" title="Permalink to this heading">#</a></h2>
+<h2>5. Verify the installation<a class="headerlink" href="#verify-the-installation" title="Link to this heading">#</a></h2>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-6" name="sd-tab-set-3" type="radio">
 </input><label class="sd-tab-label" for="sd-tab-item-6">
@@ -446,10 +458,10 @@ Docker image</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="on-to-the-next-steps">
-<h2>6. On to the next steps !<a class="headerlink" href="#on-to-the-next-steps" title="Permalink to this heading">#</a></h2>
+<h2>6. On to the next steps !<a class="headerlink" href="#on-to-the-next-steps" title="Link to this heading">#</a></h2>
 <p>Now you are ready to configure one of our pre-baked kAFL targets, and start the fuzzer !</p>
 <ul class="simple">
-<li><p>➡️ Continue by <a class="reference internal" href="fuzzing_linux_kernel.html"><span class="std std-doc">fuzzing the Linux Kernel</span></a></p></li>
+<li><p>➡️ Continue by <a class="reference internal" href="linux/index.html"><span class="std std-doc">fuzzing on Linux</span></a></p></li>
 <li><p>➡️ Continue by <a class="reference internal" href="windows/index.html"><span class="std std-doc">fuzzing Windows programs</span></a></p></li>
 </ul>
 </section>
@@ -539,12 +551,12 @@ Docker image</label><div class="sd-tab-content docutils">
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/scripts/furo.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+</div><script src="../_static/documentation_options.js?v=5b3c63aa"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     </body>
 </html>

@@ -1,17 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Fuzzer Configuration" href="../reference/fuzzer_configuration.html" /><link rel="prev" title="Improvments" href="../tutorials/windows/userspace/improvements.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>Github Actions CI/CD - kAFL</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
     
     
 
@@ -161,9 +161,21 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/concepts.html">Concepts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/linux/index.html">Linux Target</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Linux Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/linux/dvkm/index.html">DVKM</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of DVKM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/target.html">1 - Target analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/workflow.html">2 - kAFL workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/agent.html">3 - Building the agent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/fuzzing.html">4 - Fuzzing campaign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/results.html">5 - Exploring campaign results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/linux/dvkm/improvements.html">6 - Improvements: KASAN</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/linux/fuzzing_linux_kernel.html">Linux Kernel target</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/windows/index.html">Windows Target</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Windows Target</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/driver/index.html">Driver</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Driver</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/driver/target.html">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/driver/target_setup.html">Provision the guest VM</a></li>
@@ -171,7 +183,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/driver/crash.html">Crash Analysis</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../tutorials/windows/userspace/index.html">Userspace</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Userspace</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/userspace/target.html">Target analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/windows_template.html">Windows VM Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/windows/userspace/target_setup.html">Provision the guest VM</a></li>
@@ -244,7 +256,7 @@
         </div>
         <article role="main">
           <section id="github-actions-ci-cd">
-<h1>Github Actions CI/CD<a class="headerlink" href="#github-actions-ci-cd" title="Permalink to this heading">#</a></h1>
+<h1>Github Actions CI/CD<a class="headerlink" href="#github-actions-ci-cd" title="Link to this heading">#</a></h1>
 <p>kAFL can be integrated into your Github Actions CI/CD pipeline, thanks to the <a class="reference external" href="https://github.com/IntelLabs/kafl.actions"><code class="docutils literal notranslate"><span class="pre">IntelLabs/kafl.actions</span></code></a>.</p>
 <p>It acts as a basic-block to compose your workflows with kAFL.</p>
 <p>With this Action you can:</p>
@@ -258,7 +270,7 @@
 <li><p>A kAFL-compatible server (<strong>Intel PT</strong>) acting as <a class="reference external" href="https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners">Github Action Self-Hosted Runner</a></p></li>
 </ul>
 <section id="deploying-the-kernel">
-<h2>1 - Deploying the kernel<a class="headerlink" href="#deploying-the-kernel" title="Permalink to this heading">#</a></h2>
+<h2>1 - Deploying the kernel<a class="headerlink" href="#deploying-the-kernel" title="Link to this heading">#</a></h2>
 <p>This first step will install the kAFL on the server of your choice.</p>
 <p>We can leverage kAFL’s <a class="reference internal" href="../reference/deployment.html"><span class="std std-doc">Ansible playbook</span></a> to automate this part.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>kAFL
@@ -284,19 +296,19 @@ make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </s
 </div>
 </section>
 <section id="setting-up-docker">
-<h2>2 - Setting up Docker<a class="headerlink" href="#setting-up-docker" title="Permalink to this heading">#</a></h2>
+<h2>2 - Setting up Docker<a class="headerlink" href="#setting-up-docker" title="Link to this heading">#</a></h2>
 <p><a class="reference external" href="https://github.com/IntelLabs/kafl.actions"><code class="docutils literal notranslate"><span class="pre">kafl.actions</span></code></a> will pull the latest <a class="reference external" href="https://hub.docker.com/r/intellabs/kafl"><code class="docutils literal notranslate"><span class="pre">intellabs/kafl</span></code></a> Docker image to run the kAFL userspace.</p>
 <p>Let’s setup Docker on the runner as well !</p>
 <p>➡️ <a class="reference external" href="https://docs.docker.com/engine/install/ubuntu/">Install Docker Engine on Ubuntu</a></p>
 </section>
 <section id="setup-the-github-actions-runner">
-<h2>3 - Setup the Github Actions Runner<a class="headerlink" href="#setup-the-github-actions-runner" title="Permalink to this heading">#</a></h2>
+<h2>3 - Setup the Github Actions Runner<a class="headerlink" href="#setup-the-github-actions-runner" title="Link to this heading">#</a></h2>
 <p>Finally you can follow Github’s official guide to add a <a class="reference external" href="https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/adding-self-hosted-runners#adding-a-self-hosted-runner-to-a-repository">Self-Hosted Runner</a> to your repository.</p>
 <p>You should now have a runner available under <code class="docutils literal notranslate"><span class="pre">Settings</span></code> <code class="docutils literal notranslate"><span class="pre">Actions</span></code> <code class="docutils literal notranslate"><span class="pre">Runners</span></code></p>
 <p><img alt="kafl_runner" src="../_images/kafl_runner_added.png" /></p>
 </section>
 <section id="using-kafl-actions">
-<h2>4 - Using <code class="docutils literal notranslate"><span class="pre">kafl.actions</span></code><a class="headerlink" href="#using-kafl-actions" title="Permalink to this heading">#</a></h2>
+<h2>4 - Using <code class="docutils literal notranslate"><span class="pre">kafl.actions</span></code><a class="headerlink" href="#using-kafl-actions" title="Link to this heading">#</a></h2>
 <p>Go check <a class="reference external" href="https://github.com/IntelLabs/kafl.actions"><code class="docutils literal notranslate"><span class="pre">kafl.actions</span></code></a>’s README and the example <a class="reference external" href="https://github.com/IntelLabs/kafl.actions/blob/master/.github/workflows/kernel.yml"><code class="docutils literal notranslate"><span class="pre">kernel.yml</span></code></a> to fuzz the Linux kernel !</p>
 <p>It boils down to invoking the action, specifing the subcommand, the workdir (to be mounted in the container), and a few <code class="docutils literal notranslate"><span class="pre">extra_args</span></code> for the kAFL command line.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fuzz Linux kernel</span>
@@ -336,7 +348,7 @@ make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </s
 </div>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">#</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
 <p>The <a class="reference external" href="https://github.com/IntelLabs/kafl.actions"><code class="docutils literal notranslate"><span class="pre">kafl.actions</span></code></a> Github Action has been introduced to the <a class="reference external" href="https://www.youtube.com/watch?v=0adtDjSdSjc&amp;amp;t=230s">Tianocore community meeting</a> on May 4th 2023.</p>
 </section>
 </section>
@@ -420,12 +432,12 @@ make<span class="w"> </span>deploy<span class="w"> </span>--<span class="w"> </s
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/scripts/furo.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+</div><script src="../_static/documentation_options.js?v=5b3c63aa"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     </body>
 </html>
