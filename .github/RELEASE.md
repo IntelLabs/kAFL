@@ -17,6 +17,7 @@
 - examples role: fix shell used to unpacking GPG key (#233)
 - examples role: install missing qemu-system-x86 package (#234)
 - libxdc/QEMU: fix regression observed with the 6.0 Nyx kernel (#253)
+- CI: upgrade docs workflow to Python 3.9 (#255)
 
 # 📖 Documentation
 
