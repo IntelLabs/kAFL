@@ -8,4 +8,3 @@ You should see 4 fields:
 - `AddSan`: Executions returning with KASAN hypercall
 - `Timeout`: Executions intercepted by QEMU timeout
 - `Regular`: Executions returning with RELEASE hypercall
-
