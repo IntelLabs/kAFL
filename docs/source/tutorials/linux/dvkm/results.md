@@ -222,7 +222,7 @@ The `kafl debug` subcommand provides various utilities for debugging your fuzzin
 
 By using this subcommand, you can replay payloads to better understand the control flow leading to a crash, verify the stability and determinism of a payload, and even debug the guest state live while replaying the payload.
 
-In this section, we'll explore two key [`actions`](../../../reference/fuzzer_configuration.md#action) provided by the kafl debug subcommand:
+In this section, we'll explore two key [`actions`](../../../reference/fuzzer_configuration.md#action) provided by `kafl debug`:
 
 - `single`
 - `gdb`
@@ -234,9 +234,7 @@ The `single` action let's you replay a single payload and observe its results:
 The payload should be specified throught the [`--input`](../../../reference/fuzzer_configuration.md#input) parameter.
 
 :::{Important}
-We should always specify [`--resume`](../../../reference/fuzzer_configuration.md#resume) when using either `kafl cov` or `kafl debug`, since it will replay from the original snapshot taken by the first call on [`NEXT_PAYLAOD`](../../../reference/hypercall_api.md#next_payload), and will make our execution deterministic.
-
-That's one of the key benefits of snapshot fuzzers !
+When replaying a payload from an previous kAFL run at $KAFL_WORKDIR, it is recommended to use [`--resume`](../../../reference/fuzzer_configuration.md#resume) so that the tool will use the exact same snapshot and page cache as in the fuzzing run. This improves our odds at reproducing the crash. If the workdir does not exist anymore or the snapshot is not found, running kafl single without `--resume` will simply boot a new VM with the given configuration and execute the agent a single time with the given input.
 :::
 
 :::{code-block} shell
@@ -396,7 +394,7 @@ For example when the target code will be fixed, we could replay that payload and
 
 The `gdb` action is particularly valuable for deep-diving into the issues discovered during fuzzing.
 
-When using this action, QEMU is started in `gdbserver` mode, which allows it to act as a server for the GDB debugger. This means you can interact with the target application in real-time as the payload is being executed.
+This action working similar to `single`, but QEMU is started in `gdbserver` mode, allowing it to act as a server for the GDB debugger. This means you can interact with the target application in real-time as the payload is being executed.
 
 The use of GDB provides fine-grained control over the execution of the program and allows you to inspect the program's state, variables, and call stack, offering a clear view into what led to a particular crash or unexpected behavior.
 
@@ -580,16 +578,15 @@ Breakpoint 2, oops_enter () at kernel/panic.c:623
 
 :::{Important}
 We need to use GDB hardware breakpoints, as software breakpoints in QEMU's embedded GDB server seems unrealiable.
-
-::::{Note}
+:::
+:::{Note}
 To reach the `dvkm_ioctl` hardware breakpoint, we had to send a `CTRL-C` to the GDB client.
 The execution was hanging somewhere, for reasons that are not clear at the time of this writing.
-::::
-::::{Note}
-Also remember that in order to load the symbols reliably, at the same location, we had to disable the Kernel `ASLR`.
+:::
+:::{Note}
+Additionaly, in order to load the symbols reliably, at the same location, Kernel `ASLR` (_Address Space Layout Randomization_) had to be disabled.
 
 Have a look at the `kafl.yaml` `qemu_append` line, where [`nokaslr`](https://www.kernel.org/doc/html/v4.14/admin-guide/kernel-parameters.html) option is set.
-::::
 :::
 
 Hopefully by now, you should have a better understanding of the kAFL workdir's corpus directory, the captured logs and how to interpret them, as well as having the capacity to replay payloads as you will !
