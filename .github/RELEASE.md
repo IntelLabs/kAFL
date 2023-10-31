@@ -14,13 +14,16 @@
 - Security fixes (#215, #217)
 - Switch QEMU revision pinning to a tag instead of a branch (#214)
 - `kafl.targets`: simplify linux kernel tutorial and use predefined load path for kAFL configuration ([`kafl.targets#23`](https://github.com/IntelLabs/kafl.targets/pull/23))
-- examples role: fix shell used to unpacking GPG key (#233)
-- examples role: install missing qemu-system-x86 package (#234)
+- examples role
+  - fix shell used to unpacking GPG key (#233)
+  - install missing qemu-system-x86 package (#234)
+  - disable cloning submodules (#256)
 - libxdc/QEMU: fix regression observed with the 6.0 Nyx kernel (#253)
 - CI: upgrade docs workflow to Python 3.9 (#255)
 
 # 📖 Documentation
 
+- Add new Linux tutorial based on DVKM (*Damn Vulnerable Kernel Module*) (#250)
 - Misc fixes (#213)
 - Linux kernel tutorial: use implicit IP filters from snapshot metadata: (https://intellabs.github.io/kAFL/reference/hypercall_api.html#range-submit) (#216)
 - Fix `DUMP_FILE` hypercall argument (#254) (Thanks @sangjun !)
