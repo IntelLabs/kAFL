@@ -42,7 +42,7 @@ To verify your installation:
 $ packer version
 Packer v1.9.1 # or above
 $ vagrant version
-Installed Version: 2.3.6 # pinned 2.3.6
+Installed Version: 2.3.6
 Latest Version: 2.3.7
 ...
 $ vagrant plugin list
