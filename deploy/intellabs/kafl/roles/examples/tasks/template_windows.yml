@@ -38,8 +38,7 @@
   ansible.builtin.apt:
     name:
       - packer
-      # vagrant-host-shell plugin doesn't support 2.3.7-1 or newer
-      - vagrant=2.3.6-1
+      - vagrant
       # dependency for vagrant plugins
       - ruby-dev
       # dependency for vagrant-libvirt
