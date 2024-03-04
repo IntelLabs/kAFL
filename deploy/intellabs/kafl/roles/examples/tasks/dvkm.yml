@@ -1,7 +1,12 @@
 - name: Install required packages
   ansible.builtin.apt:
     # required for lddtree
-    name: pax-utils
+    name:
+      - pax-utils
+      - flex
+      - bison
+      - libelf-dev
+      - libssl-dev
   become: true
 
 - name: Clone required submodules
