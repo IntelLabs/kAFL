@@ -213,7 +213,7 @@ To set up the required dependencies, navigate to the kAFL directory and execute 
 
 ```shell
 $ cd kAFL
-(venv) $ make deploy -- --tags examples,examples-dvkm
+(venv) $ make deploy -- --tags examples,examples-linux-dvkm
 ```
 
 Now, switch to the `📂 linux-user/dvkm` directory to compile the target and its dependencies:
