@@ -60,8 +60,10 @@ jobs:
   local:
     strategy:
         matrix:
-            os: [ubuntu-20.04, ubuntu-22.04]
-    runs-on: ${{ matrix.os }}
+            image: ["ubuntu:20.04", "ubuntu:22.04"]
+    runs-on: ubuntu-22.04
+    container:
+      image: ${{ matrix.image }}
     steps:
       - uses: actions/checkout@v3
 
