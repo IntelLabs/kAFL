@@ -92,7 +92,7 @@ jobs:
       - name: Test userspace deployment
         run: > 
           make deploy --
-          --skip-tags "hardware_check,kvm_device"
+          --skip-tags "hardware_check,kvm_device,update_grub"
           --extra-vars "@parameters.json"
 
   remote:
