@@ -70,12 +70,23 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
+        # centos is not happy with custom python
+        # /usr/bin/python3.9: /lib64/libm.so.6: version `GLIBC_2.35' not found (required by /__t/Python/3.9.19/x64/lib/libpython3.9.so.1.0)
+        if: contains(matrix.image, 'ubuntu')
 
       # shallow clone for CI speed
       - name: Setup ansible extra vars in JSON file
         run: |
           echo '{"git_clone_depth": 1}' >> parameters.json
         working-directory: deploy
+
+      - name: Install make
+        run: apt-get update && apt-get install -y make
+        if: contains(matrix.image, 'ubuntu')
+
+      - name: Install make
+        run: dnf install -y make
+        if: contains(matrix.image, 'centos')
 
       # skip tags related to non-existent hardware/configuration in the CI runner environment
       - name: Test userspace deployment
