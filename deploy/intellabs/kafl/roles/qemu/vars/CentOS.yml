@@ -1,0 +1,8 @@
+packages:
+  - pkg-config
+  - glib2-devel
+  - pixman-devel
+  - gtk3-devel
+  # virtfs
+  - libcap-devel
+  - libattr-devel

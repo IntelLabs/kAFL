@@ -1,9 +1,8 @@
+- include_vars: "{{ ansible_distribution }}.yml"
+
 - name: Ensure required dependencies are installed
   ansible.builtin.package:
-    name: "{{ item }}"
-  with_items:
-    - openjdk-11-jdk
-    - unzip
+    name: "{{ packages }}"
   become: true
 
 - name: Check for Ghidra analyzeHeadless binary's presence
