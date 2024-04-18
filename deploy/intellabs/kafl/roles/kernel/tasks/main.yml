@@ -1,11 +1,11 @@
+- include_vars: "{{ ansible_distribution }}.yml"
+
 - name: Import pre_tasks
   ansible.builtin.import_tasks: pre_tasks.yml
 
 - name: Install required dependencies
   ansible.builtin.package:
-    name:
-      - build-essential
-      - dpkg
+    name: "{{ packages }}"
   become: true
 
 - name: Create temporary directory
@@ -46,5 +46,5 @@
 
 # check if hardware_check in skip-tags -> to force CI run
 - name: Install kernel if needed
-  ansible.builtin.import_tasks: install_kernel.yml
+  ansible.builtin.include_tasks: install_kernel_{{ ansible_distribution }}.yml
   when: "'update_grub' in ansible_run_tags or 'hardware_check' in ansible_skip_tags or support_test.rc != 0"
