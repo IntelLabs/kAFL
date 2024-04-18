@@ -1,4 +1,4 @@
-- include_vars: "{{ ansible_distribution }}.yml"
+- include_vars: "{{ ansible_os_family }}.yml"
 
 - name: Ensure kAFL parent directory exists
   ansible.builtin.file:

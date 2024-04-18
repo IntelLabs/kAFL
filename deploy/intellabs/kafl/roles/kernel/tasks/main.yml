@@ -1,4 +1,4 @@
-- include_vars: "{{ ansible_distribution }}.yml"
+- include_vars: "{{ ansible_os_family }}.yml"
 
 - name: Import pre_tasks
   ansible.builtin.import_tasks: pre_tasks.yml
