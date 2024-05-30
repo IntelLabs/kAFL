@@ -1,4 +1,5 @@
 name: Security
+permissions: {}
 
 on:
   push:
