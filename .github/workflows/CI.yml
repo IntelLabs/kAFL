@@ -61,14 +61,19 @@ jobs:
   local:
     strategy:
         matrix:
-            os: [ubuntu-20.04, ubuntu-22.04]
-    runs-on: ${{ matrix.os }}
+            image: ["ubuntu:22.04"] #, "quay.io/centos/centos:stream9"]
+    runs-on: ubuntu-22.04
+    container:
+      image: ${{ matrix.image }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
+        # centos is not happy with custom python
+        # /usr/bin/python3.9: /lib64/libm.so.6: version `GLIBC_2.35' not found (required by /__t/Python/3.9.19/x64/lib/libpython3.9.so.1.0)
+        if: contains(matrix.image, 'ubuntu')
 
       # shallow clone for CI speed
       - name: Setup ansible extra vars in JSON file
@@ -76,11 +81,19 @@ jobs:
           echo '{"git_clone_depth": 1}' >> parameters.json
         working-directory: deploy
 
+      - name: Install make
+        run: apt-get update && apt-get install -y make
+        if: contains(matrix.image, 'ubuntu')
+
+      - name: Install make
+        run: dnf install -y make
+        if: contains(matrix.image, 'centos')
+
       # skip tags related to non-existent hardware/configuration in the CI runner environment
       - name: Test userspace deployment
         run: > 
           make deploy --
-          --skip-tags "hardware_check,kvm_device"
+          --skip-tags "hardware_check,kvm_device,update_grub"
           --extra-vars "@parameters.json"
 
   remote:

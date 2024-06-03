@@ -1,0 +1,3 @@
+packages:
+  - openjdk-11-jdk
+  - unzip

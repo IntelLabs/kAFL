@@ -3,11 +3,24 @@
   environment:
     http_proxy: "{{ proxy_env.http_proxy | default(lookup('env', 'http_proxy')) }}"
     https_proxy: "{{ proxy_env.https_proxy | default(lookup('env', 'https_proxy')) }}"
+  vars:
   pre_tasks:
-    - name: Apt update to ensure root access is available (or fail early)
-      ansible.builtin.apt:
-        update_cache: true
-      become: true
+    - name: Install git
+      ansible.builtin.package:
+        name: git
+        state: present
+
+    - name: Install build-essential (Debian)
+      ansible.builtin.package:
+        name: build-essential
+        state: present
+      when: ansible_os_family == 'Debian'
+      
+    - name: Install Development Tools (RedHat)
+      ansible.builtin.dnf:
+        name: '@Development Tools'
+        state: present
+      when: ansible_os_family == 'RedHat'
 
   roles:
     - role: intellabs.kafl.fuzzer
