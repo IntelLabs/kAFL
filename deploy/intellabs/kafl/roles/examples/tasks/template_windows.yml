@@ -75,3 +75,29 @@
     path: /usr/lib/qemu/qemu-bridge-helper
     mode: 'u+s'
   become: true
+
+
+- name: Install required for init
+  ansible.builtin.apt:
+    # https://askubuntu.com/questions/1225216/failed-to-connect-socket-to-var-run-libvirt-libvirt-sock
+    name: 
+      - pax-utils
+      - qemu
+      - qemu-kvm
+      - libvirt-clients
+      - libvirt-daemon-system
+      - virtinst
+      - bridge-utils
+    state: present
+  become: true
+  tags:
+    - virtualization_packages
+
+- name: Enable and start libvirtd service
+  ansible.builtin.systemd:
+    name: libvirtd
+    enabled: yes
+    state: started
+  become: true
+  tags:
+    - libvirtd_service
