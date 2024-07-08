@@ -272,6 +272,9 @@ jobs:
           readme-filepath: ./.github/DOCKER.md
 
   release:
+    permissions:
+      # required for releases
+      contents: write
     # this job makes an official Github release
     needs: [ansible-lint, check-mode, local, remote, docker-image]
     runs-on: ubuntu-latest
