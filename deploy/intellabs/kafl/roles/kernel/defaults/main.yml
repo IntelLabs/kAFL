@@ -1,4 +1,4 @@
 # keep these in sync so we can find the grub entry matching the kernel
-kernel_grep_string: '6.0.0-nyx+'
+kernel_grep_string: '6.8.0-nyx+'
 kernel_deb_urls:
-  - https://github.com/IntelLabs/kafl.linux/releases/download/kvm-nyx-v6.0/linux-image-6.0.0-nyx+_6.0.0-nyx+-1_amd64.deb
+  - https://github.com/IntelLabs/kafl.linux/releases/download/kvm-nyx-6.8/linux-image-6.8.0-nyx+_6.8.0-g0509b850d2bd-1_amd64.deb
