@@ -1,24 +1,15 @@
-- name: Install dependencies
-  ansible.builtin.package:
-    name:
-      - linux-base
-      - kmod
-  become: true
-
 - name: Create temporary directory for downloaded packages
   ansible.builtin.tempfile:
     state: directory
   register: down_dir
   check_mode: false
 
-- name: Download deb packages
+- name: Download pre-built packages
   ansible.builtin.get_url:
     url: "{{ item }}"
-    dest: "{{ down_dir.path }}/{{ index }}.deb"
+    dest: "{{ down_dir.path }}/{{ item | basename }}"
     mode: 0644
-  loop: "{{ kernel_deb_urls }}"
-  loop_control:
-    index_var: index
+  loop: "{{ kernel_urls }}"
 
 - name: Install kAFL kernel
   ansible.builtin.shell: dpkg -i "{{ down_dir.path }}"/*.deb
