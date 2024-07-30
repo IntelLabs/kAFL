@@ -191,6 +191,43 @@ You should see the kAFL ACSII art logo:
 ===================================================
 
 << kAFL Fuzzer >>
+
+Warning: Launching without --seed-dir?
+No PT trace region defined.
+00:00:00:     0 exec/s,    0 edges,  0% favs pending, findings: <0, 0, 0>
+Worker-00 Launching virtual machine...
+/home/mtarral/kafl/kafl/qemu/x86_64-softmmu/qemu-system-x86_64
+        -enable-kvm
+        -machine kAFL64-v1
+        -cpu kAFL64-Hypervisor-v1,+vmx
+        -no-reboot
+        -net none
+        -display none
+        -chardev socket,server,id=nyx_socket,path=/dev/shm/kafl_mtarral/interface_0
+        -device nyx,chardev=nyx_socket,workdir=/dev/shm/kafl_mtarral,worker_id=0,bitmap_size=65536,input_buffer_size=131072
+        -device isa-serial,chardev=kafl_serial
+        -chardev file,id=kafl_serial,mux=on,path=/dev/shm/kafl_mtarral/serial_00.log
+        -m 256
+        -fast_vm_reload path=/dev/shm/kafl_mtarral/snapshot/,load=off
+[QEMU-NYX] Max Dirty Ring Size -> 1048576 (Entries: 65536)
+qemu-system-x86_64: warning: host doesn't support requested feature: CPUID.01H:ECX.pcid [bit 17]
+qemu-system-x86_64: warning: host doesn't support requested feature: CPUID.07H:EBX.hle [bit 4]
+qemu-system-x86_64: warning: host doesn't support requested feature: CPUID.07H:EBX.rtm [bit 11]
+[QEMU-NYX] Dirty ring mmap region located at 0x767b25d00000
+[QEMU-NYX] Warning: Invalid sharedir...
+[QEMU-NYX] Booting VM to start fuzzing...
+...
+~~~
+
+If that's the case, kAFL is **correctly configured** !
+
+You can now send a `CTRL-C` to stop kAFL:
+
+~~~
+^CReceived Ctrl-C, killing workers...
+Waiting for Workers to shutdown...
+Worker-00 Shutting down Qemu after 0 execs..
+qemu-system-x86_64: terminating on signal 15 from pid 115166 (/home/mtarral/kafl/kafl/.venv/bin/python3)
 ~~~
 
 :::{note}

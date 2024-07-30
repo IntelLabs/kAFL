@@ -442,14 +442,48 @@ Docker image</label><div class="sd-tab-content docutils">
 </div>
 <p>You should see the kAFL ACSII art logo:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-    <span class="n">__</span>                        <span class="n">__</span>  <span class="n">___</span>    <span class="n">________</span>
-   <span class="o">/</span> <span class="o">/</span><span class="n">_____</span>  <span class="n">_________</span>  <span class="n">___</span>  <span class="o">/</span> <span class="o">/</span> <span class="o">/</span>   <span class="o">|</span>  <span class="o">/</span> <span class="n">____</span><span class="o">/</span> <span class="o">/</span>
-  <span class="o">/</span> <span class="o">//</span><span class="n">_</span><span class="o">/</span> <span class="n">_</span> \<span class="o">/</span> <span class="n">___</span><span class="o">/</span> <span class="n">__</span> \<span class="o">/</span> <span class="n">_</span> \<span class="o">/</span> <span class="o">/</span> <span class="o">/</span> <span class="o">/|</span> <span class="o">|</span> <span class="o">/</span> <span class="o">/</span><span class="n">_</span>  <span class="o">/</span> <span class="o">/</span>
- <span class="o">/</span> <span class="p">,</span><span class="o">&lt;</span> <span class="o">/</span>  <span class="n">__</span><span class="o">/</span> <span class="o">/</span>  <span class="o">/</span> <span class="o">/</span> <span class="o">/</span> <span class="o">/</span>  <span class="n">__</span><span class="o">/</span> <span class="o">/</span> <span class="o">/</span> <span class="n">___</span> <span class="o">|/</span> <span class="n">__</span><span class="o">/</span> <span class="o">/</span> <span class="o">/</span><span class="n">___</span>
-<span class="o">/</span><span class="n">_</span><span class="o">/|</span><span class="n">_</span><span class="o">|</span>\<span class="n">___</span><span class="o">/</span><span class="n">_</span><span class="o">/</span>  <span class="o">/</span><span class="n">_</span><span class="o">/</span> <span class="o">/</span><span class="n">_</span><span class="o">/</span>\<span class="n">___</span><span class="o">/</span><span class="n">_</span><span class="o">/</span> <span class="o">/</span><span class="n">_</span><span class="o">/</span>  <span class="o">|</span><span class="n">_</span><span class="o">/</span><span class="n">_</span><span class="o">/</span>   <span class="o">/</span><span class="n">_____</span><span class="o">/</span>
-<span class="o">===================================================</span>
+    __                        __  ___    ________
+   / /_____  _________  ___  / / /   |  / ____/ /
+  / //_/ _ \/ ___/ __ \/ _ \/ / / /| | / /_  / /
+ / ,&lt; /  __/ /  / / / /  __/ / / ___ |/ __/ / /___
+/_/|_|\___/_/  /_/ /_/\___/_/ /_/  |_/_/   /_____/
+===================================================
 
-<span class="o">&lt;&lt;</span> <span class="n">kAFL</span> <span class="n">Fuzzer</span> <span class="o">&gt;&gt;</span>
+&lt;&lt; kAFL Fuzzer &gt;&gt;
+
+Warning: Launching without --seed-dir?
+No PT trace region defined.
+00:00:00:     0 exec/s,    0 edges,  0% favs pending, findings: &lt;0, 0, 0&gt;
+Worker-00 Launching virtual machine...
+/home/mtarral/kafl/kafl/qemu/x86_64-softmmu/qemu-system-x86_64
+        -enable-kvm
+        -machine kAFL64-v1
+        -cpu kAFL64-Hypervisor-v1,+vmx
+        -no-reboot
+        -net none
+        -display none
+        -chardev socket,server,id=nyx_socket,path=/dev/shm/kafl_mtarral/interface_0
+        -device nyx,chardev=nyx_socket,workdir=/dev/shm/kafl_mtarral,worker_id=0,bitmap_size=65536,input_buffer_size=131072
+        -device isa-serial,chardev=kafl_serial
+        -chardev file,id=kafl_serial,mux=on,path=/dev/shm/kafl_mtarral/serial_00.log
+        -m 256
+        -fast_vm_reload path=/dev/shm/kafl_mtarral/snapshot/,load=off
+[QEMU-NYX] Max Dirty Ring Size -&gt; 1048576 (Entries: 65536)
+qemu-system-x86_64: warning: host doesn&#39;t support requested feature: CPUID.01H:ECX.pcid [bit 17]
+qemu-system-x86_64: warning: host doesn&#39;t support requested feature: CPUID.07H:EBX.hle [bit 4]
+qemu-system-x86_64: warning: host doesn&#39;t support requested feature: CPUID.07H:EBX.rtm [bit 11]
+[QEMU-NYX] Dirty ring mmap region located at 0x767b25d00000
+[QEMU-NYX] Warning: Invalid sharedir...
+[QEMU-NYX] Booting VM to start fuzzing...
+...
+</pre></div>
+</div>
+<p>If that’s the case, kAFL is <strong>correctly configured</strong> !</p>
+<p>You can now send a <code class="docutils literal notranslate"><span class="pre">CTRL-C</span></code> to stop kAFL:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">^</span><span class="n">CReceived</span> <span class="n">Ctrl</span><span class="o">-</span><span class="n">C</span><span class="p">,</span> <span class="n">killing</span> <span class="n">workers</span><span class="o">...</span>
+<span class="n">Waiting</span> <span class="k">for</span> <span class="n">Workers</span> <span class="n">to</span> <span class="n">shutdown</span><span class="o">...</span>
+<span class="n">Worker</span><span class="o">-</span><span class="mi">00</span> <span class="n">Shutting</span> <span class="n">down</span> <span class="n">Qemu</span> <span class="n">after</span> <span class="mi">0</span> <span class="n">execs</span><span class="o">..</span>
+<span class="n">qemu</span><span class="o">-</span><span class="n">system</span><span class="o">-</span><span class="n">x86_64</span><span class="p">:</span> <span class="n">terminating</span> <span class="n">on</span> <span class="n">signal</span> <span class="mi">15</span> <span class="kn">from</span> <span class="nn">pid</span> <span class="mi">115166</span> <span class="p">(</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">mtarral</span><span class="o">/</span><span class="n">kafl</span><span class="o">/</span><span class="n">kafl</span><span class="o">/.</span><span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">python3</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
