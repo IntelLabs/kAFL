@@ -43,6 +43,7 @@
         awk -F\' '/menuentry.*{{ kernel_grep_string }}/ {print $4}' /boot/grub/grub.cfg |head -1
       args:
         executable: /bin/bash
+      become: true
       register: grub_menuentry_ids
       when: true
       check_mode: false
