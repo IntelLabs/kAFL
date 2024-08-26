@@ -43,6 +43,7 @@
       - ruby-dev
       # dependency for vagrant-libvirt
       - libvirt-dev
+      - libvirt-daemon-system
     update_cache: true
   become: true
 
