@@ -584,6 +584,8 @@ traversed recursively and files are copied to the kAFL
 [workdir](../reference/workdir_layout.md) as `$KAFL_WORKDIR/imports/seed_xxx`,
 where there are consumed upon fuzzer startup.
 
+See the examples at [`kafl.fuzzer/seed`](https://github.com/IntelLabs/kafl.fuzzer/tree/master/seed)
+
 :::{note}
 Default: `None`
 
