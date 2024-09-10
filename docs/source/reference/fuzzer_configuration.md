@@ -158,6 +158,8 @@ Command-line: `--debug`
 
 Use file `<path>` as source of dictionary inputs in havoc stage.
 
+See the examples at [`kafl.fuzzer/dict`](https://github.com/IntelLabs/kafl.fuzzer/tree/master/dict) for file format.
+
 :::{note}
 Default: `None`
 
