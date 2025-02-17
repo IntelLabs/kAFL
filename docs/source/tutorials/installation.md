@@ -43,7 +43,7 @@ The requirements for either of these setups:
 
 The following command will install the required software on Ubuntu
 ```shell
-sudo apt-get install -y python3-dev python3-venv git build-essential
+sudo apt-get install -y python3-dev python3-venv git build-essential libffi-dev
 ```
 
 :::{note}
