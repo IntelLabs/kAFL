@@ -3,49 +3,16 @@
     name: gcc-mingw-w64-x86-64
   become: true
 
-- name: Check hashicorp repo key
-  ansible.builtin.stat:
-    path: /usr/share/keyrings/hashicorp-archive-keyring.gpg
-  register: key_stat
-
-- name: Add Hashicorp repo key
-  when: not key_stat.stat.exists
-  block:
-    - name: Download Hashicorp key
-      ansible.builtin.get_url:
-        url: https://apt.releases.hashicorp.com/gpg
-        dest: /tmp/hashicorp.key
-
-    - name: Unpack GPG key
-      ansible.builtin.shell: set -o pipefail && cat /tmp/hashicorp.key | gpg --batch --yes --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-      args:
-        executable: /bin/bash
-      become: true
-
-    - name: Remove temp file
-      ansible.builtin.file:
-        path: /tmp/hashicorp.key
-        state: absent
-
-- name: Add Hashicorp repository
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ ansible_lsb.codename }} main"
-    filename: hashicorp
-    state: present
-  become: true
-
 - name: Ensure packer and vagrant are installed
-  ansible.builtin.apt:
-    name:
-      - packer
-      - vagrant
-      # dependency for vagrant plugins
-      - ruby-dev
-      # dependency for vagrant-libvirt
-      - libvirt-dev
-      - libvirt-daemon-system
-    update_cache: true
   become: true
+  block:
+    - name: Ensure packer and vagrant are installed
+      ansible.builtin.include_role:
+        name: robertdebock.hashicorp
+      vars:
+        hashicorp_products:
+          - name: packer
+          - name: vagrant
 
 - name: Install vagrant plugins
   ansible.builtin.command: vagrant plugin install vagrant-libvirt vagrant-host-shell
@@ -59,7 +26,7 @@
 - name: Ensure /etc/qemu/bridge.conf is configured to allow virbr0
   ansible.builtin.lineinfile:
     path: /etc/qemu/bridge.conf
-    line: 'allow virbr0'
+    line: "allow virbr0"
     mode: 0644
     group: "{{ ansible_user_id }}"
     backup: true
@@ -74,5 +41,5 @@
 - name: Ensure qemu-bridge-helper is setuid
   ansible.builtin.file:
     path: /usr/lib/qemu/qemu-bridge-helper
-    mode: 'u+s'
+    mode: "u+s"
   become: true
