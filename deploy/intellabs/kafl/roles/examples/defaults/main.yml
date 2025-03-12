@@ -1,5 +1,6 @@
 examples_url: https://github.com/IntelLabs/kafl.targets
 examples_root: "{{ kafl_install_root }}/examples"
+examples_revision: "v0.2"
 
 dvkm_sub_path: linux-user/dvkm/Damn_Vulnerable_Kernel_Module
 linux_agent_sub_path: linux-user/linux_kafl_agent
