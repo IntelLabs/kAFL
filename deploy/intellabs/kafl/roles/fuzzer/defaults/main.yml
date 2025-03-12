@@ -8,6 +8,7 @@ install_nyx_packer: false
 libxdc_root: "{{ kafl_install_root }}/libxdc"
 capstone_root: "{{ kafl_install_root }}/capstone"
 
-fuzzer_url: 'https://github.com/IntelLabs/kafl.fuzzer'
+fuzzer_url: "https://github.com/IntelLabs/kafl.fuzzer"
 fuzzer_root: "{{ kafl_install_root }}/fuzzer"
+fuzzer_revision: "v0.6.2"
 fuzzer_venv_root: "{{ kafl_install_root }}/.venv"
