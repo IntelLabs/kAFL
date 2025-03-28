@@ -29,10 +29,9 @@ deploy:
 clean:
 	make -C deploy $@
 
-env: SHELL:=bash
 env: kafl/env.sh
 	@echo "Entering environment in sub-shell. Exit with 'Ctrl-d'."
-	@PROMPT_COMMAND='source kafl/env.sh; unset PROMPT_COMMAND' $(SHELL)
+	@exec $(SHELL) -i -c '. kafl/env.sh && exec $$SHELL'
 
 define HELP_TEXT
 Manage kAFL installation.
