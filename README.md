@@ -98,7 +98,7 @@ information and customizing the kAFL setup for your project.
 
 ## Fuzzing your first target
 
-As a first fuzzing example, we recommend [Fuzzing the Linux Kernel](https://intellabs.github.io/kAFL/tutorials/fuzzing_linux_kernel.html).
+As a first fuzzing example, we recommend [Fuzzing the Linux Kernel](https://intellabs.github.io/kAFL/tutorials/linux/fuzzing_linux_kernel.html).
 
 Other targets are available such as:
 
