@@ -1,0 +1,17 @@
+name: Intel Security Scan
+
+permissions: read-all
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "5 4 * * sun" # 4:05 AM Sunday
+
+jobs:
+  Call-Workflow:
+    uses: intel/.github/.github/workflows/intel_scan.yaml@main
+    permissions:
+      contents: read
+      packages: read
+      actions: read
+      security-events: write
