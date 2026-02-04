@@ -46,6 +46,7 @@ tutorials/windows/index
 :caption: How-to guides
 
 how_to/github_actions
+how_to/hardware_in_the_loop
 ```
 
 ```{toctree}
